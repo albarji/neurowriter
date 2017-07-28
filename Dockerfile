@@ -1,4 +1,3 @@
-#FROM nvidia/cuda:8.0-devel
 FROM nvidia/cuda
 
 # Install system dependencies
@@ -22,15 +21,14 @@ RUN conda install -q -y --file=/root/conda.txt \
   && conda clean -y -i -l -p -t \
   && pip install -r /root/pip.txt
 
-# Install requirements
-#ADD conda.txt pip.txt ./
-#RUN conda install -y --file conda.txt && rm conda.txt
-#RUN pip install -r pip.txt && rm pip.txt
-
 # Clone project files
 RUN mkdir neurowriter
 COPY . /neurowriter
 WORKDIR /neurowriter
+
+# Define locale
+ENV LANG C.UTF-8  
+ENV LC_ALL C.UTF-8
 
 # Launche Jupyter notebook with appropriate options
 CMD jupyter notebook --allow-root --no-browser --ip='*'
