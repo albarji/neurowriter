@@ -11,5 +11,5 @@ COPY . /neurowriter
 WORKDIR /neurowriter
 
 # Launche Jupyter notebook with appropriate options
-CMD jupyter notebook --allow-root --no-browser
+CMD jupyter notebook --allow-root --no-browser --ip='*'
 
