@@ -9,14 +9,17 @@ Definitions of different text generation models.
 """
 
 from keras.models import Sequential, Model
-from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, add, multiply, Dropout
+from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
+from keras.layers import add, multiply
 from keras.layers.advanced_activations import ELU
+from keras.layers.recurrent import LSTM
 
 def modelbyname(modelname):
     """Returns a model generating class by name"""
     models = {
         "dilatedconv" : DilatedConvModel,
-        "wavenet" : WavenetModel
+        "wavenet" : WavenetModel,
+        "lstm" : LSTMModel
     }
     if modelname not in models:
         raise ValueError("Unknown model %s" % modelname)
@@ -163,4 +166,43 @@ class WavenetModel():
         net = Dense(encoder.nchars, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+        return model
+
+class LSTMModel():
+    """Implementation of stacked Long-Short Term Memory model
+    
+    Main reference is Andrej Karpathy post on text generation with LSTMs:
+        - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+    """
+    
+    paramgrid = [
+        [1,2,3], # layers
+        [16,32,64,128,256,512,1024], # units
+        (0.0, 1.0), # dropout
+        ['sgd', 'rmsprop', 'adam'], # optimizer
+    ]
+    
+    def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
+               optimizer='adam'):
+        model = Sequential()
+        # First LSTM layer
+        if layers == 1:
+            model.add(LSTM(units, activation='relu',
+                      input_shape=(inputtokens, encoder.nchars)))
+        else:
+            model.add(LSTM(units, activation='relu', 
+                      input_shape=(inputtokens, encoder.nchars),
+                      return_sequences=True))
+        model.add(Dropout(dropout))
+        # Intermediate LSTM layers
+        for i in range(1, layers-1):
+            model.add(LSTM(units, activation='relu'), return_sequences=True)
+            model.add(Dropout(dropout))
+        # Final LSTM layer
+        model.add(LSTM(units, activation='relu'))
+        model.add(Dropout(dropout))
+        # Output layer
+        model.add(Dense(encoder.nchars, activation='softmax'))
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
+                      metrics=['accuracy'])
         return model
