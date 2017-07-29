@@ -64,7 +64,8 @@ def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000,
     # Return model and train history
     return model, train_history
 
-def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True):
+def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True,
+                    savemodel=None):
     """Creates an objective function for the hyperoptimizer
     
     Arguments
@@ -77,6 +78,7 @@ def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True):
         batchsize: number of patterns per training batch
         val: size of the validation set
         verbose: whether to print info on the evaluations of this objective
+        savemodel: name of file where to save model after each training
         
     Returns an objective function that given model parameters traings a full
     network over a corpus, and returns the validation loss over such corpus.
@@ -94,27 +96,30 @@ def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True):
         bestloss = min(train_history.history['val_loss'])
         if verbose:
             print("Params:", params, ", loss: ", bestloss)
+        if savemodel is not None:
+            model.save(savemodel)
         return bestloss
     
     # Return model train and validation loss producing function
     return valloss
 
 def findbestparams(modelclass, inputtokens, encoder, corpus, 
-                   n_calls=100):
+                   n_calls=100, savemodel=None):
     """Find the best parameters for a given model architecture and param grid
     
     Returns
         - list with the best parameters found for the model
         - OptimizeResult object with info on the optimization procedure
     """
-    fobj = createobjective(modelclass.create, inputtokens, encoder, corpus)
+    fobj = createobjective(modelclass.create, inputtokens, encoder, corpus,
+                           savemodel=savemodel)
     optres = gbrt_minimize(fobj, modelclass.paramgrid, n_calls=n_calls, 
                            random_state=0)
     bestparams = optres.x
     return bestparams, optres
 
 def hypertrain(modelclass, inputtokens, encoder, corpus, 
-               n_calls=100, verbose=True):
+               n_calls=100, verbose=True, savemodel=None):
     """Performs hypertraining of a certain model architecture
     
     Returns 
@@ -122,8 +127,8 @@ def hypertrain(modelclass, inputtokens, encoder, corpus,
         - A train history object
     """
     # Hyperoptimization to find the best neural network parameters
-    bestparams, optres = findbestparams(modelclass, inputtokens, 
-                                        encoder, corpus, n_calls)
+    bestparams, optres = findbestparams(modelclass, inputtokens, encoder, 
+                                        corpus, n_calls, savemodel)
     if verbose:
         print("Best parameters are", bestparams)
         plot_convergence(optres);
