@@ -21,9 +21,8 @@ RUN conda install -q -y --file=/root/conda.txt \
   && conda clean -y -i -l -p -t \
   && pip install -r /root/pip.txt
 
-# Clone project files
+# Create project folder (to be volume-mounted)
 RUN mkdir neurowriter
-COPY . /neurowriter
 WORKDIR /neurowriter
 
 # Define locale
