@@ -6,6 +6,7 @@
 # @author Álvaro Barbero Jiménez
 
 import numpy as np
+import itertools
 
 from neurowriter.encoding import NULL
 
@@ -27,10 +28,21 @@ class Writer():
         """Start writing characters
         
         Arguments:
-            seed: seed text to initialize generation
+            seed: list of tokens to initialize generation
             length: length of the generated text
             
         Return the generated text.
+        """        
+        # Iterate generation
+        return itertools.islice(self.generate(seed), length)
+    
+    def generate(self, seed=[]):
+        """Infinite generator of text following the Writer style.
+        
+        Arguments:
+            seed: list of tokens to initialize generation
+        
+        Returns one piece of text at a time.
         """
         # Prepare seed
         inputtokens = self.model.layers[0].input_shape[1]
@@ -39,8 +51,7 @@ class Writer():
         seedcoded = self.encoder.encodetext(seed[-inputtokens:])
         
         # Iterate generation
-        generated = []
-        for i in range(length):
+        while True:
             # Predict token probabilities using model
             pred = self.model.predict(
                 np.array([seedcoded]), 
@@ -49,11 +60,9 @@ class Writer():
             # Apply creativity
             maxoutput = sample(pred.squeeze(), temperature=self.creativity)
             newtoken = self.encoder.index2char[maxoutput]
-            generated.append(newtoken)
             # Drop oldest token, add new one
             seedcoded = np.vstack((seedcoded[1:], self.encoder.encodetext([newtoken])))
-            
-        return generated
+            yield newtoken
             
 def normalize(probs):
     """Normalizes a list of probabilities, so that they sum up to 1"""
