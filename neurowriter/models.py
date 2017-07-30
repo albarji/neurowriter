@@ -52,12 +52,17 @@ class DilatedConvModel():
                          input_shape=(inputtokens, encoder.nchars)))
         model.add(Dropout(convdrop))
         model.add(MaxPooling1D(pool_size))
-        # Additional dilated conv + pool layers
+        # Additional dilated conv + pool layers (if possible)
         for i in range(1, convlayers):
-            model.add(Conv1D(kernels, kernel_size, padding='causal', 
-                             dilation_rate=2**i, activation='relu'))
-            model.add(Dropout(convdrop))
-            model.add(MaxPooling1D(pool_size))
+            try:
+                model.add(Conv1D(kernels, kernel_size, padding='causal', 
+                                 dilation_rate=2**i, activation='relu'))
+                model.add(Dropout(convdrop))
+                model.add(MaxPooling1D(pool_size))
+            except:
+                print("Warning: not possible to add %i-th layer, moving to output" % i)
+                break
+                
         # Flatten and dense layers
         model.add(Flatten())
         for i in range(denselayers):

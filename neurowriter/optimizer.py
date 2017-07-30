@@ -14,7 +14,7 @@ from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 
 def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000, 
-               val = 0.25, patience = 10, batchsize = 128, modelparams=[]):
+               val = 0.25, patience = 10, batchsize = 64, modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
@@ -36,7 +36,12 @@ def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000,
         EarlyStopping(patience=patience)
     ]
     # Prepare data generators
-    cutpoint = int(np.ceil(len(corpus) * (1-0.25)))
+    ntokens = len(encoder.tokenizer.transform(corpus))
+    cutpoint = int(np.ceil(ntokens * (1-0.25)))
+    train_steps = int((1-val)*(ntokens-inputtokens+1)/batchsize)
+    val_steps = int(val*(ntokens-inputtokens+1)/batchsize)
+    if train_steps == 0 or val_steps == 0:
+        raise ValueError("Insufficient data for training in the current setting")
     traingenerator = encoder.patterngenerator(
         corpus, 
         tokensperpattern=inputtokens, 
@@ -54,9 +59,9 @@ def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000,
     # Train model
     train_history = model.fit_generator(
         traingenerator,
-        steps_per_epoch=int((1-val)*(len(corpus)-inputtokens+1)/batchsize),
+        steps_per_epoch=int((1-val)*(ntokens-inputtokens+1)/batchsize),
         validation_data=valgenerator,
-        validation_steps=int(val*(len(corpus)-inputtokens+1)/batchsize),
+        validation_steps=int(val*(ntokens-inputtokens+1)/batchsize),
         epochs=maxepochs,
         verbose=0,
         callbacks=callbacks

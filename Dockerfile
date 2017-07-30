@@ -21,6 +21,10 @@ RUN conda install -q -y --file=/root/conda.txt \
   && conda clean -y -i -l -p -t \
   && pip install -r /root/pip.txt
 
+# Install nltk dependencies
+COPY nltk-requirements.py /root/nltk-requirements.py
+RUN python /root/nltk-requirements.py
+
 # Create project folder (to be volume-mounted)
 RUN mkdir neurowriter
 WORKDIR /neurowriter

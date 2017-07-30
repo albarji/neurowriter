@@ -24,11 +24,11 @@ class Writer():
         self.encoder = encoder
         self.creativity = creativity
         
-    def write(self, seed=[], length=1000):
+    def write(self, seed="", length=1000):
         """Start writing characters
         
         Arguments:
-            seed: list of tokens to initialize generation
+            seed: text to initialize generation
             length: length of the generated text
             
         Return the generated text.
@@ -36,19 +36,20 @@ class Writer():
         # Iterate generation
         return itertools.islice(self.generate(seed), length)
     
-    def generate(self, seed=[]):
+    def generate(self, seed=""):
         """Infinite generator of text following the Writer style.
         
         Arguments:
-            seed: list of tokens to initialize generation
+            seed: text to initialize generation
         
         Returns one piece of text at a time.
         """
         # Prepare seed
+        seedtokens = self.encoder.tokenizer.transform(seed)
         inputtokens = self.model.layers[0].input_shape[1]
-        if len(seed) < inputtokens:
-            seed = [NULL] * (inputtokens-len(seed)) + seed
-        seedcoded = self.encoder.encodetext(seed[-inputtokens:])
+        if len(seedtokens) < inputtokens:
+            seedtokens = [NULL] * (inputtokens-len(seed)) + seedtokens
+        seedcoded = self.encoder.encodetokens(seedtokens[-inputtokens:])
         
         # Iterate generation
         while True:
@@ -61,7 +62,7 @@ class Writer():
             maxoutput = sample(pred.squeeze(), temperature=self.creativity)
             newtoken = self.encoder.index2char[maxoutput]
             # Drop oldest token, add new one
-            seedcoded = np.vstack((seedcoded[1:], self.encoder.encodetext([newtoken])))
+            seedcoded = np.vstack((seedcoded[1:], self.encoder.encodetokens([newtoken])))
             yield newtoken
             
 def normalize(probs):
