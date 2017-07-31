@@ -5,6 +5,9 @@ Created on Fri Jul 28 11:23:34 2017
 
 Definitions of different text generation models.
 
+Models are defined in a way that when multiple GPUs are present in the
+host, model parallelization is performed for faster training.
+
 @author: Álvaro Barbero Jiménez
 """
 
@@ -13,6 +16,8 @@ from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
 from keras.layers import add, multiply
 from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
+import tensorflow as tf
+from tensorflow.python.client import device_lib
 
 def modelbyname(modelname):
     """Returns a model generating class by name"""
@@ -24,6 +29,15 @@ def modelbyname(modelname):
     if modelname not in models:
         raise ValueError("Unknown model %s" % modelname)
     return models[modelname]
+
+def get_available_gpus():
+    """Returns a list of the GPU devices found in the host
+    
+    Reference: 
+        - https://stackoverflow.com/questions/38559755/how-to-get-current-available-gpus-in-tensorflow
+    """
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
@@ -105,6 +119,7 @@ class WavenetModel():
                dropout=0, optimizer='adam'):
         kernel_size = 2
         maxdilation = inputtokens
+        gpus = get_available_gpus()
         
         def gatedblock(dilation):
             """Dilated conv layer with Gated+ELU activ and skip connections"""
@@ -157,8 +172,9 @@ class WavenetModel():
         net = Conv1D(kernels, 1, padding='same')(input_)
         skip_connections = []
         for i in range(wavenetblocks):
-            net, skip = wavenetblock(maxdilation)(net)
-            skip_connections.append(skip)
+            with tf.device(gpus[i % len(gpus)]):
+                net, skip = wavenetblock(maxdilation)(net)
+                skip_connections.append(skip)
         if wavenetblocks > 1:
             net = add(skip_connections)
         else:
