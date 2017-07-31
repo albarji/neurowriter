@@ -95,7 +95,7 @@ class WavenetModel():
     """
     
     paramgrid = [
-        [4,8,16,32,64], # kernels
+        [32,64,128,256], # kernels
         [1,2,3,4,5], # wavenetblocks
         (0.0, 1.0), # dropout
         ['sgd', 'rmsprop', 'adam'], # optimizer
