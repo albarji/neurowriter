@@ -13,9 +13,10 @@ host, model parallelization is performed for faster training.
 
 from keras.models import Sequential, Model
 from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
-from keras.layers import add, multiply
+from keras.layers import add, multiply, merge
 from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
+from keras.layers.core import Lambda
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
@@ -38,6 +39,56 @@ def get_available_gpus():
     """
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+def make_parallel(model, gpu_count):
+    """Makes a keras model data-parallel on a set of gpus
+    
+    Original code extracted from
+        https://github.com/kuza55/keras-extras/blob/master/utils/multi_gpu.py
+    """
+    def get_slice(data, idx, parts):
+        shape = tf.shape(data)
+        size = tf.concat([ shape[:1] // parts, shape[1:] ],axis=0)
+        stride = tf.concat([ shape[:1] // parts, shape[1:]*0 ],axis=0)
+        start = stride * idx
+        return tf.slice(data, start, size)
+    
+    # Safety check: is number of gpus is 1, nothing to do here
+    if gpu_count < 2:
+        return model
+
+    outputs_all = []
+    for i in range(len(model.outputs)):
+        outputs_all.append([])
+
+    #Place a copy of the model on each GPU, each getting a slice of the batch
+    for i in range(gpu_count):
+        with tf.device('/gpu:%d' % i):
+            with tf.name_scope('tower_%d' % i):
+
+                inputs = []
+                #Slice each input into a piece for processing on this GPU
+                for x in model.inputs:
+                    input_shape = tuple(x.get_shape().as_list())[1:]
+                    slice_n = Lambda(get_slice, output_shape=input_shape, arguments={'idx':i,'parts':gpu_count})(x)
+                    inputs.append(slice_n)                
+
+                outputs = model(inputs)
+                
+                if not isinstance(outputs, list):
+                    outputs = [outputs]
+                
+                #Save all the outputs for merging back together later
+                for l in range(len(outputs)):
+                    outputs_all[l].append(outputs[l])
+
+    # merge outputs on CPU
+    with tf.device('/cpu:0'):
+        merged = []
+        for outputs in outputs_all:
+            merged.append(merge(outputs, mode='concat', concat_axis=0))
+            
+        return Model(input=model.inputs, output=merged)
 
 class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
@@ -119,7 +170,6 @@ class WavenetModel():
                dropout=0, optimizer='adam'):
         kernel_size = 2
         maxdilation = inputtokens
-        gpus = get_available_gpus()
         
         def gatedblock(dilation):
             """Dilated conv layer with Gated+ELU activ and skip connections"""
@@ -172,9 +222,8 @@ class WavenetModel():
         net = Conv1D(kernels, 1, padding='same')(input_)
         skip_connections = []
         for i in range(wavenetblocks):
-            with tf.device(gpus[i % len(gpus)]):
-                net, skip = wavenetblock(maxdilation)(net)
-                skip_connections.append(skip)
+            net, skip = wavenetblock(maxdilation)(net)
+            skip_connections.append(skip)
         if wavenetblocks > 1:
             net = add(skip_connections)
         else:
@@ -186,6 +235,11 @@ class WavenetModel():
         net = Flatten()(net)
         net = Dense(encoder.nchars, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)
+        
+        # Make data-parallel
+        gpus = get_available_gpus()
+        model = make_parallel(model, len(gpus))
+        
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         return model
 
