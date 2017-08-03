@@ -80,13 +80,13 @@ def make_parallel(model, gpu_count):
                     outputs_all[l].append(outputs[l])
 
     # merge outputs on CPU
-    if gpu_count > 1:
-        with tf.device('/cpu:0'):
+    with tf.device('/cpu:0'):
+        if gpu_count > 1:
             merged = []
             for outputs in outputs_all:
                 merged.append(concatenate(outputs, axis=0))
-    else:
-        merged = outputs
+        else:
+            merged = outputs
             
         return Model(inputs=model.inputs, outputs=merged)
 

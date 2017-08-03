@@ -120,7 +120,7 @@ def findbestparams(modelclass, inputtokens, encoder, corpus,
         - list with the best parameters found for the model
         - OptimizeResult object with info on the optimization procedure
     """
-    fobj = createobjective(modelclass.create, inputtokens, encoder, corpus,
+    fobj = createobjective(modelclass, inputtokens, encoder, corpus,
                            savemodel=savemodel)
     optres = gbrt_minimize(fobj, modelclass.paramgrid, n_calls=n_calls, 
                            random_state=0)
@@ -142,5 +142,5 @@ def hypertrain(modelclass, inputtokens, encoder, corpus,
         print("Best parameters are", bestparams)
         plot_convergence(optres);
     # Train again a new network with the best parameters
-    return trainmodel(modelclass.create, inputtokens, encoder, corpus, 
+    return trainmodel(modelclass, inputtokens, encoder, corpus, 
                       modelparams=bestparams)
