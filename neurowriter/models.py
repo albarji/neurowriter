@@ -13,12 +13,13 @@ host, model parallelization is performed for faster training.
 
 from keras.models import Sequential, Model
 from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
-from keras.layers import add, multiply, merge
+from keras.layers import add, multiply, concatenate
 from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
 from keras.layers.core import Lambda
 import tensorflow as tf
 from tensorflow.python.client import device_lib
+import re
 
 def modelbyname(modelname):
     """Returns a model generating class by name"""
@@ -52,10 +53,6 @@ def make_parallel(model, gpu_count):
         stride = tf.concat([ shape[:1] // parts, shape[1:]*0 ],axis=0)
         start = stride * idx
         return tf.slice(data, start, size)
-    
-    # Safety check: is number of gpus is 1, nothing to do here
-    if gpu_count < 2:
-        return model
 
     outputs_all = []
     for i in range(len(model.outputs)):
@@ -83,12 +80,15 @@ def make_parallel(model, gpu_count):
                     outputs_all[l].append(outputs[l])
 
     # merge outputs on CPU
-    with tf.device('/cpu:0'):
-        merged = []
-        for outputs in outputs_all:
-            merged.append(merge(outputs, mode='concat', concat_axis=0))
+    if gpu_count > 1:
+        with tf.device('/cpu:0'):
+            merged = []
+            for outputs in outputs_all:
+                merged.append(concatenate(outputs, axis=0))
+    else:
+        merged = outputs
             
-        return Model(input=model.inputs, output=merged)
+        return Model(inputs=model.inputs, outputs=merged)
 
 class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
@@ -139,6 +139,9 @@ class DilatedConvModel():
                       metrics=['accuracy'])
         return model
     
+    def trim(model):
+        return model
+
 class WavenetModel():
     """Implementation of Wavenet model
     
@@ -242,6 +245,17 @@ class WavenetModel():
         
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         return model
+    
+    def trim(model):
+        """Removes data-parallel scaffolding, for efficient prediction"""
+        # Find the layer containing the internal model and return it
+        # This is not a good way to do it, but I can't find a way to name
+        # a submodel explicitly to recover it later
+        for layer in model.layers:
+            if re.match("model_", layer.name):
+                return layer
+        # Not found
+        raise ValueError("Core model not found")
 
 class LSTMModel():
     """Implementation of stacked Long-Short Term Memory model
@@ -281,3 +295,7 @@ class LSTMModel():
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
                       metrics=['accuracy'])
         return model
+
+    def trim(model):
+        return model
+    

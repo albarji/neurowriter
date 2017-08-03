@@ -13,12 +13,13 @@ from keras.callbacks import EarlyStopping
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 
-def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000, 
-               val = 0.25, patience = 10, batchsize = 64, modelparams=[]):
+def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
+               val = 0.25, patience = 20, batchsize = 64, verbose=False,
+               modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
-        modelkind: function creating the generative model
+        modelclass: class defining the generative model
         inputtokens: number of input tokens the model will receive at a time
         encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
@@ -26,10 +27,11 @@ def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000,
         val: size of the validation set
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
+        verbose: whether to print training traces
         modelparams: list of parameters to be passed to the modelkind function
     """        
     # Build model with input parameters
-    model = modelkind(inputtokens, encoder, *modelparams)
+    model = modelclass.create(inputtokens, encoder, *modelparams)
     # Prepare callbacks
     callbacks = [
         #ModelCheckpoint(filepath=modelname,save_best_only=True),
@@ -63,18 +65,20 @@ def trainmodel(modelkind, inputtokens, encoder, corpus, maxepochs = 1000,
         validation_data=valgenerator,
         validation_steps=int(val*(ntokens-inputtokens+1)/batchsize),
         epochs=maxepochs,
-        verbose=0,
+        verbose=2 if verbose else 0,
         callbacks=callbacks
     )
+    # Trim model to make it more efficent for predictions
+    model = modelclass.trim(model)
     # Return model and train history
     return model, train_history
 
-def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True,
+def createobjective(modelclass, inputtokens, encoder, corpus, verbose=True,
                     savemodel=None):
     """Creates an objective function for the hyperoptimizer
     
     Arguments
-        modelkind: function creating the generative model
+        modelclass: class defining the generative model
         inputtokens: number of input tokens the model will receive at a time
         encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
@@ -91,7 +95,7 @@ def createobjective(modelkind, inputtokens, encoder, corpus, verbose=True,
     def valloss(params):
         """Trains a keras model with given parameters and returns val loss"""
         model, train_history = trainmodel(
-            modelkind, 
+            modelclass, 
             inputtokens, 
             encoder, 
             corpus, 
