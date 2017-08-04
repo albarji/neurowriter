@@ -18,6 +18,7 @@ from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
+from keras.layers.wrappers import Bidirectional
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
@@ -273,7 +274,8 @@ class LSTMModel():
     Main reference is Andrej Karpathy post on text generation with LSTMs:
         - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
     
-    This implementation also includes an Embedding layer.
+    This implementation also includes an Embedding layer, and a bidirectional
+    LSTM as the first LSTM layer in the network.
     """
     
     paramgrid = [
@@ -286,20 +288,22 @@ class LSTMModel():
     
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
                embedding=32, optimizer='adam'):
-        model = Sequential()
+        input_ = Input(shape=(inputtokens,), dtype='int32')
         # Embedding layer
-        model.add(Embedding(input_dim=encoder.nchars, output_dim=embedding,
-                            input_length=inputtokens))
-        model.add(Dropout(dropout))
-        # Intermediate LSTM layers
-        for i in range(layers-1):
-            model.add(LSTM(units, activation='relu'), return_sequences=True)
-            model.add(Dropout(dropout))
-        # Final LSTM layer
-        model.add(LSTM(units, activation='relu'))
-        model.add(Dropout(dropout))
+        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                            input_length=inputtokens)(input_)
+        net = Dropout(dropout)(net)
+        # Bidirectional LSTM layer
+        net = Bidirectional(LSTM(units, activation='relu', 
+                       return_sequences=(layers>1)))(net)
+        net = Dropout(dropout)(net)
+        # Rest of LSTM layers (if any)
+        for i in range(1, layers):
+            net = LSTM(units, activation='relu', return_sequences=i<layers-1)(net)
+            net = Dropout(dropout)(net)
         # Output layer
-        model.add(Dense(encoder.nchars, activation='softmax'))
+        net = Dense(encoder.nchars, activation='softmax')(net)
+        model = Model(inputs=input_, outputs=net)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
                       metrics=['accuracy'])
         return model
