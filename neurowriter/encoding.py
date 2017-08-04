@@ -78,28 +78,28 @@ class Encoder():
         at the beginning until such length is met.    
         """
         ln = len(tokens) + (1 if addstart else 0)
-        X = np.zeros((ln, len(self.char2index)))
+        x = np.zeros(ln, dtype=int)
         if addstart:
-            X[0, self.char2index[START]] = 1
+            x[0] = self.char2index[START]
             offset = 1
         else:
             offset = 0
         for t, token in enumerate(tokens):
             if token in self.char2index:
-                X[offset + t, self.char2index[token]] = 1
+                x[offset + t] = self.char2index[token]
             else:
                 print("WARNING: token", token, "not recognized")
     
         # Null padding, if requested            
         if fixlength is not None:
-            Xfix = np.zeros((fixlength, len(self.char2index)))
+            xfix = np.zeros(fixlength, dtype=int)
             for i in range(min(ln,fixlength)):
-                Xfix[-i] = X[-i]
+                xfix[-i] = x[-i]
             for i in range(ln, fixlength):
-                Xfix[-i, self.char2index[NULL]] = 1
-            X = Xfix
+                xfix[-i] = self.char2index[NULL]
+            x = xfix
             
-        return X
+        return x
         
     def decodetext(self, X):
         """Transforms a matrix representing a text into text form
@@ -129,7 +129,9 @@ class Encoder():
         end = len(tokens) if end is None else end
         for i in range(start,end-tokensperpattern):
             x = self.encodetokens(tokens[i:i+tokensperpattern], **kwargs)
-            y = self.encodetokens([tokens[i+tokensperpattern]], **kwargs).squeeze()
+            yindex = self.encodetokens([tokens[i+tokensperpattern]], **kwargs)[0]
+            y = np.zeros(self.nchars)
+            y[yindex] = 1.0
             yield x, y
 
     def save(self, filename):

@@ -16,6 +16,7 @@ from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
 from keras.layers import add, multiply, concatenate
 from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
+from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
 import tensorflow as tf
 from tensorflow.python.client import device_lib
@@ -100,21 +101,25 @@ class DilatedConvModel():
         [0,1,2,3], # denselayers
         [16,32,64,128,256], # dense units
         (0.0, 1.0), # densedrop
+        [32, 64, 128, 256, 512], # size of the embedding
         ['sgd', 'rmsprop', 'adam'], # optimizer
     ]
     
     def create(inputtokens, encoder, convlayers=5, kernels = 32,
                convdrop=0.1, denselayers=0, denseunits=64, densedrop=0.1,
-               optimizer='adam'):
+               embedding=32, optimizer='adam'):
         kernel_size = 2
         pool_size = 2
         if convlayers < 1:
             raise ValueError("Number of layers must be at least 1")
             
-        # First conv+pool layer
-        model = Sequential()
-        model.add(Conv1D(kernels, kernel_size, padding='causal', activation='relu', 
-                         input_shape=(inputtokens, encoder.nchars)))
+        model = Sequential()        
+        # Embedding layer
+        model.add(Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                            input_length=inputtokens))
+        # First conv+pool layer        
+        model.add(Conv1D(kernels, kernel_size, padding='causal', 
+                         activation='relu'))
         model.add(Dropout(convdrop))
         model.add(MaxPooling1D(pool_size))
         # Additional dilated conv + pool layers (if possible)
@@ -166,11 +171,12 @@ class WavenetModel():
         [32,64,128,256], # kernels
         [1,2,3,4,5], # wavenetblocks
         (0.0, 1.0), # dropout
+        [32, 64, 128, 256, 512], # size of the embedding
         ['sgd', 'rmsprop', 'adam'], # optimizer
     ]
     
     def create(inputtokens, encoder, kernels=64, wavenetblocks=1, 
-               dropout=0, optimizer='adam'):
+               dropout=0, embedding=32, optimizer='adam'):
         kernel_size = 2
         maxdilation = inputtokens
         
@@ -221,8 +227,12 @@ class WavenetModel():
                 return flow, skip
             return f
         
-        input_ = Input(shape=(inputtokens, encoder.nchars))
-        net = Conv1D(kernels, 1, padding='same')(input_)
+        input_ = Input(shape=(inputtokens,), dtype='int32')
+        # Embedding layer
+        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                            input_length=inputtokens)(input_)
+        # Wavent starts!
+        net = Conv1D(kernels, 1, padding='same')(net)
         skip_connections = []
         for i in range(wavenetblocks):
             net, skip = wavenetblock(maxdilation)(net)
@@ -262,29 +272,27 @@ class LSTMModel():
     
     Main reference is Andrej Karpathy post on text generation with LSTMs:
         - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+    
+    This implementation also includes an Embedding layer.
     """
     
     paramgrid = [
         [1,2,3], # layers
         [16,32,64,128,256,512,1024], # units
         (0.0, 1.0), # dropout
+        [32, 64, 128, 256, 512], # size of the embedding
         ['sgd', 'rmsprop', 'adam'], # optimizer
     ]
     
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
-               optimizer='adam'):
+               embedding=32, optimizer='adam'):
         model = Sequential()
-        # First LSTM layer
-        if layers == 1:
-            model.add(LSTM(units, activation='relu',
-                      input_shape=(inputtokens, encoder.nchars)))
-        else:
-            model.add(LSTM(units, activation='relu', 
-                      input_shape=(inputtokens, encoder.nchars),
-                      return_sequences=True))
+        # Embedding layer
+        model.add(Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                            input_length=inputtokens))
         model.add(Dropout(dropout))
         # Intermediate LSTM layers
-        for i in range(1, layers-1):
+        for i in range(layers-1):
             model.add(LSTM(units, activation='relu'), return_sequences=True)
             model.add(Dropout(dropout))
         # Final LSTM layer

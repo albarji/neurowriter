@@ -60,9 +60,14 @@ class Writer():
             )
             # Apply creativity
             maxoutput = sample(pred.squeeze(), temperature=self.creativity)
-            newtoken = self.encoder.index2char[maxoutput]
             # Drop oldest token, add new one
-            seedcoded = np.vstack((seedcoded[1:], self.encoder.encodetokens([newtoken])))
+            seedcoded[:-1] = seedcoded[1:]
+            seedcoded[-1] = maxoutput
+            # Yield generated token (in text form)
+            newtoken = (
+                self.encoder.index2char[maxoutput] 
+                + self.encoder.tokenizer.intertoken
+            )
             yield newtoken
             
 def normalize(probs):
