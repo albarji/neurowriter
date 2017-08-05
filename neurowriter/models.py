@@ -274,12 +274,13 @@ class LSTMModel():
     Main reference is Andrej Karpathy post on text generation with LSTMs:
         - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
     
-    This implementation also includes an Embedding layer, and a bidirectional
-    LSTM as the first LSTM layer in the network.
+    This implementation also includes an Embedding layer, a bidirectional
+    LSTM as the first LSTM layer in the network, and residual connections
+    for all intermediate LSTM layers.
     """
     
     paramgrid = [
-        [1,2,3], # layers
+        [1,2,3,4,5], # layers
         [16,32,64,128,256,512,1024], # units
         (0.0, 1.0), # dropout
         [32, 64, 128, 256, 512], # size of the embedding
@@ -297,10 +298,14 @@ class LSTMModel():
         net = Bidirectional(LSTM(units, activation='relu', 
                        return_sequences=(layers>1)))(net)
         net = Dropout(dropout)(net)
-        # Rest of LSTM layers (if any)
+        # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
-            net = LSTM(units, activation='relu', return_sequences=i<layers-1)(net)
-            net = Dropout(dropout)(net)
+            if i < layers-1:
+                block = LSTM(2*units, activation='relu', return_sequences=True)(net)
+                block = Dropout(dropout)(block)
+                net = add([block, net])
+            else:
+                net = LSTM(2*units, activation='relu')(net)
         # Output layer
         net = Dense(encoder.nchars, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)

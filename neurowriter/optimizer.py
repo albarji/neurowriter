@@ -12,6 +12,7 @@ import numpy as np
 from keras.callbacks import EarlyStopping
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
+from keras import backend
 
 def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
                val = 0.25, patience = 20, batchsize = 64, verbose=False,
@@ -101,12 +102,16 @@ def createobjective(modelclass, inputtokens, encoder, corpus, verbose=True,
             corpus, 
             modelparams=params
         )
-        # Return validation loss
+        # Extract validation loss
         bestloss = min(train_history.history['val_loss'])
         if verbose:
             print("Params:", params, ", loss: ", bestloss)
         if savemodel is not None:
             model.save(savemodel)
+        # Clear model and tensorflow session to free up space
+        del model
+        backend.clear_session()
+        
         return bestloss
     
     # Return model train and validation loss producing function
