@@ -13,9 +13,10 @@ included between tokens when recovering the original text back (e.g. blank).
 """
 
 from nltk.tokenize import word_tokenize
-from tempfile import TemporaryFile
 import re, collections
-import operator
+
+# Special token to mark tokenizer borders
+BORDER = "<TK_BORDER>"
 
 #from subwordnmt import learn_bpe
 
@@ -23,7 +24,8 @@ def tokenizerbyname(tokenizername):
     """Returns a tokenizer class by name"""
     tokenizers = {
         "char" : CharTokenizer,
-        "word" : WordTokenizer
+        "word" : WordTokenizer,
+        "subword" : SubwordTokenizer,
     }
     if tokenizername not in tokenizers:
         raise ValueError("Unknown tokenizer %s" % tokenizername)
@@ -71,56 +73,7 @@ class SubwordTokenizer():
     def __init__(self, numsymbols=1024, minfreq=2):
         self.numsymbols = numsymbols
         self.minfreq = minfreq
-    
-#    def fit(self, corpus):
-#        # Invoke BPE algorithm
-#        infile = TemporaryFile(mode="w")
-#        infile.write(corpus)
-#        outfile = TemporaryFile()
-#        learn_bpe.main(infile, outfile, self.num_symbols)
-#        infile.close()
-#        #TODO
-#        
-#            
-#    def parsebperesult(outfile):
-#        #TODO
-#        for line in outfile:
-#            # Skip comments
-#            if line[0] == "#":
-#                continue
-#            # 
-#            matched = re.match("([^ ]+) (.+?)(?=abc)", line)
-#
-#    def get_stats(vocab):
-#        pairs = collections.defaultdict(int)
-#        for word, freq in vocab.items():
-#            symbols = word.split()
-#            for i in range(len(symbols)-1):
-#                pairs[symbols[i],symbols[i+1]] += freq
-#        return pairs
-#    
-#    def merge_vocab(pair, v_in):
-#        v_out = {}
-#        bigram = re.escape(' '.join(pair))
-#        p = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
-#        for word in v_in:
-#            w_out = p.sub(''.join(pair), word)
-#            v_out[w_out] = v_in[word]
-#        return v_out
-#    
-#    def samplebpe():
-#        vocab = {'l o w </w>' : 5, 'l o w e r </w>' : 2,
-#                'n e w e s t </w>':6, 'w i d e s t </w>':3}
-#        num_merges = 10
-#        for i in range (num_merges):
-#            pairs = get_stats(vocab)
-#            best = max(pairs, key=pairs.get)
-#            vocab = merge_vocab(best, vocab)
-#            print(best)
-    
-#    def initsymbols(self, corpus):
-#        """Initializes the symbol representations using single chars"""
-#        return collections.Counter(corpus)
+        self.detector = None
     
     def initfreqs(self, corpus):
         """Initializes the symbol statistics with char pairs"""
@@ -129,32 +82,78 @@ class SubwordTokenizer():
             stats[a,b] += 1
         return stats
     
-    def updatefreqs(self, freqs, symbols, leftsymbol, rightsymbol, corpus):
-        # Find positions where the new combined symbol appears
+    def mergesymbols(self, corpus, symbols, freqs, leftsymbol, rightsymbol):
+        """Merges two symbols in the encoding
+        
+        Arguments:
+            - corpus: current list of symbols representing the corpus
+            - symbols: current set of symbols
+            - freqs: current symbol pairs statistics
+            - leftsymbol, rightsymbol: symbols to merge
+            
+        Returns:
+            - new corpus with merged symbols
+            - new list of symbols
+            - updated symbol pair statistics
+        """
+        # Add new symbol to set
         newsymbol = leftsymbol + rightsymbol
-        p = re.compile(newsymbol)
-        for match in p.finditer(corpus):
-            nextpos = match.end()
-            # Now find the following symbol
-            nextsymbol = self.bestmatch(corpus[nextpos:], symbols)
-            freqs[newsymbol, nextsymbol] += 1
-            freqs[rightsymbol, nextsymbol] -= 1
-            # TODO: update also with the PREVIOUS symbol
+        self.symbols.add(newsymbol)
+        
+        # Go over the corpus, find occurrences of the given pair and merge
+        padded = corpus + [BORDER]
+        newcorpus = []
+        i = 0
+        while i < len(corpus):
+            if padded[i] == leftsymbol and padded[i+1] == rightsymbol:
+                newcorpus.append(newsymbol)
+                i += 2 # Skip already processed next symbol
+            else:
+                newcorpus.append(padded[i])
+                i += 1
+            
+        # Find positions where the new combined symbol appears, update freqs
+        for i, s in enumerate(newcorpus):
+            if s == newsymbol:
+                # Update frequencies with previous symbol
+                if i > 0:
+                    prevsymbol = newcorpus[i-1]
+                    freqs[prevsymbol, newsymbol] += 1
+                    freqs[prevsymbol, leftsymbol] -= 1
+                # Update frequencies with next symbol
+                if i < len(newcorpus)-1:
+                    nextsymbol = newcorpus[i+1]
+                    freqs[newsymbol, nextsymbol] += 1
+                    freqs[rightsymbol, nextsymbol] -= 1
+                         
+        # Delete statistics of merged symbols
+        del freqs[(leftsymbol, rightsymbol)]
+                         
+        return newcorpus, freqs, symbols
+        
+    def compile(self):
+        """Compiles the parsing expression for more efficiency"""
+        # Sort symbols by length, so larger symbols have precedence
+        srt = sorted(self.symbols, key=lambda x: len(x), reverse=True)
+        # Escape special symbols
+        srt = [re.escape(token) for token in srt]
+        # Detect any symbol, with precedence for larger ones
+        self.detector = re.compile('|'.join(srt))
+        
             
     def bestmatch(self, string, symbols):
         """Find the best matching symbol at the beggining of a string"""
-        # Sort symbols by length, so larger symbols have precedence
-        srt = sorted(symbols, key=lambda x: len(x), reverse=True)
-        # Detect any symbol, with precedence for larger ones
-        detector = re.compile('|'.join(srt))
-        match = detector.match(string)
+        if self.detector is None:
+            raise ValueError("Tokenizer has not been fitted")
+        match = self.detector.match(string)
         if match is not None:
             return match.group()
         else:
             return None
     
     def fit(self, corpus):
-        #import pdb; pdb.set_trace()  #TODO
+        # Cast corpus to list of symbols
+        corpus = list(corpus)
         # Initialize symbols with chars
         self.symbols = set(corpus)
         # Compute char pairs frequencies
@@ -163,14 +162,27 @@ class SubwordTokenizer():
         for i in range(self.numsymbols - len(self.symbols)):
             # Find most frequent pair
             leftsymbol, rightsymbol = max(freqs, key=freqs.get)
-            newsymbol = leftsymbol + rightsymbol
             # If too infrequent, stop procedure
             if freqs[(leftsymbol, rightsymbol)] < self.minfreq:
                 break
-            # Add to dictionary of symbols
-            self.symbols.add(newsymbol)
-            # Update pairs frequencies with the new symbol
-            self.updatefreqs(freqs, self.symbols, leftsymbol, rightsymbol, corpus)
-            # Remove processed pair from frequencies
-            del freqs[(leftsymbol, rightsymbol)]
-        #import pdb; pdb.set_trace()  #TODO
+            # Merge symbols
+            corpus, freqs, self.symbols = self.mergesymbols(
+                corpus,
+                self.symbols, 
+                freqs, 
+                leftsymbol, 
+                rightsymbol
+            )
+        # Compile tokenizer for found symbols
+        self.compile()
+
+    def transform(self, corpus):
+        transformed = []
+        i = 0
+        while i < len(corpus):
+            symbol = self.bestmatch(corpus[i:], self.symbols)
+            transformed.append(symbol)
+            i += len(symbol)
+        return transformed
+        
+    intertoken = ""
