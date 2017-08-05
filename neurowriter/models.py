@@ -289,26 +289,42 @@ class LSTMModel():
     
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
                embedding=32, optimizer='adam'):
+        
+        gpus = get_available_gpus()
+        gpuidx = 0
         input_ = Input(shape=(inputtokens,), dtype='int32')
+        
         # Embedding layer
-        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
-                            input_length=inputtokens)(input_)
-        net = Dropout(dropout)(net)
+        with tf.device(gpus[gpuidx % len(gpus)]):
+            net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                                input_length=inputtokens)(input_)
+            net = Dropout(dropout)(net)
+        gpuidx += 1
+            
         # Bidirectional LSTM layer
-        net = Bidirectional(LSTM(units, activation='relu', 
-                       return_sequences=(layers>1)))(net)
-        net = Dropout(dropout)(net)
+        with tf.device(gpus[gpuidx % len(gpus)]):
+            net = Bidirectional(LSTM(units, activation='relu', 
+                           return_sequences=(layers>1)))(net)
+            net = Dropout(dropout)(net)
+        gpuidx += 1
+            
         # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
-            if i < layers-1:
-                block = LSTM(2*units, activation='relu', return_sequences=True)(net)
-                block = Dropout(dropout)(block)
-                net = add([block, net])
-            else:
-                net = LSTM(2*units, activation='relu')(net)
+            with tf.device(gpus[gpuidx % len(gpus)]):
+                if i < layers-1:
+                    block = LSTM(2*units, activation='relu', return_sequences=True)(net)
+                    block = Dropout(dropout)(block)
+                    net = add([block, net])
+                else:
+                    net = LSTM(2*units, activation='relu')(net)
+            gpuidx += 1
+                    
         # Output layer
-        net = Dense(encoder.nchars, activation='softmax')(net)
-        model = Model(inputs=input_, outputs=net)
+        with tf.device(gpus[gpuidx % len(gpus)]):
+            net = Dense(encoder.nchars, activation='softmax')(net)
+            model = Model(inputs=input_, outputs=net)
+        gpuidx += 1
+        
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
                       metrics=['accuracy'])
         return model
