@@ -9,7 +9,8 @@ import numpy as np
 from itertools import chain
 import pickle as pkl
 
-from neurowriter.genutils import batchedgenerator, infinitegenerator
+from neurowriter.genutils import batchedpatternsgenerator, infinitegenerator
+from neurowriter.genutils import maskedgenerator
 from neurowriter.tokenizer import tokenizerbyname
 
 # Start sequence special character
@@ -113,21 +114,21 @@ class Encoder():
                 
         return text
     
-    @batchedgenerator
+    # Mask the patterns, then batch them, then repeat the cycle endlessly
     @infinitegenerator
-    def patterngenerator(self, corpus, tokensperpattern, start=0, end=None, **kwargs):
+    @batchedpatternsgenerator
+    @maskedgenerator
+    def patterngenerator(self, corpus, tokensperpattern, **kwargs):
         """Infinite generator of encoded patterns.
         
         Arguments
             - corpus: list of tokens making up the corpus
             - tokensperpattern: how many tokens to include in every pattern
-            - start: first corpus token to use in pattern generation
-            - end: last corpus token to use in pattern generation
             - **kwargs: any other arguments are passed on to decodetext
         """
         tokens = self.tokenizer.transform(corpus)
-        end = len(tokens) if end is None else end
-        for i in range(start,end-tokensperpattern):
+        end = len(tokens)
+        for i in range(end-tokensperpattern):
             x = self.encodetokens(tokens[i:i+tokensperpattern], **kwargs)
             yindex = self.encodetokens([tokens[i+tokensperpattern]], **kwargs)[0]
             y = np.zeros(self.nchars)

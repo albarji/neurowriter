@@ -15,8 +15,8 @@ from skopt.plots import plot_convergence
 from keras import backend
 
 def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
-               val = 0.25, patience = 20, batchsize = 64, verbose=False,
-               modelparams=[]):
+               valmask = [False, False, False, True], patience = 20,
+               batchsize = 64, verbose=False, modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
@@ -25,7 +25,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
         encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
         maxepochs: maximum allowed training epochs for each model
-        val: size of the validation set
+        valmask: boolean mask marking patterns to use for validation
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
         verbose: whether to print training traces
@@ -38,33 +38,36 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
         #ModelCheckpoint(filepath=modelname,save_best_only=True),
         EarlyStopping(patience=patience)
     ]
-    # Prepare data generators
+    # Preoompute some data size measurements
     ntokens = len(encoder.tokenizer.transform(corpus))
-    cutpoint = int(np.ceil(ntokens * (1-0.25)))
-    train_steps = int((1-val)*(ntokens-inputtokens+1)/batchsize)
-    val_steps = int(val*(ntokens-inputtokens+1)/batchsize)
+    npatterns = ntokens-inputtokens+1
+    val_ratio = len([x for x in valmask if x]) / len(valmask)
+    train_ratio = 1-val_ratio
+    val_steps = int(npatterns * val_ratio / batchsize)
+    train_steps = int(npatterns * train_ratio / batchsize)
     if train_steps == 0 or val_steps == 0:
         raise ValueError("Insufficient data for training in the current setting")
+    # Prepare data generators
     traingenerator = encoder.patterngenerator(
         corpus, 
         tokensperpattern=inputtokens, 
-        end=cutpoint, 
+        mask=[not x for x in valmask], 
         batchsize=batchsize, 
         infinite=True
     )
     valgenerator = encoder.patterngenerator(
         corpus, 
         tokensperpattern=inputtokens, 
-        start=cutpoint,
+        mask=valmask,
         batchsize=batchsize, 
         infinite=True
     )
     # Train model
     train_history = model.fit_generator(
         traingenerator,
-        steps_per_epoch=int((1-val)*(ntokens-inputtokens+1)/batchsize),
+        steps_per_epoch=train_steps,
         validation_data=valgenerator,
-        validation_steps=int(val*(ntokens-inputtokens+1)/batchsize),
+        validation_steps=val_steps,
         epochs=maxepochs,
         verbose=2 if verbose else 0,
         callbacks=callbacks
