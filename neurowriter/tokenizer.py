@@ -70,7 +70,7 @@ class SubwordTokenizer():
         - https://arxiv.org/abs/1508.07909
     """
     
-    def __init__(self, numsymbols=1024, minfreq=2):
+    def __init__(self, numsymbols=4096, minfreq=2):
         self.numsymbols = numsymbols
         self.minfreq = minfreq
         self.detector = None
