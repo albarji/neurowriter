@@ -25,7 +25,8 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
         encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
         maxepochs: maximum allowed training epochs for each model
-        valmask: boolean mask marking patterns to use for validation
+        valmask: boolean mask marking patterns to use for validation.
+            Input None to use all the data for training AND validation.
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
         verbose: whether to print training traces
@@ -41,8 +42,13 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
     # Preoompute some data size measurements
     ntokens = len(encoder.tokenizer.transform(corpus))
     npatterns = ntokens-inputtokens+1
+    if valmask is not None:
+        trainmask = [not x for x in valmask]
+    else:
+        valmask= [True]
+        trainmask = [True]
     val_ratio = len([x for x in valmask if x]) / len(valmask)
-    train_ratio = 1-val_ratio
+    train_ratio = len([x for x in trainmask if x]) / len(trainmask)
     val_steps = int(npatterns * val_ratio / batchsize)
     train_steps = int(npatterns * train_ratio / batchsize)
     if train_steps == 0 or val_steps == 0:
@@ -51,7 +57,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
     traingenerator = encoder.patterngenerator(
         corpus, 
         tokensperpattern=inputtokens, 
-        mask=[not x for x in valmask], 
+        mask=trainmask, 
         batchsize=batchsize, 
         infinite=True
     )
