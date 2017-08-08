@@ -314,6 +314,7 @@ class LSTMModel():
                 net = add([block, net])
             else:
                 net = LSTM(2*units, activation='relu')(net)
+                net = Dropout(dropout)(net)
                     
         # Output layer
         net = Dense(encoder.nchars, activation='softmax')(net)
