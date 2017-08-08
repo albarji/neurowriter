@@ -102,3 +102,7 @@ ENV/
 
 # Corpus folder
 corpus/**
+
+# Generated samples folder
+generatedsamples/**
+

@@ -91,6 +91,17 @@ def make_parallel(model, gpu_count):
             merged = outputs
             
         return Model(inputs=model.inputs, outputs=merged)
+    
+def getcoremodel(model):
+    """Removes data-parallel scaffolding, for efficient prediction"""
+    # Find the layer containing the internal model and return it
+    # This is not a good way to do it, but I can't find a way to name
+    # a submodel explicitly to recover it later
+    for layer in model.layers:
+        if re.match("model_", layer.name):
+            return layer
+    # Not found
+    raise ValueError("Core model not found")
 
 class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
@@ -259,14 +270,7 @@ class WavenetModel():
     
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
-        # Find the layer containing the internal model and return it
-        # This is not a good way to do it, but I can't find a way to name
-        # a submodel explicitly to recover it later
-        for layer in model.layers:
-            if re.match("model_", layer.name):
-                return layer
-        # Not found
-        raise ValueError("Core model not found")
+        return getcoremodel(model)
 
 class LSTMModel():
     """Implementation of stacked Long-Short Term Memory model
@@ -290,45 +294,40 @@ class LSTMModel():
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
                embedding=32, optimizer='adam'):
         
-        gpus = get_available_gpus()
-        gpuidx = 0
         input_ = Input(shape=(inputtokens,), dtype='int32')
         
         # Embedding layer
-        with tf.device(gpus[gpuidx % len(gpus)]):
-            net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
-                                input_length=inputtokens)(input_)
-            net = Dropout(dropout)(net)
-        gpuidx += 1
+        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
+                            input_length=inputtokens)(input_)
+        net = Dropout(dropout)(net)
             
         # Bidirectional LSTM layer
-        with tf.device(gpus[gpuidx % len(gpus)]):
-            net = Bidirectional(LSTM(units, activation='relu', 
-                           return_sequences=(layers>1)))(net)
-            net = Dropout(dropout)(net)
-        gpuidx += 1
+        net = Bidirectional(LSTM(units, activation='relu', 
+                       return_sequences=(layers>1)))(net)
+        net = Dropout(dropout)(net)
             
         # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
-            with tf.device(gpus[gpuidx % len(gpus)]):
-                if i < layers-1:
-                    block = LSTM(2*units, activation='relu', return_sequences=True)(net)
-                    block = Dropout(dropout)(block)
-                    net = add([block, net])
-                else:
-                    net = LSTM(2*units, activation='relu')(net)
-            gpuidx += 1
+            if i < layers-1:
+                block = LSTM(2*units, activation='relu', return_sequences=True)(net)
+                block = Dropout(dropout)(block)
+                net = add([block, net])
+            else:
+                net = LSTM(2*units, activation='relu')(net)
                     
         # Output layer
-        with tf.device(gpus[gpuidx % len(gpus)]):
-            net = Dense(encoder.nchars, activation='softmax')(net)
-            model = Model(inputs=input_, outputs=net)
-        gpuidx += 1
+        net = Dense(encoder.nchars, activation='softmax')(net)
+        model = Model(inputs=input_, outputs=net)
+        
+        # Make data-parallel
+        gpus = get_available_gpus()
+        model = make_parallel(model, len(gpus))
         
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
                       metrics=['accuracy'])
         return model
 
     def trim(model):
-        return model
+        """Removes data-parallel scaffolding, for efficient prediction"""
+        return getcoremodel(model)
     
