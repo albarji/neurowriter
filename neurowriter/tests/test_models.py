@@ -59,10 +59,10 @@ def test_tensorslice_small():
 
     nulldata = np.zeros([0,3,3])
     tests = [
-        (4, [data[0:1], data[1:2], data[2:3], nulldata]),
-        (5, [data[0:1], data[1:2], data[2:3], nulldata, nulldata]),
-        (10, [data[0:1], data[1:2], data[2:3], nulldata, nulldata,
-              nulldata, nulldata, nulldata, nulldata, nulldata])
+        (4, [nulldata, data[0:1], data[1:2], data[2:3]]),
+        (5, [nulldata, data[0:1], nulldata, data[1:2], data[2:3]]),
+        (10, [nulldata, nulldata, nulldata, data[0:1], nulldata,
+              nulldata, data[1:2], nulldata, nulldata,data[2:3]])
     ]
     
     # We need a tensor flow session to run the graph

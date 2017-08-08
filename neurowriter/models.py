@@ -96,28 +96,15 @@ def tensorslice(data, idx, parts):
         idx: index of the slice to extract
         parts: number of pieces in which to partition the data
        
-    If the number of data patterns is smaller than parts, one pattern is
-    asigned to each slice and the remaining slices are made of empty tensors.
+    If the number of data patterns is smaller than parts, some slices will
+    be empty.
     """
-    shape = data.get_shape().as_list()
-    # Standard case: len(data) >= parts
-    if shape[0] >= parts:
-        size = tf.concat([ [shape[0] // parts], shape[1:] ],axis=0)
-        stride = tf.concat([ [shape[0] // parts], 
-                            np.zeros(len(shape[1:]),dtype="int32") ],axis=0)
-        start = stride * idx
-        return tf.slice(data, start, size)
-    # Data scarcity case: len(data) < parts
-    else:
-        # First slices: pick just one pattern
-        if idx < shape[0]:
-            size = tf.concat([ [1], shape[1:] ],axis=0)
-            start = tf.concat([ [idx], 
-                            np.zeros(len(shape[1:]),dtype="int32") ],axis=0)
-            return tf.slice(data, start, size)
-        # Rest of slices: produce an empty tensor
-        else:
-            return tf.zeros(tf.concat([ [0], shape[1:] ],axis=0))
+    shape = tf.shape(data)
+    startidx = shape[:1] * idx // parts
+    endidx = shape[:1] * (idx+1) // parts
+    start = tf.concat([ startidx, shape[1:]*0 ],axis=0)
+    size = tf.concat([ endidx-startidx, shape[1:] ],axis=0)
+    return tf.slice(data, start, size)
 
 def getcoremodel(model):
     """Removes data-parallel scaffolding, for efficient prediction"""
