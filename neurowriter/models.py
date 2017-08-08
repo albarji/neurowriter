@@ -22,6 +22,7 @@ from keras.layers.wrappers import Bidirectional
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
+import numpy as np
 
 def modelbyname(modelname):
     """Returns a model generating class by name"""
@@ -48,14 +49,9 @@ def make_parallel(model, gpu_count):
     
     Original code extracted from
         https://github.com/kuza55/keras-extras/blob/master/utils/multi_gpu.py
+    
+    Modifications by Álvaro Barbero.
     """
-    def get_slice(data, idx, parts):
-        shape = tf.shape(data)
-        size = tf.concat([ shape[:1] // parts, shape[1:] ],axis=0)
-        stride = tf.concat([ shape[:1] // parts, shape[1:]*0 ],axis=0)
-        start = stride * idx
-        return tf.slice(data, start, size)
-
     outputs_all = []
     for i in range(len(model.outputs)):
         outputs_all.append([])
@@ -69,7 +65,7 @@ def make_parallel(model, gpu_count):
                 #Slice each input into a piece for processing on this GPU
                 for x in model.inputs:
                     input_shape = tuple(x.get_shape().as_list())[1:]
-                    slice_n = Lambda(get_slice, output_shape=input_shape, arguments={'idx':i,'parts':gpu_count})(x)
+                    slice_n = Lambda(tensorslice, output_shape=input_shape, arguments={'idx':i,'parts':gpu_count})(x)
                     inputs.append(slice_n)                
 
                 outputs = model(inputs)
@@ -92,6 +88,37 @@ def make_parallel(model, gpu_count):
             
         return Model(inputs=model.inputs, outputs=merged)
     
+def tensorslice(data, idx, parts):
+    """Slices a tensor of data into several parts, as equal as possible.
+    
+    Inputs:
+        data: input data flow
+        idx: index of the slice to extract
+        parts: number of pieces in which to partition the data
+       
+    If the number of data patterns is smaller than parts, one pattern is
+    asigned to each slice and the remaining slices are made of empty tensors.
+    """
+    shape = data.get_shape().as_list()
+    # Standard case: len(data) >= parts
+    if shape[0] >= parts:
+        size = tf.concat([ [shape[0] // parts], shape[1:] ],axis=0)
+        stride = tf.concat([ [shape[0] // parts], 
+                            np.zeros(len(shape[1:]),dtype="int32") ],axis=0)
+        start = stride * idx
+        return tf.slice(data, start, size)
+    # Data scarcity case: len(data) < parts
+    else:
+        # First slices: pick just one pattern
+        if idx < shape[0]:
+            size = tf.concat([ [1], shape[1:] ],axis=0)
+            start = tf.concat([ [idx], 
+                            np.zeros(len(shape[1:]),dtype="int32") ],axis=0)
+            return tf.slice(data, start, size)
+        # Rest of slices: produce an empty tensor
+        else:
+            return tf.zeros(tf.concat([ [0], shape[1:] ],axis=0))
+
 def getcoremodel(model):
     """Removes data-parallel scaffolding, for efficient prediction"""
     # Find the layer containing the internal model and return it
