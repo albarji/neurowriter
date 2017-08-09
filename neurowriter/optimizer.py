@@ -8,11 +8,11 @@ Module for optimizing model desing.
 @author: Álvaro Barbero Jiménez
 """
 
-import numpy as np
 from keras.callbacks import EarlyStopping
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
+import numpy as np
 
 def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
                valmask = [False, False, False, True], patience = 20,
@@ -49,8 +49,8 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
         trainmask = [True]
     val_ratio = len([x for x in valmask if x]) / len(valmask)
     train_ratio = len([x for x in trainmask if x]) / len(trainmask)
-    val_steps = int(npatterns * val_ratio / batchsize)
-    train_steps = int(npatterns * train_ratio / batchsize)
+    val_steps = np.ceil(npatterns * val_ratio / batchsize)
+    train_steps = np.ceil(npatterns * train_ratio / batchsize)
     if train_steps == 0 or val_steps == 0:
         raise ValueError("Insufficient data for training in the current setting")
     # Prepare data generators
