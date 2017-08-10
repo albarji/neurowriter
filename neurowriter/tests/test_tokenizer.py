@@ -67,7 +67,7 @@ def test_SubwordTokenizerTimes():
     symbols = 5000
     print("Measuring SubwordTokenizer times for input lenght %s, symbols %s"
            % (n, symbols))
-    data = ''.join(random.choices(string.ascii_letters, k=n))
+    data = ''.join(random.choice(string.ascii_letters) for _ in range(n))
     start = time.time()
     tok = SubwordTokenizer(numsymbols=symbols, minfreq=2)
     tok.fit(data)
