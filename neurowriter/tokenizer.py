@@ -103,28 +103,28 @@ class SubwordTokenizer():
         # Go over the corpus, find occurrences of the given pair and merge
         padded = corpus + [BORDER]
         newcorpus = []
+        locations = []
         i = 0
         while i < len(corpus):
             if padded[i] == leftsymbol and padded[i+1] == rightsymbol:
+                locations.append(len(newcorpus))
                 newcorpus.append(newsymbol)
                 i += 2 # Skip already processed next symbol
             else:
                 newcorpus.append(padded[i])
                 i += 1
-            
-        # Find positions where the new combined symbol appears, update freqs
-        for i, s in enumerate(newcorpus):
-            if s == newsymbol:
-                # Update frequencies with previous symbol
-                if i > 0:
-                    prevsymbol = newcorpus[i-1]
-                    freqs[prevsymbol, newsymbol] += 1
-                    freqs[prevsymbol, leftsymbol] -= 1
-                # Update frequencies with next symbol
-                if i < len(newcorpus)-1:
-                    nextsymbol = newcorpus[i+1]
-                    freqs[newsymbol, nextsymbol] += 1
-                    freqs[rightsymbol, nextsymbol] -= 1
+
+        for i in locations:
+            # Update frequencies with previous symbol
+            if i > 0:
+                prevsymbol = newcorpus[i-1]
+                freqs[prevsymbol, newsymbol] += 1
+                freqs[prevsymbol, leftsymbol] -= 1
+            # Update frequencies with next symbol
+            if i < len(newcorpus)-1:
+                nextsymbol = newcorpus[i+1]
+                freqs[newsymbol, nextsymbol] += 1
+                freqs[rightsymbol, nextsymbol] -= 1
                          
         # Delete statistics of merged symbols
         del freqs[(leftsymbol, rightsymbol)]

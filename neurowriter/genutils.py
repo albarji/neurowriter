@@ -77,9 +77,9 @@ def infinitegenerator(generatorfunction):
 def maskedgenerator(generatorfunction):
     """Decorator that adds outputs masking to a generator.
     
-    A "make" parameter is added to the generator function, which expects
+    A "mask" parameter is added to the generator function, which expects
     a list of boolean variables. The mask is iterated in parallel to the
-    generator, blocking from the output those values with a False value
+    generator, blocking from the output those items with a False value
     in the mask. If the mask is depleted it is re-cycled.
     """
     def mskgenerator(*args, **kwargs):

@@ -126,6 +126,10 @@ class Encoder():
             - tokensperpattern: how many tokens to include in every pattern
             - **kwargs: any other arguments are passed on to decodetext
         """
+        #TODO: some tokenizers are very slow, repeating this for every
+        # call to patterngeneration is not a good idea.
+        # It actually seems that generating patterns is a bottleneck,
+        # as there are large lapses of time where the GPUs are not being used!!
         tokens = self.tokenizer.transform(corpus)
         end = len(tokens)
         for i in range(end-tokensperpattern):

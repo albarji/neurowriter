@@ -8,6 +8,10 @@ Tests for the tokenizer module
 @author: Álvaro Barbero Jiménez
 """
 
+import random
+import string
+import time
+
 from neurowriter.tokenizer import SubwordTokenizer
 
    
@@ -57,3 +61,20 @@ def test_SubwordTokenizerTransform():
     print("Obtained", obtained)
     assert(obtained == expected)
     
+def test_SubwordTokenizerTimes():
+    """Performs som runtime tests on the subword tokenizer"""
+    n = 10000
+    symbols = 5000
+    print("Measuring SubwordTokenizer times for input lenght %s, symbols %s"
+           % (n, symbols))
+    data = ''.join(random.choices(string.ascii_letters, k=n))
+    start = time.time()
+    tok = SubwordTokenizer(numsymbols=symbols, minfreq=2)
+    tok.fit(data)
+    end = time.time()
+    print("Fit time:", end-start)
+
+    start = time.time()
+    tok.transform(data)
+    end = time.time()
+    print("Transform time:", end-start)
