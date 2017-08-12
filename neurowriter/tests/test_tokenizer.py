@@ -14,7 +14,7 @@ import time
 
 from neurowriter.tokenizer import SubwordTokenizer
 
-   
+#TODO: this test might fail randomly, due to stochasticity in tokenizer fit
 def test_SubwordTokenizerExact():
     """The subword tokenizer obtains the exact expected symbols for toy data"""
     
@@ -30,6 +30,7 @@ def test_SubwordTokenizerExact():
     print("Found but not expected", tok.symbols - expected)
     assert(expected == tok.symbols)
 
+#TODO: this test might fail randomly, due to stochasticity in tokenizer fit
 def test_SubwordTokenizerAtLeast():
     """The subword tokenizer obtains at least a set of expected symbols"""
     
