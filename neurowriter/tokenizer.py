@@ -12,7 +12,6 @@ included between tokens when recovering the original text back (e.g. blank).
 @author: Álvaro Barbero Jiménez
 """
 
-from nltk.tokenize import word_tokenize
 import re, collections
 
 # Special token to mark tokenizer borders
@@ -40,8 +39,6 @@ class CharTokenizer():
     
     def transform(self, text):
         return list(text)
-    
-    intertoken = ""
 
 class WordTokenizer():
     """Tokenizer that splits text in words
@@ -57,8 +54,6 @@ class WordTokenizer():
     
     def transform(self, text):
         return self.parser.split(text)
-    
-    intertoken = ""
 
 class SubwordTokenizer():
     """Tokenizer that splits text in descriptive subword parts
@@ -186,5 +181,3 @@ class SubwordTokenizer():
             transformed.append(symbol)
             i += len(symbol)
         return transformed
-        
-    intertoken = ""

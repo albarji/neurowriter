@@ -2,4 +2,3 @@ scikit-learn
 keras
 tensorflow-gpu
 jupyter
-nltk

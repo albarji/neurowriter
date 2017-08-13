@@ -63,10 +63,7 @@ class Writer():
             seedcoded = np.append(seedcoded[len(newcodes):], newcodes)[:inputtokens]
             # Yield generated tokens (in text form)
             for code in newcodes:
-                newtoken = (
-                    self.encoder.index2char[code] 
-                    + self.encoder.tokenizer.intertoken
-                )
+                newtoken = self.encoder.index2char[code] 
                 yield newtoken
             
     def beamsearch(self, seedcoded):
