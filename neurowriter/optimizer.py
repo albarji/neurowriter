@@ -15,7 +15,7 @@ from keras import backend
 import numpy as np
 
 def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
-               valmask = [False, False, False, True], patience = 20,
+               valmask = None, patience = 20,
                batchsize = 256, verbose=False, modelparams=[]):
     """Trains a keras model with given parameters
     
