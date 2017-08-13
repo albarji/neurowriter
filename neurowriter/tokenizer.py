@@ -46,17 +46,19 @@ class CharTokenizer():
 class WordTokenizer():
     """Tokenizer that splits text in words
     
-    The default nltk tokenizer for english is used.
+    Punctuation and whitespace symbols are kept as individual
+    tokens, so the input text can be rebuild by just concatenating
+    all tokens.
     """
     
     def fit(self, corpus):
-        # No training necessary
-        pass
+        # Precompile parsing expression
+        self.parser = re.compile('(\W)')
     
     def transform(self, text):
-        return word_tokenize(text)
+        return self.parser.split(text)
     
-    intertoken = " "
+    intertoken = ""
 
 class SubwordTokenizer():
     """Tokenizer that splits text in descriptive subword parts
