@@ -59,7 +59,8 @@ class Writer():
             # Predict token probabilities using model and beam search
             newcodes = self.beamsearch(seedcoded)
             # Drop old tokens, add new ones
-            seedcoded = np.append(seedcoded[len(newcodes):], newcodes)
+            # Also drop tokens if longer than necessary
+            seedcoded = np.append(seedcoded[len(newcodes):], newcodes)[:inputtokens]
             # Yield generated tokens (in text form)
             for code in newcodes:
                 newtoken = (
@@ -76,6 +77,8 @@ class Writer():
         
         Returns the best sequence of tokens found.
         """
+        # Store original length of seed
+        maxlen = len(seedcoded)
         # Predict first token probabilities
         probs = self.model.predict(np.array([seedcoded]), verbose=0)[0]
         probs = alterprobs(probs, self.creativity)
@@ -89,7 +92,8 @@ class Writer():
             newcandidates = []
             for logprob, tokens in candidates:
                 # Update seed with candidate tokens
-                candseed = np.append(seedcoded[len(tokens):], tokens)
+                # Also drop tokens if longer than necessary
+                candseed = np.append(seedcoded[len(tokens):], tokens)[:maxlen]
                 # Predictions for next token
                 probs = self.model.predict(np.array([candseed]), verbose=0)[0]
                 probs = alterprobs(probs, self.creativity)
