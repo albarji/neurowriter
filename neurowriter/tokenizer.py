@@ -46,14 +46,48 @@ class WordTokenizer():
     Punctuation and whitespace symbols are kept as individual
     tokens, so the input text can be rebuild by just concatenating
     all tokens.
+    
+    Words that have a low number of occurrences in the text are broken
+    down to individual characters, to reduce the overall number of tokens.
     """
     
-    def fit(self, corpus):
+    def __init__(self, numsymbols=4096, minfreq=2):
+        self.numsymbols = numsymbols
+        self.minfreq = minfreq
+        self.symbols = None
         # Precompile parsing expression
         self.parser = re.compile('(\W)')
     
+    def fit(self, corpus):
+        # First add all basic characters to the dictionary
+        self.symbols = set(corpus)
+        # Split input in words, get unique tokens and counts
+        tokens = collections.Counter(self.parser.split(corpus))
+        # Filter out unfrequent symbols
+        freqsymbols = [(symbol, freq) for symbol, freq in tokens.items() 
+                        if freq >= self.minfreq]
+        # Sort remaining symbols by frequency
+        srt = sorted(freqsymbols, key=lambda x: x[1], reverse=True)
+        # Remove already included characters
+        remain = [symbol for symbol, freq in srt if symbol not in self.symbols]
+        # Fill the dictionary with symbols until max allowed
+        freespace = self.numsymbols - len(self.symbols)
+        self.symbols.update(remain[0:freespace])
+    
     def transform(self, text):
-        return self.parser.split(text)
+        # Break input in words
+        tokens = self.parser.split(text)
+        # For every word not in the recognized symbols list, break into chars
+        # If a character has never been seen before, it is ignored
+        result = []
+        for token in tokens:
+            if token in self.symbols:
+                result.append(token)
+            else:
+                for char in token:
+                    if char in self.symbols:
+                        result.append(char)
+        return result
 
 class SubwordTokenizer():
     """Tokenizer that splits text in descriptive subword parts

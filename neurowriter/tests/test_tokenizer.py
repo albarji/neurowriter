@@ -12,7 +12,39 @@ import random
 import string
 import time
 
-from neurowriter.tokenizer import SubwordTokenizer
+from neurowriter.tokenizer import WordTokenizer, SubwordTokenizer
+
+def test_WordTokenizerExact():
+    """The word tokenizer obtains the exact expected symbols for toy data"""
+    
+    corpus = "a green big dog inside a green big house"
+    expected = {' ', 'a', 'd', 'e', 'g', 'h', 'i', 'n', 'o', 'r', 's', 'u', 
+                'b', "green", "big"}
+    
+    tok = WordTokenizer(numsymbols=1024, minfreq=2)
+    
+    tok.fit(corpus)
+    print("Expected", expected)
+    print("Obtained", tok.symbols)
+    print("Expected but not found", expected - tok.symbols)
+    print("Found but not expected", tok.symbols - expected)
+    assert(expected == tok.symbols)
+    
+def test_WordTokenizerTransform():
+    """The word tokenizer correctly transforms a toy example"""
+    train = "a green big dog and a cat inside a green big house"   
+    tok = WordTokenizer(numsymbols=1024, minfreq=2)
+    tok.fit(train)
+    
+    test = "a green cat inside a big green house"
+    expected = ["a", " ", "green", " ", "c", "a", "t", " ", "i", "n", "s",
+                "i", "d", "e", " ", "a", " ", "big", " ", "green", " ", "h", 
+                "o", "u", "s", "e"]
+    
+    obtained = tok.transform(test)
+    print("Expected", expected)
+    print("Obtained", obtained)
+    assert(obtained == expected)
 
 #TODO: this test might fail randomly, due to stochasticity in tokenizer fit
 def test_SubwordTokenizerExact():
@@ -63,7 +95,7 @@ def test_SubwordTokenizerTransform():
     assert(obtained == expected)
     
 def test_SubwordTokenizerTimes():
-    """Performs som runtime tests on the subword tokenizer"""
+    """Performs some runtime tests on the subword tokenizer"""
     n = 10000
     symbols = 5000
     print("Measuring SubwordTokenizer times for input lenght %s, symbols %s"
