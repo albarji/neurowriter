@@ -12,6 +12,8 @@ import numpy as np
 
 from neurowriter.writer import Writer
 from neurowriter.encoding import Encoder
+from neurowriter.tokenizer import CharTokenizer
+from neurowriter.corpus import StringsCorpus
 
 class MockModel():
     """Mock model for beam search tests"""
@@ -21,7 +23,9 @@ class MockModel():
 def test_writer_beamsearch():
     """Beam search works as expected"""
     mockmodel = MockModel()
-    encoder = Encoder(corpus="abc", tokenizer="char")
+    corpus = StringsCorpus()
+    corpus.load(["abc"])
+    encoder = Encoder(corpus=corpus, tokenizer=CharTokenizer())
     writer = Writer(mockmodel, encoder, creativity=0, beamsize=3, batchsize=3)
     seed = np.array([0,0])
     
@@ -34,7 +38,9 @@ def test_writer_beamsearch():
 def test_writer_beamsearch_long():
     """Beam search works as expected for long batch sizes"""
     mockmodel = MockModel()
-    encoder = Encoder(corpus="abc", tokenizer="char")
+    corpus = StringsCorpus()
+    corpus.load(["abc"])
+    encoder = Encoder(corpus=corpus, tokenizer=CharTokenizer())
     batchsize = 10
     writer = Writer(mockmodel, encoder, creativity=0, beamsize=3,
                     batchsize=batchsize)

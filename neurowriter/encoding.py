@@ -11,7 +11,7 @@ import pickle as pkl
 
 from neurowriter.genutils import batchedpatternsgenerator, infinitegenerator
 from neurowriter.genutils import maskedgenerator
-from neurowriter.tokenizer import tokenizerbyname
+from neurowriter.tokenizer import CharTokenizer
 
 # Start sequence special character
 START = "<START>"
@@ -30,7 +30,7 @@ class Encoder():
     # Tokenizer used to process text
     tokenizer = None
     
-    def __init__(self, corpus=None, tokenizer="char"):
+    def __init__(self, corpus=None, tokenizer=None):
         """Creates an encoder from tokens to numbers and viceversa
 
         The encoder is built to represent all tokens present in the
@@ -40,18 +40,17 @@ class Encoder():
         different corpus.
 
         Arguments
-            corpus: iterable of strings
-            tokenizer: method used to split the corpus into tokens. Can be:
-                - 'char': one token per character
-                - 'word': one token per word
+            corpus: iterable of strings (corpus documents)
+            tokenizer: tokenize object used to split the corpus into tokens.
         """
         if corpus is not None:
             # Train tokenizer on corpus
-            self.tokenizer = tokenizerbyname(tokenizer)()
-            self.tokenizer.fit(corpus)
+            self.tokenizer = tokenizer
+            if self.tokenizer is None:
+                self.tokenizer = CharTokenizer()
+            self.tokenizer.fit(corpus.whole())
             # Get unique tokens from data
-            #chars = set([letter for text in corpus for letter in text])
-            tokens = set([token for token in self.tokenizer.transform(corpus)])
+            tokens = set([token for token in self.tokenizer.transform(corpus.whole())])
             print('Total tokens:', len(tokens) + len(SPCHARS))
             self.char2index = dict((c, i) for i, c in enumerate(chain(SPCHARS ,tokens)))
             self.index2char = dict((i, c) for i, c in enumerate(chain(SPCHARS ,tokens)))
@@ -122,7 +121,7 @@ class Encoder():
         """Infinite generator of encoded patterns.
         
         Arguments
-            - corpus: list of tokens making up the corpus
+            - corpus: iterable of strings making up the corpus
             - tokensperpattern: how many tokens to include in every pattern
             - **kwargs: any other arguments are passed on to decodetext
         """
@@ -130,14 +129,17 @@ class Encoder():
         # call to patterngeneration is not a good idea.
         # It actually seems that generating patterns is a bottleneck,
         # as there are large lapses of time where the GPUs are not being used!!
-        tokens = self.tokenizer.transform(corpus)
-        end = len(tokens)
-        for i in range(end-tokensperpattern):
-            x = self.encodetokens(tokens[i:i+tokensperpattern], **kwargs)
-            yindex = self.encodetokens([tokens[i+tokensperpattern]], **kwargs)[0]
-            y = np.zeros(self.nchars)
-            y[yindex] = 1.0
-            yield x, y
+        for doc in corpus:
+            # Tokenize document
+            tokens = self.tokenizer.transform(doc)
+            # Append padding
+            tokens = [NULL] * (tokensperpattern-1) + [START] + tokens + [END]
+            for i in range(tokensperpattern,len(tokens)):
+                x = self.encodetokens(tokens[i-tokensperpattern:i], **kwargs)
+                yindex = self.encodetokens([tokens[i]], **kwargs)[0]
+                y = np.zeros(self.nchars)
+                y[yindex] = 1.0
+                yield x, y
 
     def save(self, filename):
         """Saves the encoding to a file"""

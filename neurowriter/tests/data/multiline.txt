@@ -1,0 +1,3 @@
+This is a multidocument.
+The file stores one document per line.
+So there are three documents here.
