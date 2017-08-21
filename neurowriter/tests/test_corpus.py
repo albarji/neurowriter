@@ -8,7 +8,7 @@ Tests for the corpus loading module.
 @author: Álvaro Barbero Jiménez
 """
 
-from neurowriter.corpus import SingleTxtCorpus, MultiLineCorpus
+from neurowriter.corpus import SingleTxtCorpus, MultiLineCorpus, CsvCorpus
 
 DATAFOLDER = "neurowriter/tests/data/"
 
@@ -60,3 +60,28 @@ def test_MultiLineCorpus():
     for i in range(len(corpus)):
         assert corpus[i] == expected[i]
 
+def test_CsvCorpus():
+    """Loading a CSV corpus works as expected"""
+    
+    expected = [
+        "Na Boca da Noite",
+        "The Other Side of the Wind",
+        "Prata Palomares"
+    ]
+    datafile = DATAFOLDER + "csvcorpus.csv"
+    corpus =  CsvCorpus()
+    corpus.load(datafile)
+    
+    # Test iterator
+    for doc, exp in zip(corpus, expected):
+        print("Expected", exp)
+        print("Obtained", doc)
+        assert doc == exp
+
+    # Test length
+    assert len(corpus) == 3
+
+    # Test direct access
+    for i in range(len(corpus)):
+        assert corpus[i] == expected[i]
+    

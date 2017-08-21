@@ -8,6 +8,8 @@ Module for loading training corpus in different formats.
 @author: Álvaro Barbero Jiménez
 """
 
+import pandas as pd
+
 class CorpusMixin():
     DOCSPLITTER = "<DOC>"
     
@@ -71,5 +73,26 @@ class StringsCorpus(CorpusMixin):
     def __getitem__(self, key):
         return self.corpus[key]
 
+    def __len__(self):
+        return len(self.corpus)
+    
+class CsvCorpus(CorpusMixin):
+    """Corpus loaded from a CSV with additional conditioning data
+    
+    The CSV is assumed to represent one document per row, with the first
+    column of the file containing the document text. Additional columns
+    in the file are taken as conditioning variables.
+    """
+    
+    def load(self, corpusfile):
+        self.corpus = pd.read_csv(corpusfile)
+        
+    def __iter__(self):
+        for line in self.corpus[self.corpus.columns[0]]:
+            yield line
+            
+    def __getitem__(self, key):
+        return self.corpus[self.corpus.columns[0]][key]
+    
     def __len__(self):
         return len(self.corpus)
