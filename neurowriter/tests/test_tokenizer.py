@@ -17,7 +17,7 @@ from neurowriter.tokenizer import WordTokenizer, SubwordTokenizer
 def test_WordTokenizerExact():
     """The word tokenizer obtains the exact expected symbols for toy data"""
     
-    corpus = "a green big dog inside a green big house"
+    corpus = ["a green big dog inside a green big house"]
     expected = {' ', 'a', 'd', 'e', 'g', 'h', 'i', 'n', 'o', 'r', 's', 'u', 
                 'b', "green", "big"}
     
@@ -32,7 +32,7 @@ def test_WordTokenizerExact():
     
 def test_WordTokenizerTransform():
     """The word tokenizer correctly transforms a toy example"""
-    train = "a green big dog and a cat inside a green big house"   
+    train = ["a green big dog and a cat inside a green big house"]
     tok = WordTokenizer(numsymbols=1024, minfreq=2)
     tok.fit(train)
     
@@ -46,11 +46,10 @@ def test_WordTokenizerTransform():
     print("Obtained", obtained)
     assert(obtained == expected)
 
-#TODO: this test might fail randomly, due to stochasticity in tokenizer fit
 def test_SubwordTokenizerExact():
     """The subword tokenizer obtains the exact expected symbols for toy data"""
     
-    corpus = "aaabdaaabac"
+    corpus = ["aaabdaaabac"]
     expected = {'a','b','c','d','aa','ab','aaab'}
     
     tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
@@ -62,11 +61,10 @@ def test_SubwordTokenizerExact():
     print("Found but not expected", tok.symbols - expected)
     assert(expected == tok.symbols)
 
-#TODO: this test might fail randomly, due to stochasticity in tokenizer fit
 def test_SubwordTokenizerAtLeast():
     """The subword tokenizer obtains at least a set of expected symbols"""
     
-    corpus = "a green dog inside a green house"
+    corpus = ["a green dog inside a green house"]
     expected = {
                 'a', ' ', 'g', 'r', 'e', 'n', 'o', 'i', 's', 'd', 'h', 'u',
                 'a green '
@@ -82,7 +80,7 @@ def test_SubwordTokenizerAtLeast():
     
 def test_SubwordTokenizerTransform():
     """The subword tokenizer correctly transforms a toy example"""
-    train = "aaabdaaabac"    
+    train = ["aaabdaaabac"]
     tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
     tok.fit(train)
     
@@ -100,7 +98,7 @@ def test_SubwordTokenizerTimes():
     symbols = 5000
     print("Measuring SubwordTokenizer times for input lenght %s, symbols %s"
            % (n, symbols))
-    data = ''.join(random.choice(string.ascii_letters) for _ in range(n))
+    data = [''.join(random.choice(string.ascii_letters) for _ in range(n))]
     start = time.time()
     tok = SubwordTokenizer(numsymbols=symbols, minfreq=2)
     tok.fit(data)
@@ -108,6 +106,6 @@ def test_SubwordTokenizerTimes():
     print("Fit time:", end-start)
 
     start = time.time()
-    tok.transform(data)
+    tok.transform(data[0])
     end = time.time()
     print("Transform time:", end-start)

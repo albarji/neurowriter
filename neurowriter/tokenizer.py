@@ -13,11 +13,9 @@ included between tokens when recovering the original text back (e.g. blank).
 """
 
 import re, collections
+from itertools import chain
 
-# Special token to mark tokenizer borders
-BORDER = "<TK_BORDER>"
-
-#from subwordnmt import learn_bpe
+from neurowriter.symbols import NULL
 
 def tokenizerbyname(tokenizername):
     """Returns a tokenizer class by name"""
@@ -60,9 +58,11 @@ class WordTokenizer():
     
     def fit(self, corpus):
         # First add all basic characters to the dictionary
-        self.symbols = set(corpus)
+        self.symbols = set(chain(*[doc for doc in corpus]))
         # Split input in words, get unique tokens and counts
-        tokens = collections.Counter(self.parser.split(corpus))
+        tokens = collections.Counter(
+            chain(*[self.parser.split(doc) for doc in corpus])
+        )
         # Filter out unfrequent symbols
         freqsymbols = [(symbol, freq) for symbol, freq in tokens.items() 
                         if freq >= self.minfreq]
@@ -109,15 +109,16 @@ class SubwordTokenizer():
     def initfreqs(self, corpus):
         """Initializes the symbol statistics with char pairs"""
         stats = collections.defaultdict(int)
-        for a, b in zip(corpus[:-1], corpus[1:]):
-            stats[a,b] += 1
+        for doc in corpus:
+            for a, b in zip(doc[:-1], doc[1:]):
+                stats[a,b] += 1
         return stats
     
     def mergesymbols(self, corpus, symbols, freqs, leftsymbol, rightsymbol):
         """Merges two symbols in the encoding
         
         Arguments:
-            - corpus: current list of symbols representing the corpus
+            - corpus: current list of docs, each a list of symbols
             - symbols: current set of symbols
             - freqs: current symbol pairs statistics
             - leftsymbol, rightsymbol: symbols to merge
@@ -131,31 +132,34 @@ class SubwordTokenizer():
         newsymbol = leftsymbol + rightsymbol
         self.symbols.add(newsymbol)
         
-        # Go over the corpus, find occurrences of the given pair and merge
-        padded = corpus + [BORDER]
+        # Go over each doc in corpus, find occurrences of the given pair and merge
         newcorpus = []
-        locations = []
-        i = 0
-        while i < len(corpus):
-            if padded[i] == leftsymbol and padded[i+1] == rightsymbol:
-                locations.append(len(newcorpus))
-                newcorpus.append(newsymbol)
-                i += 2 # Skip already processed next symbol
-            else:
-                newcorpus.append(padded[i])
-                i += 1
+        for doc in corpus:
+            padded = doc + [NULL]
+            newdoc = []
+            locations = []
+            i = 0
+            while i < len(doc):
+                if padded[i] == leftsymbol and padded[i+1] == rightsymbol:
+                    locations.append(len(newdoc))
+                    newdoc.append(newsymbol)
+                    i += 2 # Skip already processed next symbol
+                else:
+                    newdoc.append(padded[i])
+                    i += 1
+            newcorpus.append(newdoc)
 
-        for i in locations:
-            # Update frequencies with previous symbol
-            if i > 0:
-                prevsymbol = newcorpus[i-1]
-                freqs[prevsymbol, newsymbol] += 1
-                freqs[prevsymbol, leftsymbol] -= 1
-            # Update frequencies with next symbol
-            if i < len(newcorpus)-1:
-                nextsymbol = newcorpus[i+1]
-                freqs[newsymbol, nextsymbol] += 1
-                freqs[rightsymbol, nextsymbol] -= 1
+            for i in locations:
+                # Update frequencies with previous symbol
+                if i > 0:
+                    prevsymbol = newdoc[i-1]
+                    freqs[prevsymbol, newsymbol] += 1
+                    freqs[prevsymbol, leftsymbol] -= 1
+                # Update frequencies with next symbol
+                if i < len(newdoc)-1:
+                    nextsymbol = newdoc[i+1]
+                    freqs[newsymbol, nextsymbol] += 1
+                    freqs[rightsymbol, nextsymbol] -= 1
                          
         # Delete statistics of merged symbols
         del freqs[(leftsymbol, rightsymbol)]
@@ -183,10 +187,10 @@ class SubwordTokenizer():
             return None
     
     def fit(self, corpus):
-        # Cast corpus to list of symbols
-        corpus = list(corpus)
+        # Cast corpus to list of lists of symbols
+        corpus = [list(doc) for doc in corpus]
         # Initialize symbols with chars
-        self.symbols = set(corpus)
+        self.symbols = set(chain(*[doc for doc in corpus]))
         # Compute char pairs frequencies
         freqs = self.initfreqs(corpus)
         # Merge steps

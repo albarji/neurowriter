@@ -12,15 +12,7 @@ import pickle as pkl
 from neurowriter.genutils import batchedpatternsgenerator, infinitegenerator
 from neurowriter.genutils import maskedgenerator
 from neurowriter.tokenizer import CharTokenizer
-
-# Start sequence special character
-START = "<START>"
-# End sequence special character
-END = "<END>"
-# Null value in sequence special character
-NULL = "<NULL>"
-# Dictionary of all special characters
-SPCHARS = [NULL, START, END]
+from neurowriter.symbols import START, END, NULL, SPCHARS
 
 class Encoder():
     # Dictionary of chars to numeric indices
@@ -48,9 +40,11 @@ class Encoder():
             self.tokenizer = tokenizer
             if self.tokenizer is None:
                 self.tokenizer = CharTokenizer()
-            self.tokenizer.fit(corpus.whole())
+            self.tokenizer.fit(corpus)
             # Get unique tokens from data
-            tokens = set([token for token in self.tokenizer.transform(corpus.whole())])
+            tokens = set(
+                chain(*[self.tokenizer.transform(doc) for doc in corpus])
+            )
             print('Total tokens:', len(tokens) + len(SPCHARS))
             self.char2index = dict((c, i) for i, c in enumerate(chain(SPCHARS ,tokens)))
             self.index2char = dict((i, c) for i, c in enumerate(chain(SPCHARS ,tokens)))

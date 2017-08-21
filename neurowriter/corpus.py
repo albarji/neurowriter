@@ -10,20 +10,7 @@ Module for loading training corpus in different formats.
 
 import pandas as pd
 
-class CorpusMixin():
-    DOCSPLITTER = "<DOC>"
-    
-    def whole(self):
-        """Returns an iterable for the whole corpus as a list of chars.
-        
-        Different documents are separated through an special character
-        """
-        for doc in self:
-            for char in doc:
-                yield char
-            yield self.DOCSPLITTER
-
-class SingleTxtCorpus(CorpusMixin):
+class SingleTxtCorpus():
     """Corpus made of a txt file with a single document"""
     
     def load(self, corpusfile):
@@ -42,7 +29,7 @@ class SingleTxtCorpus(CorpusMixin):
     def __len__(self):
         return 1
 
-class MultiLineCorpus(CorpusMixin):
+class MultiLineCorpus():
     """Corpus made of a txt file, one document per line"""
     
     def load(self, corpusfile):
@@ -60,7 +47,7 @@ class MultiLineCorpus(CorpusMixin):
     def __len__(self):
         return len(self.corpus)
 
-class StringsCorpus(CorpusMixin):
+class StringsCorpus():
     """Corpus made from an iterable of strings"""
     
     def load(self, strings):
@@ -76,7 +63,7 @@ class StringsCorpus(CorpusMixin):
     def __len__(self):
         return len(self.corpus)
     
-class CsvCorpus(CorpusMixin):
+class CsvCorpus():
     """Corpus loaded from a CSV with additional conditioning data
     
     The CSV is assumed to represent one document per row, with the first

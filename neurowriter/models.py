@@ -22,7 +22,6 @@ from keras.layers.wrappers import Bidirectional
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
-import numpy as np
 
 def modelbyname(modelname):
     """Returns a model generating class by name"""
