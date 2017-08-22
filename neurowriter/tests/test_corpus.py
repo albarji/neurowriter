@@ -8,7 +8,8 @@ Tests for the corpus loading module.
 @author: Álvaro Barbero Jiménez
 """
 
-from neurowriter.corpus import SingleTxtCorpus, MultiLineCorpus, CsvCorpus
+from neurowriter.corpus import (SingleTxtCorpus, MultiLineCorpus, CsvCorpus,
+                                JsonCorpus)
 
 DATAFOLDER = "neurowriter/tests/data/"
 
@@ -85,3 +86,50 @@ def test_CsvCorpus():
     for i in range(len(corpus)):
         assert corpus[i] == expected[i]
     
+    # Test conditioners access    
+    expected = [
+        "['Drama']",
+        "['Drama']",
+        "['Thriller']"
+    ]
+    for cond, exp in zip(corpus.iterconditioners(), expected):
+        print("Expected", exp)
+        print("Obtained", cond["genres"])
+        assert cond["genres"] == exp
+
+def test_JsonCorpus():
+    """Loading a JSON corpus works as expected"""
+    
+    expected = [
+        "Na Boca da Noite",
+        "The Other Side of the Wind",
+        "Prata Palomares"
+    ]
+    datafile = DATAFOLDER + "jsoncorpus.json"
+    corpus = JsonCorpus()
+    corpus.load(datafile)
+    
+    # Test iterator
+    for doc, exp in zip(corpus, expected):
+        print("Expected", exp)
+        print("Obtained", doc)
+        assert doc == exp
+
+    # Test length
+    assert len(corpus) == 3
+
+    # Test direct access
+    for i in range(len(corpus)):
+        assert corpus[i] == expected[i]
+    
+    # Test conditioners access    
+    expected = [
+        ['Drama'],
+        ['Drama'],
+        ['Thriller']
+    ]
+    for cond, exp in zip(corpus.iterconditioners(), expected):
+        print("Expected", exp)
+        print("Obtained", cond["genres"])
+        assert cond["genres"] == exp
+                   
