@@ -305,11 +305,11 @@ class StackedLSTMModel():
     """
     
     paramgrid = [
-        [1,2,3,4,5], # layers
-        [16,32,64,128,256,512,1024], # units
-        (0.0, 1.0), # dropout
-        [32, 64, 128, 256, 512], # size of the embedding
-        ['sgd', 'rmsprop', 'adam'], # optimizer
+        [1, 2, 3, 4, 5],  # layers
+        [16, 32, 64, 128, 256, 512, 1024],  # units
+        (0.0, 1.0),  # dropout
+        [32, 64, 128, 256, 512],  # size of the embedding
+        ['rmsprop', 'adam', 'nadam']  # optimizer
     ]
     
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
