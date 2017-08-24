@@ -23,6 +23,7 @@ import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
 
+
 def modelbyname(modelname):
     """Returns a model generating class by name"""
     models = {
@@ -34,6 +35,7 @@ def modelbyname(modelname):
         raise ValueError("Unknown model %s" % modelname)
     return models[modelname]
 
+
 def get_available_gpus():
     """Returns a list of the GPU devices found in the host
     
@@ -42,6 +44,7 @@ def get_available_gpus():
     """
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
 
 def make_parallel(model, gpu_count):
     """Makes a keras model data-parallel on a set of gpus
@@ -55,13 +58,13 @@ def make_parallel(model, gpu_count):
     for i in range(len(model.outputs)):
         outputs_all.append([])
 
-    #Place a copy of the model on each GPU, each getting a slice of the batch
+    # Place a copy of the model on each GPU, each getting a slice of the batch
     for i in range(gpu_count):
         with tf.device('/gpu:%d' % i):
             with tf.name_scope('tower_%d' % i):
 
                 inputs = []
-                #Slice each input into a piece for processing on this GPU
+                # Slice each input into a piece for processing on this GPU
                 for x in model.inputs:
                     input_shape = tuple(x.get_shape().as_list())[1:]
                     slice_n = Lambda(tensorslice, output_shape=input_shape, arguments={'idx':i,'parts':gpu_count})(x)
@@ -72,7 +75,7 @@ def make_parallel(model, gpu_count):
                 if not isinstance(outputs, list):
                     outputs = [outputs]
                 
-                #Save all the outputs for merging back together later
+                # Save all the outputs for merging back together later
                 for l in range(len(outputs)):
                     outputs_all[l].append(outputs[l])
 
@@ -86,7 +89,8 @@ def make_parallel(model, gpu_count):
             merged = outputs
             
         return Model(inputs=model.inputs, outputs=merged)
-    
+
+
 def tensorslice(data, idx, parts):
     """Slices a tensor of data into several parts, as equal as possible.
     
@@ -105,6 +109,7 @@ def tensorslice(data, idx, parts):
     size = tf.concat([ endidx-startidx, shape[1:] ],axis=0)
     return tf.slice(data, start, size)
 
+
 def getcoremodel(model):
     """Removes data-parallel scaffolding, for efficient prediction"""
     # Find the layer containing the internal model and return it
@@ -115,6 +120,7 @@ def getcoremodel(model):
             return layer
     # Not found
     raise ValueError("Core model not found")
+
 
 class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
@@ -171,6 +177,7 @@ class DilatedConvModel():
     
     def trim(model):
         return model
+
 
 class WavenetModel():
     """Implementation of Wavenet model
@@ -285,7 +292,8 @@ class WavenetModel():
         """Removes data-parallel scaffolding, for efficient prediction"""
         return getcoremodel(model)
 
-class LSTMModel():
+
+class StackedLSTMModel():
     """Implementation of stacked Long-Short Term Memory model
     
     Main reference is Andrej Karpathy post on text generation with LSTMs:
@@ -344,4 +352,21 @@ class LSTMModel():
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
         return getcoremodel(model)
+
+
+class LSTMModel(StackedLSTMModel):
+    """Implementation of simple Long-Short Term Memory model
     
+    Main reference is Andrej Karpathy post on text generation with LSTMs:
+        - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+    
+    This implementation also includes an Embedding layer.
+    """
+    
+    paramgrid = [
+        [1,1], # layers
+        [16,32,64,128,256,512,1024], # units
+        (0.0, 1.0), # dropout
+        [32, 64, 128, 256, 512], # size of the embedding
+        ['sgd', 'rmsprop', 'adam'], # optimizer
+    ]

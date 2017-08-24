@@ -14,9 +14,15 @@ from skopt.plots import plot_convergence
 from keras import backend
 import numpy as np
 
-def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000, 
-               valmask = None, patience = 20,
-               batchsize = 256, verbose=False, modelparams=[]):
+
+# Optimizer parameters
+OPTPARAMS = {
+    "batchsize": [8, 16, 32, 64, 128, 256]
+}
+
+
+def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000,
+               valmask=None, patience=20, batchsize=256, verbose=1, modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
@@ -29,17 +35,18 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
             Input None to use all the data for training AND validation.
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
-        verbose: whether to print training traces
+        verbose: verbosity level (0 to 2)
         modelparams: list of parameters to be passed to the modelkind function
-    """        
+    """
+    if verbose >= 1:
+        print("Training with batchsize=%d, modelparams=%s" % (batchsize, str(modelparams)))
     # Build model with input parameters
     model = modelclass.create(inputtokens, encoder, *modelparams)
     # Prepare callbacks
     callbacks = [
-        #ModelCheckpoint(filepath=modelname,save_best_only=True),
         EarlyStopping(patience=patience)
     ]
-    # Preoompute some data size measurements
+    # Precompute some data size measurements
     ntokens = len(encoder.tokenizer.transform(corpus))
     npatterns = ntokens-inputtokens+1
     if valmask is not None:
@@ -75,7 +82,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
         validation_data=valgenerator,
         validation_steps=val_steps,
         epochs=maxepochs,
-        verbose=2 if verbose else 0,
+        verbose=2 if verbose == 2 else 0,
         callbacks=callbacks
     )
     # Trim model to make it more efficent for predictions
@@ -83,7 +90,22 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs = 1000,
     # Return model and train history
     return model, train_history
 
-def createobjective(modelclass, inputtokens, encoder, corpus, verbose=True,
+
+def trainwrapper(modelclass, inputtokens, encoder, corpus, params, **kwargs):
+    """Wrapper around the trainmodel function that unpacks model and optimizer parameters"""
+    paramsdict = splitparams(params)
+    return trainmodel(
+        modelclass,
+        inputtokens,
+        encoder,
+        corpus,
+        batchsize=paramsdict["batchsize"],
+        modelparams=paramsdict["modelparams"],
+        **kwargs
+    )
+
+
+def createobjective(modelclass, inputtokens, encoder, corpus, verbose=1,
                     savemodel=None):
     """Creates an objective function for the hyperoptimizer
     
@@ -100,31 +122,38 @@ def createobjective(modelclass, inputtokens, encoder, corpus, verbose=True,
     """
     def valloss(params):
         """Trains a keras model with given parameters and returns val loss"""
-        model, train_history = trainmodel(
-            modelclass, 
-            inputtokens, 
-            encoder, 
-            corpus, 
-            modelparams=params,
-            verbose=verbose
-        )
-        # Extract validation loss
-        bestloss = min(train_history.history['val_loss'])
-        if verbose:
-            print("Params:", params, ", loss: ", bestloss)
-        if savemodel is not None:
-            model.save(savemodel)
-        # Clear model and tensorflow session to free up space
-        del model
-        backend.clear_session()
+        try:
+            model, train_history = trainwrapper(
+                modelclass, 
+                inputtokens, 
+                encoder, 
+                corpus,
+                params=params,
+                verbose=verbose
+            )
+            # Extract validation loss
+            bestloss = min(train_history.history['val_loss'])
+            if verbose:
+                print("Params:", params, ", loss: ", bestloss)
+            if savemodel is not None:
+                model.save(savemodel)
+            # Clear model and tensorflow session to free up space
+            del model
+            backend.clear_session()
+        except Exception as e:
+            print("Error while training", e)
+            bestloss = 1000000
+            if verbose:
+                print("Params:", params, ", TRAINING FAILURE")            
         
         return bestloss
     
     # Return model train and validation loss producing function
     return valloss
 
+
 def findbestparams(modelclass, inputtokens, encoder, corpus, 
-                   n_calls=100, savemodel=None, verbose=False):
+                   n_calls=100, savemodel=None, verbose=1):
     """Find the best parameters for a given model architecture and param grid
     
     Returns
@@ -133,13 +162,38 @@ def findbestparams(modelclass, inputtokens, encoder, corpus,
     """
     fobj = createobjective(modelclass, inputtokens, encoder, corpus,
                            savemodel=savemodel, verbose=verbose)
-    optres = gbrt_minimize(fobj, modelclass.paramgrid, n_calls=n_calls, 
+    grid = addoptimizerparams(modelclass.paramgrid)
+    optres = gbrt_minimize(fobj, grid, n_calls=n_calls,
                            random_state=0)
     bestparams = optres.x
     return bestparams, optres
 
+
+def addoptimizerparams(paramgrid):
+    """Adds optimizer parameters to a given model parameter grid"""
+    newparamgrid = [OPTPARAMS[optparam] for optparam in sorted(OPTPARAMS.keys())]
+    newparamgrid.extend(paramgrid)
+    return newparamgrid
+
+
+def splitparams(params):
+    """Given a parameters vector, splits parameters by groups.
+
+    Returns a dictionary with each optimizar parameter, and an additional entry
+    'modelparams' that contains the vector of model parameters.
+    """
+    # Optimizer parameters
+    paramsdict = {
+        optparam: params[i]
+        for i, optparam in enumerate(sorted(OPTPARAMS.keys()))
+    }
+    # Model parameters
+    paramsdict["modelparams"] = params[len(OPTPARAMS):]
+    return paramsdict
+
+
 def hypertrain(modelclass, inputtokens, encoder, corpus, 
-               n_calls=100, verbose=False, savemodel=None):
+               n_calls=100, verbose=1, savemodel=None):
     """Performs hypertraining of a certain model architecture
     
     Returns 
@@ -150,9 +204,8 @@ def hypertrain(modelclass, inputtokens, encoder, corpus,
     bestparams, optres = findbestparams(modelclass, inputtokens, encoder, 
                                         corpus, n_calls, savemodel, 
                                         verbose=verbose)
-    if verbose:
+    if verbose >= 1:
         print("Best parameters are", bestparams)
-        plot_convergence(optres);
+        plot_convergence(optres)
     # Train again a new network with the best parameters
-    return trainmodel(modelclass, inputtokens, encoder, corpus, 
-                      modelparams=bestparams, verbose=verbose)
+    return trainwrapper(modelclass, inputtokens, encoder, corpus, params=bestparams, verbose=verbose)

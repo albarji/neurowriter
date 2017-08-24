@@ -124,12 +124,12 @@ def test_JsonCorpus():
     
     # Test conditioners access    
     expected = [
-        ['Drama'],
-        ['Drama'],
-        ['Thriller']
+        {"genres" : ['Drama']},
+        {"genres" : ['Drama']},
+        {"genres" : ['Thriller']}
     ]
     for cond, exp in zip(corpus.iterconditioners(), expected):
         print("Expected", exp)
-        print("Obtained", cond["genres"])
-        assert cond["genres"] == exp
+        print("Obtained", cond)
+        assert cond == exp
                    
