@@ -126,19 +126,18 @@ class DilatedConvModel():
     """Model based on dilated convolutions + pooling + dense layers"""
     
     paramgrid = [
-        [2,3,4,5], # convlayers
-        [4,8,16,32,64], # kernels
-        (0.0, 1.0), # convdrop
-        [0,1,2,3], # denselayers
-        [16,32,64,128,256], # dense units
-        (0.0, 1.0), # densedrop
-        [32, 64, 128, 256, 512], # size of the embedding
-        ['sgd', 'rmsprop', 'adam'], # optimizer
+        [2, 3, 4, 5],  # convlayers
+        [4, 8, 16, 32, 64],  # kernels
+        (0.0, 1.0),  # convdrop
+        [0, 1, 2, 3],  # denselayers
+        [16, 32, 64, 128, 256],  # dense units
+        (0.0, 1.0),  # densedrop
+        [32, 64, 128, 256, 512],  # size of the embedding
     ]
     
     def create(inputtokens, encoder, convlayers=5, kernels = 32,
                convdrop=0.1, denselayers=0, denseunits=64, densedrop=0.1,
-               embedding=32, optimizer='adam'):
+               embedding=32):
         kernel_size = 2
         pool_size = 2
         if convlayers < 1:
@@ -171,8 +170,6 @@ class DilatedConvModel():
             model.add(Dropout(densedrop))
         # Output layer
         model.add(Dense(encoder.nchars, activation='softmax'))
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
-                      metrics=['accuracy'])
         return model
     
     def trim(model):
@@ -200,15 +197,14 @@ class WavenetModel():
     """
     
     paramgrid = [
-        [32,64,128,256], # kernels
-        [1,2,3,4,5], # wavenetblocks
-        (0.0, 1.0), # dropout
-        [32, 64, 128, 256, 512], # size of the embedding
-        ['sgd', 'rmsprop', 'adam'], # optimizer
+        [32, 64, 128, 256],  # kernels
+        [1, 2, 3, 4, 5],  # wavenetblocks
+        (0.0, 1.0),  # dropout
+        [32, 64, 128, 256, 512]  # size of the embedding
     ]
     
     def create(inputtokens, encoder, kernels=64, wavenetblocks=1, 
-               dropout=0, embedding=32, optimizer='adam'):
+               dropout=0, embedding=32):
         kernel_size = 2
         maxdilation = inputtokens
         
@@ -284,8 +280,7 @@ class WavenetModel():
         # Make data-parallel
         gpus = get_available_gpus()
         model = make_parallel(model, len(gpus))
-        
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
         return model
     
     def trim(model):
@@ -308,8 +303,7 @@ class StackedLSTMModel():
         [1, 2, 3, 4, 5],  # layers
         [16, 32, 64, 128, 256, 512, 1024],  # units
         (0.0, 1.0),  # dropout
-        [32, 64, 128, 256, 512],  # size of the embedding
-        ['rmsprop', 'adam', 'nadam']  # optimizer
+        [32, 64, 128, 256, 512]  # size of the embedding
     ]
     
     def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
@@ -344,9 +338,7 @@ class StackedLSTMModel():
         # Make data-parallel
         gpus = get_available_gpus()
         model = make_parallel(model, len(gpus))
-        
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', 
-                      metrics=['accuracy'])
+
         return model
 
     def trim(model):
@@ -367,6 +359,5 @@ class LSTMModel(StackedLSTMModel):
         [1, 1],  # layers
         [16, 32, 64, 128, 256, 512, 1024],  # units
         (0.0, 1.0),  # dropout
-        [32, 64, 128, 256, 512],  # size of the embedding
-        ['rmsprop', 'adam', 'nadam']  # optimizer
+        [32, 64, 128, 256, 512]  # size of the embedding
     ]

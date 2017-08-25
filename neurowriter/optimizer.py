@@ -9,6 +9,7 @@ Module for optimizing model desing.
 """
 
 from keras.callbacks import EarlyStopping
+from keras.optimizers import Adam, RMSprop, Nadam
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
@@ -17,12 +18,14 @@ import numpy as np
 
 # Optimizer parameters
 OPTPARAMS = {
-    "batchsize": [8, 16, 32, 64, 128, 256]
+    "batchsize": [8, 16, 32, 64, 128, 256],
+    "optimizer": [Adam, RMSprop, Nadam],
+    "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4, 5e-5, 2e-5, 1e-5]
 }
 
 
-def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000,
-               valmask=None, patience=20, batchsize=256, verbose=1, modelparams=[]):
+def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask=None, patience=20, batchsize=256,
+               optimizerclass=Adam, learningrate=None, verbose=1, modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
@@ -35,13 +38,20 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000,
             Input None to use all the data for training AND validation.
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
+        optimizerclass: keras class of the optimizer to use
+        learningrate: learning rate to use in the optimizer
         verbose: verbosity level (0 to 2)
         modelparams: list of parameters to be passed to the modelkind function
     """
     if verbose >= 1:
-        print("Training with batchsize=%d, modelparams=%s" % (batchsize, str(modelparams)))
+        print("Training with batchsize=%d, optimizer=%s, learningrate=%f, modelparams=%s" %
+              (batchsize, str(optimizerclass), learningrate, str(modelparams)))
     # Build model with input parameters
     model = modelclass.create(inputtokens, encoder, *modelparams)
+    # Prepare optimizer
+    optimizer = optimizerclass(lr=learningrate)
+    # Compile model with optimizer
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     # Prepare callbacks
     callbacks = [
         EarlyStopping(patience=patience)
@@ -100,6 +110,8 @@ def trainwrapper(modelclass, inputtokens, encoder, corpus, params, **kwargs):
         encoder,
         corpus,
         batchsize=paramsdict["batchsize"],
+        optimizerclass=paramsdict["optimizer"],
+        learningrate=paramsdict["learningrate"],
         modelparams=paramsdict["modelparams"],
         **kwargs
     )
