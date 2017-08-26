@@ -8,12 +8,15 @@ Module for optimizing model desing.
 @author: Álvaro Barbero Jiménez
 """
 
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam, RMSprop, Nadam
+from keras.models import load_model
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
 import numpy as np
+from tempfile import NamedTemporaryFile
+import tensorflow as tf
 
 
 # Optimizer parameters
@@ -52,17 +55,13 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
     optimizer = optimizerclass(lr=learningrate)
     # Compile model with optimizer
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
-    # Prepare callbacks
-    callbacks = [
-        EarlyStopping(patience=patience)
-    ]
     # Precompute some data size measurements
     ntokens = len(encoder.tokenizer.transform(corpus))
     npatterns = ntokens-inputtokens+1
     if valmask is not None:
         trainmask = [not x for x in valmask]
     else:
-        valmask= [True]
+        valmask = [True]
         trainmask = [True]
     val_ratio = len([x for x in valmask if x]) / len(valmask)
     train_ratio = len([x for x in trainmask if x]) / len(trainmask)
@@ -85,16 +84,25 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         batchsize=batchsize, 
         infinite=True
     )
-    # Train model
-    train_history = model.fit_generator(
-        traingenerator,
-        steps_per_epoch=train_steps,
-        validation_data=valgenerator,
-        validation_steps=val_steps,
-        epochs=maxepochs,
-        verbose=2 if verbose == 2 else 0,
-        callbacks=callbacks
-    )
+    # Prepare callbacks
+    with NamedTemporaryFile() as modelfile:
+        callbacks = [
+            EarlyStopping(patience=patience),
+            ModelCheckpoint(modelfile.name, save_best_only=True)
+        ]
+        # Train model
+        train_history = model.fit_generator(
+            traingenerator,
+            steps_per_epoch=train_steps,
+            validation_data=valgenerator,
+            validation_steps=val_steps,
+            epochs=maxepochs,
+            verbose=2 if verbose == 2 else 0,
+            callbacks=callbacks
+        )
+        # Recover best model seen during training
+        load_model(modelfile.name, custom_objects={"tf": tf})
+
     # Trim model to make it more efficent for predictions
     model = modelclass.trim(model)
     # Return model and train history
