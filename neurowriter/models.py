@@ -361,3 +361,14 @@ class LSTMModel(StackedLSTMModel):
         (0.0, 1.0),  # dropout
         [32, 64, 128, 256, 512]  # size of the embedding
     ]
+
+
+class SmallLSTMModel(StackedLSTMModel):
+    """Implementation of very small Long-Short Term Memory model for testing purposes"""
+
+    paramgrid = [
+        [1, 1],  # layers
+        [4, 6, 8],  # units
+        (0.0, 1.0),  # dropout
+        [4, 6, 8]  # size of the embedding
+    ]

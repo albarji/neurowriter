@@ -10,10 +10,6 @@ From Facebook's convolutional translation paper
 * The position of each token is also added as a parallel embedding
 * Dropout for the embeddings and for the input of each convolutional block
 
-Other improvements
-
-* Hyperoptimize over the number of input tokens used for generation. Too few produce large output errors, too many make training very difficult.
-
 ## References
 
 * WaveNet paper: https://arxiv.org/pdf/1609.03499.pdf

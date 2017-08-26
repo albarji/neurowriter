@@ -23,7 +23,8 @@ import tensorflow as tf
 OPTPARAMS = {
     "batchsize": [8, 16, 32, 64, 128, 256],
     "optimizer": [Adam, RMSprop, Nadam],
-    "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4, 5e-5, 2e-5, 1e-5]
+    "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4, 5e-5, 2e-5, 1e-5],
+    "inputtokens": [4, 8, 16, 32, 64, 128],
 }
 
 
@@ -47,8 +48,8 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         modelparams: list of parameters to be passed to the modelkind function
     """
     if verbose >= 1:
-        print("Training with batchsize=%d, optimizer=%s, learningrate=%f, modelparams=%s" %
-              (batchsize, str(optimizerclass), learningrate, str(modelparams)))
+        print("Training with inputtokens=%d, batchsize=%d, optimizer=%s, learningrate=%f, modelparams=%s" %
+              (inputtokens, batchsize, str(optimizerclass), learningrate, str(modelparams)))
     # Build model with input parameters
     model = modelclass.create(inputtokens, encoder, *modelparams)
     # Prepare optimizer
@@ -109,12 +110,12 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
     return model, train_history
 
 
-def trainwrapper(modelclass, inputtokens, encoder, corpus, params, **kwargs):
+def trainwrapper(modelclass, encoder, corpus, params, **kwargs):
     """Wrapper around the trainmodel function that unpacks model and optimizer parameters"""
     paramsdict = splitparams(params)
     return trainmodel(
         modelclass,
-        inputtokens,
+        paramsdict["inputtokens"],
         encoder,
         corpus,
         batchsize=paramsdict["batchsize"],
@@ -125,13 +126,12 @@ def trainwrapper(modelclass, inputtokens, encoder, corpus, params, **kwargs):
     )
 
 
-def createobjective(modelclass, inputtokens, encoder, corpus, verbose=1,
+def createobjective(modelclass, encoder, corpus, verbose=1,
                     savemodel=None):
     """Creates an objective function for the hyperoptimizer
     
     Arguments
         modelclass: class defining the generative model
-        inputtokens: number of input tokens the model will receive at a time
         encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
         verbose: whether to print info on the evaluations of this objective
@@ -144,8 +144,7 @@ def createobjective(modelclass, inputtokens, encoder, corpus, verbose=1,
         """Trains a keras model with given parameters and returns val loss"""
         try:
             model, train_history = trainwrapper(
-                modelclass, 
-                inputtokens, 
+                modelclass,
                 encoder, 
                 corpus,
                 params=params,
@@ -172,16 +171,14 @@ def createobjective(modelclass, inputtokens, encoder, corpus, verbose=1,
     return valloss
 
 
-def findbestparams(modelclass, inputtokens, encoder, corpus, 
-                   n_calls=100, savemodel=None, verbose=1):
+def findbestparams(modelclass, encoder, corpus, n_calls=100, savemodel=None, verbose=1):
     """Find the best parameters for a given model architecture and param grid
     
     Returns
         - list with the best parameters found for the model
         - OptimizeResult object with info on the optimization procedure
     """
-    fobj = createobjective(modelclass, inputtokens, encoder, corpus,
-                           savemodel=savemodel, verbose=verbose)
+    fobj = createobjective(modelclass, encoder, corpus, savemodel=savemodel, verbose=verbose)
     grid = addoptimizerparams(modelclass.paramgrid)
     optres = gbrt_minimize(fobj, grid, n_calls=n_calls,
                            random_state=0)
@@ -212,8 +209,7 @@ def splitparams(params):
     return paramsdict
 
 
-def hypertrain(modelclass, inputtokens, encoder, corpus, 
-               n_calls=100, verbose=1, savemodel=None):
+def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, savemodel=None):
     """Performs hypertraining of a certain model architecture
     
     Returns 
@@ -221,11 +217,9 @@ def hypertrain(modelclass, inputtokens, encoder, corpus,
         - A train history object
     """
     # Hyperoptimization to find the best neural network parameters
-    bestparams, optres = findbestparams(modelclass, inputtokens, encoder, 
-                                        corpus, n_calls, savemodel, 
-                                        verbose=verbose)
+    bestparams, optres = findbestparams(modelclass, encoder, corpus, n_calls, savemodel, verbose=verbose)
     if verbose >= 1:
         print("Best parameters are", bestparams)
         plot_convergence(optres)
     # Train again a new network with the best parameters
-    return trainwrapper(modelclass, inputtokens, encoder, corpus, params=bestparams, verbose=verbose)
+    return trainwrapper(modelclass, encoder, corpus, params=bestparams, verbose=verbose)
