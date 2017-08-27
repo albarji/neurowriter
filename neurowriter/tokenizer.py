@@ -12,23 +12,26 @@ included between tokens when recovering the original text back (e.g. blank).
 @author: Álvaro Barbero Jiménez
 """
 
-import re, collections
+import re
+import collections
 from itertools import chain
 
-from neurowriter.symbols import NULL
+from neurowriter.linkedlist import LinkedList
+
 
 def tokenizerbyname(tokenizername):
     """Returns a tokenizer class by name"""
     tokenizers = {
-        "char" : CharTokenizer,
-        "word" : WordTokenizer,
-        "subword" : SubwordTokenizer,
+        "char": CharTokenizer,
+        "word": WordTokenizer,
+        "subword": SubwordTokenizer,
     }
     if tokenizername not in tokenizers:
         raise ValueError("Unknown tokenizer %s" % tokenizername)
     return tokenizers[tokenizername]
 
-class CharTokenizer():
+
+class CharTokenizer:
     """Tokenizer that splits a text into its basic characters"""
     
     def fit(self, corpus):
@@ -38,7 +41,8 @@ class CharTokenizer():
     def transform(self, text):
         return list(text)
 
-class WordTokenizer():
+
+class WordTokenizer:
     """Tokenizer that splits text in words
     
     Punctuation and whitespace symbols are kept as individual
@@ -89,40 +93,46 @@ class WordTokenizer():
                         result.append(char)
         return result
 
-class SubwordTokenizer():
+
+class SubwordTokenizer:
     """Tokenizer that splits text in descriptive subword parts
-    
+
     Subword parts are trained for each corpus, building from single
     characters and using a Byte Pair Encoding (BPE) method.
-    
+
     References:
         - https://en.wikipedia.org/wiki/Byte_pair_encoding
         - https://github.com/rsennrich/subword-nmt
         - https://arxiv.org/abs/1508.07909
     """
-    
+
     def __init__(self, numsymbols=4096, minfreq=2):
         self.numsymbols = numsymbols
         self.minfreq = minfreq
         self.detector = None
-    
-    def initfreqs(self, corpus):
-        """Initializes the symbol statistics with char pairs"""
+
+    @staticmethod
+    def initfreqs(corpus):
+        """Initializes the symbol statistics with char pairs
+
+        The input must be a list of docs, each a LinkedList of symbols
+        """
         stats = collections.defaultdict(int)
         for doc in corpus:
-            for a, b in zip(doc[:-1], doc[1:]):
-                stats[a,b] += 1
+            for node in doc.iternodes():
+                if node.nxt is not None:
+                    stats[node.value, node.nxt.value] += 1
         return stats
-    
+
     def mergesymbols(self, corpus, symbols, freqs, leftsymbol, rightsymbol):
         """Merges two symbols in the encoding
-        
+
         Arguments:
-            - corpus: current list of docs, each a list of symbols
+            - corpus: current list of docs, each a LinkedList of symbols
             - symbols: current set of symbols
             - freqs: current symbol pairs statistics
             - leftsymbol, rightsymbol: symbols to merge
-            
+
         Returns:
             - new corpus with merged symbols
             - new list of symbols
@@ -131,41 +141,28 @@ class SubwordTokenizer():
         # Add new symbol to set
         newsymbol = leftsymbol + rightsymbol
         self.symbols.add(newsymbol)
-        
-        # Go over each doc in corpus, find occurrences of the given pair and merge
-        newcorpus = []
-        for doc in corpus:
-            padded = doc + [NULL]
-            newdoc = []
-            locations = []
-            i = 0
-            while i < len(doc):
-                if padded[i] == leftsymbol and padded[i+1] == rightsymbol:
-                    locations.append(len(newdoc))
-                    newdoc.append(newsymbol)
-                    i += 2 # Skip already processed next symbol
-                else:
-                    newdoc.append(padded[i])
-                    i += 1
-            newcorpus.append(newdoc)
 
-            for i in locations:
-                # Update frequencies with previous symbol
-                if i > 0:
-                    prevsymbol = newdoc[i-1]
-                    freqs[prevsymbol, newsymbol] += 1
-                    freqs[prevsymbol, leftsymbol] -= 1
-                # Update frequencies with next symbol
-                if i < len(newdoc)-1:
-                    nextsymbol = newdoc[i+1]
-                    freqs[newsymbol, nextsymbol] += 1
-                    freqs[rightsymbol, nextsymbol] -= 1
-                         
+        # Go over each doc in corpus, find occurrences of the given pair and merge
+        for doc in corpus:
+            for node in doc.iternodes():
+                if node.value == leftsymbol and node.nxt is not None and node.nxt.value == rightsymbol:
+                    node.mergewithnext()
+                    # Update frequencies with previous symbol
+                    if node.prev is not None:
+                        prevsymbol = node.prev.value
+                        freqs[prevsymbol, newsymbol] += 1
+                        freqs[prevsymbol, leftsymbol] -= 1
+                    # Update frequencies with next symbol
+                    if node.nxt is not None:
+                        nextsymbol = node.nxt.value
+                        freqs[newsymbol, nextsymbol] += 1
+                        freqs[rightsymbol, nextsymbol] -= 1
+
         # Delete statistics of merged symbols
         del freqs[(leftsymbol, rightsymbol)]
-                         
-        return newcorpus, freqs, symbols
-        
+
+        return corpus, freqs, symbols
+
     def compile(self):
         """Compiles the parsing expression for more efficiency"""
         # Sort symbols by length, so larger symbols have precedence
@@ -174,9 +171,8 @@ class SubwordTokenizer():
         srt = [re.escape(token) for token in srt]
         # Detect any symbol, with precedence for larger ones
         self.detector = re.compile('|'.join(srt))
-        
-            
-    def bestmatch(self, string, symbols):
+
+    def bestmatch(self, string):
         """Find the best matching symbol at the beggining of a string"""
         if self.detector is None:
             raise ValueError("Tokenizer has not been fitted")
@@ -185,10 +181,10 @@ class SubwordTokenizer():
             return match.group()
         else:
             return None
-    
+
     def fit(self, corpus):
-        # Cast corpus to list of lists of symbols
-        corpus = [list(doc) for doc in corpus]
+        # Cast corpus to list of linked-lists of symbols
+        corpus = [LinkedList(doc) for doc in corpus]
         # Initialize symbols with chars
         self.symbols = set(chain(*[doc for doc in corpus]))
         # Compute char pairs frequencies
@@ -203,9 +199,9 @@ class SubwordTokenizer():
             # Merge symbols
             corpus, freqs, self.symbols = self.mergesymbols(
                 corpus,
-                self.symbols, 
-                freqs, 
-                leftsymbol, 
+                self.symbols,
+                freqs,
+                leftsymbol,
                 rightsymbol
             )
         # Compile tokenizer for found symbols
@@ -215,7 +211,8 @@ class SubwordTokenizer():
         transformed = []
         i = 0
         while i < len(text):
-            symbol = self.bestmatch(text[i:], self.symbols)
+            symbol = self.bestmatch(text[i:])
             transformed.append(symbol)
             i += len(symbol)
         return transformed
+

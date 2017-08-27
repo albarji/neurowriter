@@ -8,6 +8,7 @@
 from itertools import islice
 import numpy as np
 
+
 def splitevery(iterable, n):
     """Returns blocks of elements from an iterator"""
     i = iter(iterable)
@@ -15,7 +16,8 @@ def splitevery(iterable, n):
     while piece:
         yield piece
         piece = list(islice(i, n))
-    
+
+
 def batchedgenerator(generatorfunction):
     """Decorator that makes a pattern generator produce patterns in batches
 
@@ -35,6 +37,7 @@ def batchedgenerator(generatorfunction):
             yield batch
     return modgenerator
 
+
 def batchedpatternsgenerator(generatorfunction):
     """Decorator that assumes patterns (X,y) and stacks them in batches
     
@@ -52,7 +55,8 @@ def batchedpatternsgenerator(generatorfunction):
             Xb, yb = zip(*batch)
             yield np.stack(Xb), np.stack(yb)
     return modgenerator
-    
+
+
 def infinitegenerator(generatorfunction):
     """Decorator that makes a generator replay indefinitely
     
@@ -74,6 +78,7 @@ def infinitegenerator(generatorfunction):
                 yield elem            
     return infgenerator
 
+
 def maskedgenerator(generatorfunction):
     """Decorator that adds outputs masking to a generator.
     
@@ -94,6 +99,7 @@ def maskedgenerator(generatorfunction):
                 
     return mskgenerator
 
+
 def addtensordimension(bidifunction):
     """Decorator for function returning 2D objects, adds singleton dimension"""
     def reshapedfunction(*args, **kwargs):
@@ -110,7 +116,8 @@ def generatorshape(generator):
         Xlen += len(X)
         Ylen += len(Y)
     return (Xlen,) + X.shape[1:], (Ylen,) + Y.shape[1:]
-    
+
+
 def generatorlengths(generator):
     """Consumes a generator and returns a list of lengths of its X, Y patterns"""
     return [(len(X), len(Y)) for X,Y in generator]

@@ -50,7 +50,7 @@ def test_SubwordTokenizerExact():
     """The subword tokenizer obtains the exact expected symbols for toy data"""
     
     corpus = ["aaabdaaabac"]
-    expected = {'a','b','c','d','aa','ab','aaab'}
+    expected = {'a', 'b', 'c', 'd', 'aa', 'ab', 'aaab'}
     
     tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
     

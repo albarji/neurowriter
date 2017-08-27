@@ -12,12 +12,14 @@ import pandas as pd
 import json
 from copy import copy
 
-class CorpusMixin():
-     """Base documents corpus class"""
+
+class CorpusMixin:
+    """Base documents corpus class"""
      
-     def iterconditioners(self):
-         for _ in range(len(self)):
-             yield None
+    def iterconditioners(self):
+        for _ in range(len(self)):
+            yield None
+
 
 class SingleTxtCorpus(CorpusMixin):
     """Corpus made of a txt file with a single document"""
@@ -38,6 +40,7 @@ class SingleTxtCorpus(CorpusMixin):
     def __len__(self):
         return 1
 
+
 class MultiLineCorpus(CorpusMixin):
     """Corpus made of a txt file, one document per line"""
     
@@ -56,6 +59,7 @@ class MultiLineCorpus(CorpusMixin):
     def __len__(self):
         return len(self.corpus)
 
+
 class StringsCorpus(CorpusMixin):
     """Corpus made from an iterable of strings"""
     
@@ -71,7 +75,8 @@ class StringsCorpus(CorpusMixin):
 
     def __len__(self):
         return len(self.corpus)
-    
+
+
 class CsvCorpus(CorpusMixin):
     """Corpus loaded from a CSV with additional conditioning data
     
@@ -96,6 +101,7 @@ class CsvCorpus(CorpusMixin):
     def iterconditioners(self):
         for _, row in self.corpus.iterrows():
             yield row[self.corpus.columns[1:]]
+
 
 class JsonCorpus(CorpusMixin):
     """Corpus loaded from a JSON with additional conditioning data
@@ -134,4 +140,3 @@ class JsonCorpus(CorpusMixin):
     def iterconditioners(self):
         for doc in self.corpus:
             yield doc["conditioners"]
-            
