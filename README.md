@@ -4,7 +4,6 @@ THIS IS WORK IN PROGRESS
 
 ## TODOs and possible improvements
 
-* Allow to set patience parameter in train and hypetrain. Small dataset benefit from larger patience values.
 * Add BatchNormalization layers.
 
 From Facebook's convolutional translation paper

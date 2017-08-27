@@ -14,7 +14,6 @@ from keras.models import load_model
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
-import numpy as np
 from tempfile import NamedTemporaryFile
 import tensorflow as tf
 
@@ -134,8 +133,7 @@ def trainwrapper(modelclass, encoder, corpus, params, **kwargs):
     )
 
 
-def createobjective(modelclass, encoder, corpus, verbose=1,
-                    savemodel=None):
+def createobjective(modelclass, encoder, corpus, verbose=1, savemodel=None, valmask=None, patience=20):
     """Creates an objective function for the hyperoptimizer
     
     Arguments
@@ -156,7 +154,9 @@ def createobjective(modelclass, encoder, corpus, verbose=1,
                 encoder, 
                 corpus,
                 params=params,
-                verbose=verbose
+                verbose=verbose,
+                valmask=valmask,
+                patience=patience
             )
             # Extract validation loss
             bestloss = min(train_history.history['val_loss'])
@@ -179,14 +179,15 @@ def createobjective(modelclass, encoder, corpus, verbose=1,
     return valloss
 
 
-def findbestparams(modelclass, encoder, corpus, n_calls=100, savemodel=None, verbose=1):
+def findbestparams(modelclass, encoder, corpus, n_calls=100, savemodel=None, verbose=1, valmask=None, patience=20):
     """Find the best parameters for a given model architecture and param grid
     
     Returns
         - list with the best parameters found for the model
         - OptimizeResult object with info on the optimization procedure
     """
-    fobj = createobjective(modelclass, encoder, corpus, savemodel=savemodel, verbose=verbose)
+    fobj = createobjective(modelclass, encoder, corpus, savemodel=savemodel, verbose=verbose, valmask=valmask,
+                           patience=patience)
     grid = addoptimizerparams(modelclass.paramgrid)
     optres = gbrt_minimize(fobj, grid, n_calls=n_calls,
                            random_state=0)
@@ -217,7 +218,7 @@ def splitparams(params):
     return paramsdict
 
 
-def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, savemodel=None):
+def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, savemodel=None, valmask=None, patience=20):
     """Performs hypertraining of a certain model architecture
     
     Returns 
@@ -225,9 +226,11 @@ def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, savemodel=No
         - A train history object
     """
     # Hyperoptimization to find the best neural network parameters
-    bestparams, optres = findbestparams(modelclass, encoder, corpus, n_calls, savemodel, verbose=verbose)
+    bestparams, optres = findbestparams(modelclass, encoder, corpus, n_calls, savemodel, verbose=verbose,
+                                        valmask=valmask, patience=patience)
     if verbose >= 1:
         print("Best parameters are", bestparams)
         plot_convergence(optres)
     # Train again a new network with the best parameters
-    return trainwrapper(modelclass, encoder, corpus, params=bestparams, verbose=verbose)
+    return trainwrapper(modelclass, encoder, corpus, params=bestparams, verbose=verbose, valmask=valmask,
+                        patience=patience)

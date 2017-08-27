@@ -107,11 +107,7 @@ class Encoder():
                 text += char + self.tokenizer.intertoken
                 
         return text
-    
-    # Mask the patterns, then batch them, then repeat the cycle endlessly
-    @infinitegenerator
-    @batchedpatternsgenerator
-    @maskedgenerator
+
     def patterngenerator(self, corpus, tokensperpattern, **kwargs):
         """Infinite generator of encoded patterns.
         
@@ -120,13 +116,17 @@ class Encoder():
             - tokensperpattern: how many tokens to include in every pattern
             - **kwargs: any other arguments are passed on to decodetext
         """
-        # TODO: some tokenizers are very slow, repeating this for every
-        # call to patterngeneration is not a good idea.
-        # It actually seems that generating patterns is a bottleneck,
-        # as there are large lapses of time where the GPUs are not being used!!
-        for doc in corpus:
-            # Tokenize document
-            tokens = self.tokenizer.transform(doc)
+        # Pre-tokenized all corpus documents, for efficiency
+        tokenizedcorpus = [self.tokenizer.transform(doc) for doc in corpus]
+        for pattern in self._tokenizedpatterngenerator(tokenizedcorpus, tokensperpattern, **kwargs):
+            yield pattern
+
+    # Mask the patterns, then batch them, then repeat the cycle endlessly
+    @infinitegenerator
+    @batchedpatternsgenerator
+    @maskedgenerator
+    def _tokenizedpatterngenerator(self, tokenizedcorpus, tokensperpattern, **kwargs):
+        for tokens in tokenizedcorpus:
             # Append padding
             tokens = [NULL] * (tokensperpattern-1) + [START] + tokens + [END]
             for i in range(tokensperpattern, len(tokens)):
