@@ -50,26 +50,32 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
     if verbose >= 1:
         print("Training with inputtokens=%d, batchsize=%d, optimizer=%s, learningrate=%f, modelparams=%s" %
               (inputtokens, batchsize, str(optimizerclass), learningrate, str(modelparams)))
+
     # Build model with input parameters
     model = modelclass.create(inputtokens, encoder, *modelparams)
     # Prepare optimizer
     optimizer = optimizerclass(lr=learningrate)
     # Compile model with optimizer
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
-    # Precompute some data size measurements
-    ntokens = len(encoder.tokenizer.transform(corpus))
-    npatterns = ntokens-inputtokens+1
+
+    # Prepare masks
     if valmask is not None:
         trainmask = [not x for x in valmask]
     else:
         valmask = [True]
         trainmask = [True]
-    val_ratio = len([x for x in valmask if x]) / len(valmask)
-    train_ratio = len([x for x in trainmask if x]) / len(trainmask)
-    val_steps = np.ceil(npatterns * val_ratio / batchsize)
-    train_steps = np.ceil(npatterns * train_ratio / batchsize)
-    if train_steps == 0 or val_steps == 0:
+
+    # Precompute some data size measurements
+    ntrainbatches = len(list(encoder.patterngenerator(corpus, tokensperpattern=inputtokens, mask=trainmask,
+                                                      batchsize=batchsize)))
+    nvalbatches = len(list(encoder.patterngenerator(corpus, tokensperpattern=inputtokens, mask=valmask,
+                                                    batchsize=batchsize)))
+    if verbose >= 2:
+        print("Number of training batches:", ntrainbatches)
+        print("Number of validation batches:", nvalbatches)
+    if ntrainbatches == 0 or nvalbatches == 0:
         raise ValueError("Insufficient data for training in the current setting")
+
     # Prepare data generators
     traingenerator = encoder.patterngenerator(
         corpus, 
@@ -85,8 +91,10 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         batchsize=batchsize, 
         infinite=True
     )
-    # Prepare callbacks
+
+    # Model training
     with NamedTemporaryFile() as modelfile:
+        # Prepare callbacks
         callbacks = [
             EarlyStopping(patience=patience),
             ModelCheckpoint(modelfile.name, save_best_only=True)
@@ -94,15 +102,15 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         # Train model
         train_history = model.fit_generator(
             traingenerator,
-            steps_per_epoch=train_steps,
+            steps_per_epoch=ntrainbatches,
             validation_data=valgenerator,
-            validation_steps=val_steps,
+            validation_steps=nvalbatches,
             epochs=maxepochs,
             verbose=2 if verbose == 2 else 0,
             callbacks=callbacks
         )
         # Recover best model seen during training
-        load_model(modelfile.name, custom_objects={"tf": tf})
+        model = load_model(modelfile.name, custom_objects={"tf": tf})
 
     # Trim model to make it more efficent for predictions
     model = modelclass.trim(model)

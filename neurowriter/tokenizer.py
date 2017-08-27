@@ -211,11 +211,11 @@ class SubwordTokenizer():
         # Compile tokenizer for found symbols
         self.compile()
 
-    def transform(self, corpus):
+    def transform(self, text):
         transformed = []
         i = 0
-        while i < len(corpus):
-            symbol = self.bestmatch(corpus[i:], self.symbols)
+        while i < len(text):
+            symbol = self.bestmatch(text[i:], self.symbols)
             transformed.append(symbol)
             i += len(symbol)
         return transformed

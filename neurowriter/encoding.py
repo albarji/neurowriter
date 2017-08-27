@@ -14,6 +14,7 @@ from neurowriter.genutils import maskedgenerator
 from neurowriter.tokenizer import CharTokenizer
 from neurowriter.symbols import START, END, NULL, SPCHARS
 
+
 class Encoder():
     # Dictionary of chars to numeric indices
     char2index = None    
@@ -119,7 +120,7 @@ class Encoder():
             - tokensperpattern: how many tokens to include in every pattern
             - **kwargs: any other arguments are passed on to decodetext
         """
-        #TODO: some tokenizers are very slow, repeating this for every
+        # TODO: some tokenizers are very slow, repeating this for every
         # call to patterngeneration is not a good idea.
         # It actually seems that generating patterns is a bottleneck,
         # as there are large lapses of time where the GPUs are not being used!!
@@ -128,7 +129,7 @@ class Encoder():
             tokens = self.tokenizer.transform(doc)
             # Append padding
             tokens = [NULL] * (tokensperpattern-1) + [START] + tokens + [END]
-            for i in range(tokensperpattern,len(tokens)):
+            for i in range(tokensperpattern, len(tokens)):
                 x = self.encodetokens(tokens[i-tokensperpattern:i], **kwargs)
                 yindex = self.encodetokens([tokens[i]], **kwargs)[0]
                 y = np.zeros(self.nchars)
@@ -143,6 +144,7 @@ class Encoder():
     @property                
     def nchars(self):
         return len(self.char2index)
+
 
 def loadencoding(filename):
     with open(filename, "rb") as f:
