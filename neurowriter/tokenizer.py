@@ -6,8 +6,7 @@ Created on Sun Jul 30 13:49:48 2017
 Functions for tokenizing texts.
 
 All tokenizers are defined as classes that must feature a fit and transform
-method, as well as a property "intertoken" that states the string to be
-included between tokens when recovering the original text back (e.g. blank).
+method.
 
 @author: Álvaro Barbero Jiménez
 """
@@ -33,12 +32,14 @@ def tokenizerbyname(tokenizername):
 
 class CharTokenizer:
     """Tokenizer that splits a text into its basic characters"""
-    
-    def fit(self, corpus):
+
+    @staticmethod
+    def fit(corpus):
         # No training necessary
         pass
-    
-    def transform(self, text):
+
+    @staticmethod
+    def transform(text):
         return list(text)
 
 
@@ -106,7 +107,7 @@ class SubwordTokenizer:
         - https://arxiv.org/abs/1508.07909
     """
 
-    def __init__(self, numsymbols=4096, minfreq=2):
+    def __init__(self, numsymbols=4096, minfreq=5):
         self.numsymbols = numsymbols
         self.minfreq = minfreq
         self.detector = None

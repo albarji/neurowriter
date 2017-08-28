@@ -15,7 +15,7 @@ from neurowriter.tokenizer import CharTokenizer
 from neurowriter.symbols import START, END, NULL, SPCHARS
 
 
-class Encoder():
+class Encoder:
     # Dictionary of chars to numeric indices
     char2index = None    
     # Dictionary of numeric indices to chars
@@ -43,9 +43,11 @@ class Encoder():
                 self.tokenizer = CharTokenizer()
             self.tokenizer.fit(corpus)
             # Get unique tokens from data
-            tokens = set(
-                chain(*[self.tokenizer.transform(doc) for doc in corpus])
-            )
+            tokens = set(chain(*[
+                self.tokenizer.transform(doc) if self.tokenizer is not None
+                else doc
+                for doc in corpus
+            ]))
             print('Total tokens:', len(tokens) + len(SPCHARS))
             self.char2index = dict((c, i) for i, c in enumerate(chain(SPCHARS ,tokens)))
             self.index2char = dict((i, c) for i, c in enumerate(chain(SPCHARS ,tokens)))
@@ -60,7 +62,7 @@ class Encoder():
         at the beginning until such length is met.    
         """
         # Tokenize text
-        tokens = self.tokenizer.transform(text)
+        tokens = self.tokenizer.transform(text) if self.tokenizer is not None else text
         return self.encodetokens(tokens, addstart, fixlength)
     
     def encodetokens(self, tokens, addstart=False, fixlength=None):
@@ -104,7 +106,7 @@ class Encoder():
         for elem in X:
             char = self.index2char[np.argmax(elem)]
             if char not in SPCHARS:
-                text += char + self.tokenizer.intertoken
+                text += char
                 
         return text
 
@@ -117,7 +119,7 @@ class Encoder():
             - **kwargs: any other arguments are passed on to decodetext
         """
         # Pre-tokenized all corpus documents, for efficiency
-        tokenizedcorpus = [self.tokenizer.transform(doc) for doc in corpus]
+        tokenizedcorpus = [self.tokenizer.transform(doc) if self.tokenizer is not None else doc for doc in corpus]
         for pattern in self._tokenizedpatterngenerator(tokenizedcorpus, tokensperpattern, **kwargs):
             yield pattern
 

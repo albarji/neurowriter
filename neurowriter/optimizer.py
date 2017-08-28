@@ -22,7 +22,7 @@ import tensorflow as tf
 OPTPARAMS = {
     "batchsize": [8, 16, 32, 64, 128, 256],
     "optimizer": [Adam, RMSprop, Nadam],
-    "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4, 5e-5, 2e-5, 1e-5],
+    "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4],
     "inputtokens": [4, 8, 16, 32, 64, 128],
 }
 

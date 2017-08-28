@@ -28,18 +28,18 @@ class Corpus:
         """
         if docs is not None:
             if conds is None:
-                self.corpus = [{"txt": doc, "conditioners": None} for doc in docs]
+                self.corpus = [{"text": doc, "conditioners": None} for doc in docs]
             else:
                 if len(docs) != len(conds):
                     raise ValueError("Lengths of docs iterable and conds iterable do not match")
-                self.corpus = [{"txt": doc, "conditioners": cond} for doc, cond in zip(docs, conds)]
+                self.corpus = [{"text": doc, "conditioners": cond} for doc, cond in zip(docs, conds)]
         else:
             self.corpus = []
 
     def __iter__(self):
         """Iterate over the documents in the corpus"""
         for doc in self.corpus:
-            yield doc["txt"]
+            yield doc["text"]
 
     def iterconditioners(self):
         """Iterate over conditioners in the corpus"""
@@ -47,8 +47,12 @@ class Corpus:
             yield doc["conditioners"]
 
     def __getitem__(self, key):
-        """Get the n-th document in the corpus"""
-        return self.corpus[key]["txt"]
+        """Get the n-th document or a slice of documents in the corpus"""
+        if isinstance(key, slice):
+            return [self.corpus[idx]["text"]
+                    for idx in range(key.start or 0, key.stop or len(self)-1, key.step or 1)]
+        else:
+            return self.corpus[key]["text"]
 
     def __len__(self):
         """Number of documents in the corpus"""
@@ -56,14 +60,14 @@ class Corpus:
 
     @classmethod
     def load_singletxt(cls, corpusfile):
-        """Reads a corpus made of a single document, stored as a txt file"""
+        """Reads a corpus made of a single document, stored as a text file"""
         with open(corpusfile) as f:
             corpus = cls([f.read()])
         return corpus
 
     @classmethod
     def load_multilinetxt(cls, corpusfile):
-        """Reads a corpus made of a txt file, one document per line
+        """Reads a corpus made of a text file, one document per line
 
         Final \n at each line are discarded from each document.
         """
@@ -93,7 +97,7 @@ class Corpus:
         """Reads a corpus from a JSON with additional conditioning data
 
         The JSON be a list of objects, each object containing at least a key
-        "text" with the document texts. Additional keys per object are taken
+        "text" with the document as an iterable of tokens. Additional keys per object are taken
         as conditioning variables.
         """
         # Load data
@@ -106,8 +110,11 @@ class Corpus:
 
     def save_json(self, corpusfile):
         data = []
-        for doc in self:
-            js = {key: doc["conditioners"][key] for key in doc["conditioners"]}
+        for doc in self.corpus:
+            if doc["conditioners"] is not None:
+                js = {key: doc["conditioners"][key] for key in doc["conditioners"]}
+            else:
+                js = {}
             js["text"] = doc["text"]
             data.append(js)
         with open(corpusfile, "w") as f:
