@@ -13,40 +13,41 @@ import numpy as np
 from neurowriter.writer import Writer
 from neurowriter.encoding import Encoder
 from neurowriter.tokenizer import CharTokenizer
-from neurowriter.corpus import StringsCorpus
+from neurowriter.corpus import Corpus
+
 
 class MockModel():
     """Mock model for beam search tests"""
     def predict(self, X, **kwargs):
         return [[0.5, 0.3, 0.2]]
 
+
 def test_writer_beamsearch():
     """Beam search works as expected"""
     mockmodel = MockModel()
-    corpus = StringsCorpus()
-    corpus.load(["abc"])
+    corpus = Corpus(["abc"])
     encoder = Encoder(corpus=corpus, tokenizer=CharTokenizer())
     writer = Writer(mockmodel, encoder, creativity=0, beamsize=3, batchsize=3)
-    seed = np.array([0,0])
+    seed = np.array([0, 0])
     
     expected = [0, 0, 0]
     obtained = writer.beamsearch(seed)
     print("Expected", expected)
     print("Obtained", obtained)
-    assert(obtained == expected)
+    assert obtained == expected
+
 
 def test_writer_beamsearch_long():
     """Beam search works as expected for long batch sizes"""
     mockmodel = MockModel()
-    corpus = StringsCorpus()
-    corpus.load(["abc"])
+    corpus = Corpus(["abc"])
     encoder = Encoder(corpus=corpus, tokenizer=CharTokenizer())
     batchsize = 10
     writer = Writer(mockmodel, encoder, creativity=0, beamsize=3,
                     batchsize=batchsize)
-    seed = np.array([0,0])
+    seed = np.array([0, 0])
     expected = [0] * batchsize
     obtained = writer.beamsearch(seed)
     print("Expected", expected)
     print("Obtained", obtained)
-    assert(obtained == expected)
+    assert obtained == expected

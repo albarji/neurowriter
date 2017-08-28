@@ -13,130 +13,102 @@ import json
 from copy import copy
 
 
-class CorpusMixin:
-    """Base documents corpus class"""
-     
-    def iterconditioners(self):
-        for _ in range(len(self)):
-            yield None
+class Corpus:
+    """Class representing a corpus of documents.
 
+    Behaves like an iterable of documents, each document being an iterable of text tokens.
+    Provides methods for loading/saving the corpus in different formats.
+    """
+    def __init__(self, docs=None, conds=None):
+        """Initializes the corpus with an iterable of documents, and optional conditioners
 
-class SingleTxtCorpus(CorpusMixin):
-    """Corpus made of a txt file with a single document"""
-    
-    def load(self, corpusfile):
-        with open(corpusfile) as f:
-            self.corpus = f.read()
-            
-    def __iter__(self):
-        yield self.corpus
-        
-    def __getitem__(self, key):
-        if key == 0:
-            return self.corpus
+        Arguments:
+            docs: iterable of documents, each document an iterable of tokens
+            conds: itearable of condiners, each conditioner a dictionary of conditining variables
+        """
+        if docs is not None:
+            if conds is None:
+                self.corpus = [{"txt": doc, "conditioners": None} for doc in docs]
+            else:
+                if len(docs) != len(conds):
+                    raise ValueError("Lengths of docs iterable and conds iterable do not match")
+                self.corpus = [{"txt": doc, "conditioners": cond} for doc, cond in zip(docs, conds)]
         else:
-            raise IndexError()
-            
+            self.corpus = []
+
+    def __iter__(self):
+        """Iterate over the documents in the corpus"""
+        for doc in self.corpus:
+            yield doc["txt"]
+
+    def iterconditioners(self):
+        """Iterate over conditioners in the corpus"""
+        for doc in self.corpus:
+            yield doc["conditioners"]
+
+    def __getitem__(self, key):
+        """Get the n-th document in the corpus"""
+        return self.corpus[key]["txt"]
+
     def __len__(self):
-        return 1
+        """Number of documents in the corpus"""
+        return len(self.corpus)
 
+    @classmethod
+    def load_singletxt(cls, corpusfile):
+        """Reads a corpus made of a single document, stored as a txt file"""
+        with open(corpusfile) as f:
+            corpus = cls([f.read()])
+        return corpus
 
-class MultiLineCorpus(CorpusMixin):
-    """Corpus made of a txt file, one document per line"""
-    
-    def load(self, corpusfile):
+    @classmethod
+    def load_multilinetxt(cls, corpusfile):
+        """Reads a corpus made of a txt file, one document per line
+
+        Final \n at each line are discarded from each document.
+        """
         with open(corpusfile) as f:
             # Store lines removing final \n
-            self.corpus = [line[:-1] for line in f.readlines()]
-            
-    def __iter__(self):
-        for line in self.corpus:
-            yield line
+            corpus = [line[:-1] for line in f.readlines()]
+        return cls(corpus)
 
-    def __getitem__(self, key):
-        return self.corpus[key]
+    @classmethod
+    def load_csv(cls, corpusfile):
+        """Reads a corpus from a CSV with additional conditioning data
 
-    def __len__(self):
-        return len(self.corpus)
+        The CSV is assumed to represent one document per row, with the first
+        column of the file containing the document text. Additional columns
+        in the file are taken as conditioning variables.
+        """
+        df = pd.read_csv(corpusfile)
+        txts = [line for line in df[df.columns[0]]]
+        conds = [
+            { key: row[key] for key in df.columns[1:] }
+            for _, row in df.iterrows()
+        ]
+        return cls(txts, conds)
 
+    @classmethod
+    def load_json(cls, corpusfile):
+        """Reads a corpus from a JSON with additional conditioning data
 
-class StringsCorpus(CorpusMixin):
-    """Corpus made from an iterable of strings"""
-    
-    def load(self, strings):
-        self.corpus = strings
-            
-    def __iter__(self):
-        for line in self.corpus:
-            yield line
-
-    def __getitem__(self, key):
-        return self.corpus[key]
-
-    def __len__(self):
-        return len(self.corpus)
-
-
-class CsvCorpus(CorpusMixin):
-    """Corpus loaded from a CSV with additional conditioning data
-    
-    The CSV is assumed to represent one document per row, with the first
-    column of the file containing the document text. Additional columns
-    in the file are taken as conditioning variables.
-    """
-    
-    def load(self, corpusfile):
-        self.corpus = pd.read_csv(corpusfile)
-        
-    def __iter__(self):
-        for line in self.corpus[self.corpus.columns[0]]:
-            yield line
-            
-    def __getitem__(self, key):
-        return self.corpus[self.corpus.columns[0]][key]
-    
-    def __len__(self):
-        return len(self.corpus)
-    
-    def iterconditioners(self):
-        for _, row in self.corpus.iterrows():
-            yield row[self.corpus.columns[1:]]
-
-
-class JsonCorpus(CorpusMixin):
-    """Corpus loaded from a JSON with additional conditioning data
-    
-    The JSON be a list of objects, each object containing at least a key
-    "text" with the document texts. Additional keys per object are taken
-    as conditioning variables.
-    """
-    
-    def load(self, corpusfile):
+        The JSON be a list of objects, each object containing at least a key
+        "text" with the document texts. Additional keys per object are taken
+        as conditioning variables.
+        """
         # Load data
         with open(corpusfile) as f:
             corpus = json.load(f)
         # Separate texts from conditioners, for better management
-        self.corpus = [
-            {
-                "text" : doc["text"],
-                "conditioners" : {
-                    key : doc[key]
-                    for key in doc if key != "text"
-                }
-            }
-            for doc in corpus
-        ]
-        
-    def __iter__(self):
-        for doc in self.corpus:
-            yield doc["text"]
-            
-    def __getitem__(self, key):
-        return self.corpus[key]["text"]
-    
-    def __len__(self):
-        return len(self.corpus)
-    
-    def iterconditioners(self):
-        for doc in self.corpus:
-            yield doc["conditioners"]
+        txts = [doc["text"] for doc in corpus]
+        conds = [{key: doc[key] for key in doc if key != "text"} for doc in corpus]
+        return cls(txts, conds)
+
+    def save_json(self, corpusfile):
+        data = []
+        for doc in self:
+            js = {key: doc["conditioners"][key] for key in doc["conditioners"]}
+            js["text"] = doc["text"]
+            data.append(js)
+        with open(corpusfile, "w") as f:
+            json.dump(data, f)
