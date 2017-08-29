@@ -14,6 +14,7 @@ import time
 
 from neurowriter.tokenizer import WordTokenizer, SubwordTokenizer
 
+
 def test_WordTokenizerExact():
     """The word tokenizer obtains the exact expected symbols for toy data"""
     
@@ -29,7 +30,8 @@ def test_WordTokenizerExact():
     print("Expected but not found", expected - tok.symbols)
     print("Found but not expected", tok.symbols - expected)
     assert(expected == tok.symbols)
-    
+
+
 def test_WordTokenizerTransform():
     """The word tokenizer correctly transforms a toy example"""
     train = ["a green big dog and a cat inside a green big house"]
@@ -46,11 +48,12 @@ def test_WordTokenizerTransform():
     print("Obtained", obtained)
     assert(obtained == expected)
 
+
 def test_SubwordTokenizerExact():
     """The subword tokenizer obtains the exact expected symbols for toy data"""
     
     corpus = ["aaabdaaabac"]
-    expected = {'a', 'b', 'c', 'd', 'aa', 'ab', 'aaab'}
+    expected = {'a', 'b', 'c', 'd', 'aaab'}
     
     tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
     
@@ -61,6 +64,7 @@ def test_SubwordTokenizerExact():
     print("Found but not expected", tok.symbols - expected)
     assert(expected == tok.symbols)
 
+
 def test_SubwordTokenizerAtLeast():
     """The subword tokenizer obtains at least a set of expected symbols"""
     
@@ -70,28 +74,48 @@ def test_SubwordTokenizerAtLeast():
                 'a green '
             }
     
-    tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
+    tok = SubwordTokenizer(numsymbols=1024, minfreq=2, crosswords=True)
     
     tok.fit(corpus)
     print("Expected", expected)
     print("Obtained", tok.symbols)
     print("Expected but not found", expected - tok.symbols)
     assert(len(expected - tok.symbols) == 0)
-    
+
+
+def test_SubwordTokenizerAtLeast_nocrossword():
+    """The subword tokenizer obtains at least a set of expected symbols, avoiding word crossings"""
+
+    corpus = ["a green dog inside a green house"]
+    expected = {
+        'a', ' ', 'g', 'r', 'e', 'n', 'o', 'i', 's', 'd', 'h', 'u',
+        'green'
+    }
+
+    tok = SubwordTokenizer(numsymbols=1024, minfreq=2, crosswords=False)
+
+    tok.fit(corpus)
+    print("Expected", expected)
+    print("Obtained", tok.symbols)
+    print("Expected but not found", expected - tok.symbols)
+    assert (len(expected - tok.symbols) == 0)
+
+
 def test_SubwordTokenizerTransform():
     """The subword tokenizer correctly transforms a toy example"""
-    train = ["aaabdaaabac"]
+    train = ["aaababdaaabcab"]
     tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
     tok.fit(train)
     
     test = "aaabababaabcdabaa"
-    expected = ["aaab", "ab", "ab", "aa", "b", "c", "d", "ab", "aa"]
+    expected = ["aaab", "ab", "ab", "a", "ab", "c", "d", "ab", "a", "a"]
     
     obtained = tok.transform(test)
     print("Expected", expected)
     print("Obtained", obtained)
     assert(obtained == expected)
-    
+
+
 def test_SubwordTokenizerTimes():
     """Performs some runtime tests on the subword tokenizer"""
     n = 10000

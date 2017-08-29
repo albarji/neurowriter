@@ -107,21 +107,47 @@ class SubwordTokenizer:
         - https://arxiv.org/abs/1508.07909
     """
 
-    def __init__(self, numsymbols=4096, minfreq=5):
+    def __init__(self, numsymbols=4096, minfreq=10, crosswords=False):
+        """Creates a Byte Pair Encoding Subword Tokenizer
+
+        Arguments:
+            numsymbols: maximum number of symbols to generate
+            minfreq: minimum frequency for a string of characters to be made into a symbol
+            crosswords: whether to allow generated symbols to cross word boundaries
+        """
         self.numsymbols = numsymbols
         self.minfreq = minfreq
+        self.crosswords = crosswords
+        self.symbols = None
         self.detector = None
 
-    @staticmethod
-    def initfreqs(corpus):
-        """Initializes the symbol statistics with char pairs
+    def validpair(self, s1, s2):
+        """Checks that a pair a symbols is valid for joining
 
-        The input must be a list of docs, each a LinkedList of symbols
+        Essentially amounts to checking that neither symbol is crossing a word boundary, if such option is
+        active.
+        """
+        # If crosswords option is active, we can join anything
+        if self.crosswords:
+            return True
+        # Else, if both are already a composite symbol, it's ok to join
+        elif len(s1) > 1 and len(s2) > 1:
+            return True
+        # If any of them are characters, check that both are valid word symbols
+        else:
+            return (len(s1) > 1 or re.match("\w", s1)) and (len(s2) > 1 or re.match("\w", s2))
+
+    def pairfreqs(self, corpus):
+        """Computes symbol pair statistics over a corpus
+
+        The input must be a list of docs, each a LinkedList of symbols.
+        Statistics over words won't be accounted for if the crosswords options is disabled.
         """
         stats = collections.defaultdict(int)
         for doc in corpus:
             for node in doc.iternodes():
-                if node.nxt is not None:
+                # Only account for non-word symbols of crosswords option is active
+                if node.nxt is not None and self.validpair(node.value, node.nxt.value):
                     stats[node.value, node.nxt.value] += 1
         return stats
 
@@ -149,12 +175,12 @@ class SubwordTokenizer:
                 if node.value == leftsymbol and node.nxt is not None and node.nxt.value == rightsymbol:
                     node.mergewithnext()
                     # Update frequencies with previous symbol
-                    if node.prev is not None:
+                    if node.prev is not None and self.validpair(node.prev.value, newsymbol):
                         prevsymbol = node.prev.value
                         freqs[prevsymbol, newsymbol] += 1
                         freqs[prevsymbol, leftsymbol] -= 1
                     # Update frequencies with next symbol
-                    if node.nxt is not None:
+                    if node.nxt is not None and self.validpair(node.nxt.value, newsymbol):
                         nextsymbol = node.nxt.value
                         freqs[newsymbol, nextsymbol] += 1
                         freqs[rightsymbol, nextsymbol] -= 1
@@ -183,20 +209,33 @@ class SubwordTokenizer:
         else:
             return None
 
-    def fit(self, corpus):
-        # Cast corpus to list of linked-lists of symbols
-        corpus = [LinkedList(doc) for doc in corpus]
-        # Initialize symbols with chars
-        self.symbols = set(chain(*[doc for doc in corpus]))
-        # Compute char pairs frequencies
-        freqs = self.initfreqs(corpus)
-        # Merge steps
-        for i in range(self.numsymbols - len(self.symbols)):
+    def prunesymbols(self, corpus):
+        """Removes from the list of symbols those that appear unfrequently in the corpus
+
+        This is useful after performing all the merge operations, where some symbols might
+        have dissapeared from the corpus aftar being merged with others.
+
+        The provided corpus must be an iterable of documents, each a Linked List of symbols
+        after all merge operations.
+
+        Symbols made of 1 character are never removed.
+        """
+        # Compute frequencies of the provided corpus
+        freqs = collections.defaultdict(int)
+        for doc in corpus:
+            for symbol in doc:
+                freqs[symbol] += 1
+        # Go over the symbols in the tokenizer, remove those with low frequency and more than 1 char
+        self.symbols = {symbol for symbol in self.symbols if len(symbol) == 1 or freqs[symbol] >= self.minfreq}
+
+    def mergingrun(self, corpus, freqs):
+        """Performs symbol merge operations till a max number of symbols is reached, or too infrequent symbols appear"""
+        while len(self.symbols) < self.numsymbols:
             # Find most frequent pair
             leftsymbol, rightsymbol = max(freqs, key=freqs.get)
-            # If too infrequent, stop procedure
+            # If most frequent is too infrequent, stop procedure
             if freqs[(leftsymbol, rightsymbol)] < self.minfreq:
-                break
+                return corpus, freqs
             # Merge symbols
             corpus, freqs, self.symbols = self.mergesymbols(
                 corpus,
@@ -205,6 +244,27 @@ class SubwordTokenizer:
                 leftsymbol,
                 rightsymbol
             )
+        return corpus, freqs
+
+    def fit(self, corpus):
+        # Cast corpus to list of linked-lists of symbols
+        corpus = [LinkedList(doc) for doc in corpus]
+        # Initialize symbols with chars
+        self.symbols = set(chain(*[doc for doc in corpus]))
+        # Compute char pairs frequencies
+        freqs = self.pairfreqs(corpus)
+        # Merge steps until maximum number of symbols reached
+        finished = False
+        while not finished:
+            # Merge as much as possible
+            corpus, freqs = self.mergingrun(corpus, freqs)
+            # If max number of symbols reached, try pruning the set and do another merge run
+            if len(self.symbols) == self.numsymbols:
+                self.prunesymbols(corpus)
+            # Else perform a final prune and end symbol generation
+            else:
+                self.prunesymbols(corpus)
+                finished = True
         # Compile tokenizer for found symbols
         self.compile()
 
