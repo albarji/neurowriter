@@ -96,7 +96,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         # Prepare callbacks
         callbacks = [
             EarlyStopping(patience=patience),
-            ModelCheckpoint(modelfile.name, save_best_only=True)
+            ModelCheckpoint(modelfile.name, save_best_only=True, save_weights_only=True)
         ]
         # Train model
         train_history = model.fit_generator(
@@ -109,7 +109,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
             callbacks=callbacks
         )
         # Recover best model seen during training
-        model = load_model(modelfile.name, custom_objects={"tf": tf})
+        model.load_weights(modelfile.name)
 
     # Trim model to make it more efficent for predictions
     model = modelclass.trim(model)
