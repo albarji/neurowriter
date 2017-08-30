@@ -14,7 +14,7 @@ from keras.models import load_model
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 import tensorflow as tf
 
 
@@ -133,7 +133,7 @@ def trainwrapper(modelclass, encoder, corpus, params, **kwargs):
     )
 
 
-def createobjective(modelclass, encoder, corpus, verbose=1, savemodel=None, valmask=None, patience=20):
+def createobjective(modelclass, encoder, corpus, verbose=1, valmask=None, patience=20, modelsfolder=None):
     """Creates an objective function for the hyperoptimizer
     
     Arguments
@@ -142,6 +142,8 @@ def createobjective(modelclass, encoder, corpus, verbose=1, savemodel=None, valm
         corpus: corpus to use for training
         verbose: whether to print info on the evaluations of this objective
         savemodel: name of file where to save model after each training
+        patience: number of epochs to wait without validation improvement
+        modelsfolder: folder in which to save all tested models
         
     Returns an objective function that given model parameters traings a full
     network over a corpus, and returns the validation loss over such corpus.
@@ -162,8 +164,9 @@ def createobjective(modelclass, encoder, corpus, verbose=1, savemodel=None, valm
             bestloss = min(train_history.history['val_loss'])
             if verbose:
                 print("Params:", params, ", loss: ", bestloss)
-            if savemodel is not None:
-                model.save(savemodel)
+            # Save model with loss value
+            if modelsfolder is not None:
+                model.save(modelsfolder + "/" + loss2modelname(bestloss))
             # Clear model and tensorflow session to free up space
             del model
             backend.clear_session()
@@ -179,20 +182,36 @@ def createobjective(modelclass, encoder, corpus, verbose=1, savemodel=None, valm
     return valloss
 
 
-def findbestparams(modelclass, encoder, corpus, n_calls=100, savemodel=None, verbose=1, valmask=None, patience=20):
+def loss2modelname(loss):
+    """Given a loss value, returns a string with a corresponding name for model saving"""
+    return "model_loss%f" % loss
+
+
+def findbestparams(modelclass, encoder, corpus, n_calls=100, verbose=1, valmask=None, patience=20):
     """Find the best parameters for a given model architecture and param grid
     
     Returns
         - list with the best parameters found for the model
+        - validation loss for such model
+        - best model found
         - OptimizeResult object with info on the optimization procedure
     """
-    fobj = createobjective(modelclass, encoder, corpus, savemodel=savemodel, verbose=verbose, valmask=valmask,
-                           patience=patience)
-    grid = addoptimizerparams(modelclass.paramgrid)
-    optres = gbrt_minimize(fobj, grid, n_calls=n_calls,
-                           random_state=0)
-    bestparams = optres.x
-    return bestparams, optres
+    # Create temporary folder to store all tested models
+    with TemporaryDirectory() as tmpfolder:
+        if verbose >= 1:
+            print("Will save all tested models under %s" % tmpfolder)
+        # Prepare and run optimizer
+        fobj = createobjective(modelclass, encoder, corpus, verbose=verbose, valmask=valmask, patience=patience,
+                               modelsfolder=tmpfolder)
+        grid = addoptimizerparams(modelclass.paramgrid)
+        optres = gbrt_minimize(fobj, grid, n_calls=n_calls,
+                               random_state=0)
+        # Recover best parameters, best loss, best model
+        bestparams = optres.x
+        bestloss = optres.fun
+        bestmodel = load_model(tmpfolder + "/" + loss2modelname(bestloss))
+
+    return bestparams, bestloss, bestmodel, optres
 
 
 def addoptimizerparams(paramgrid):
@@ -218,19 +237,17 @@ def splitparams(params):
     return paramsdict
 
 
-def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, savemodel=None, valmask=None, patience=20):
+def hypertrain(modelclass, encoder, corpus, n_calls=100, verbose=1, valmask=None, patience=20):
     """Performs hypertraining of a certain model architecture
     
     Returns 
         - The trained model with the best parameters
-        - A train history object
     """
     # Hyperoptimization to find the best neural network parameters
-    bestparams, optres = findbestparams(modelclass, encoder, corpus, n_calls, savemodel, verbose=verbose,
-                                        valmask=valmask, patience=patience)
+    bestparams, bestloss, bestmodel, optres = findbestparams(modelclass, encoder, corpus, n_calls, verbose=verbose,
+                                                             valmask=valmask, patience=patience)
     if verbose >= 1:
         print("Best parameters are", bestparams)
+        print("Best validation loss is", bestloss)
         plot_convergence(optres)
-    # Train again a new network with the best parameters
-    return trainwrapper(modelclass, encoder, corpus, params=bestparams, verbose=verbose, valmask=valmask,
-                        patience=patience)
+    return bestmodel

@@ -122,7 +122,19 @@ def getcoremodel(model):
     raise ValueError("Core model not found")
 
 
-class DilatedConvModel():
+class ModelMixin:
+    """Abstract class defining a text generation model"""
+
+    # List of hyperparameter ranges for this model
+    paramgrid = []
+
+    @staticmethod
+    def trim(model):
+        """Removes parts of the model required for training but not for generation"""
+        return model
+
+
+class DilatedConvModel(ModelMixin):
     """Model based on dilated convolutions + pooling + dense layers"""
     
     paramgrid = [
@@ -134,7 +146,8 @@ class DilatedConvModel():
         (0.0, 1.0),  # densedrop
         [32, 64, 128, 256, 512],  # size of the embedding
     ]
-    
+
+    @staticmethod
     def create(inputtokens, encoder, convlayers=5, kernels = 32,
                convdrop=0.1, denselayers=0, denseunits=64, densedrop=0.1,
                embedding=32):
@@ -171,12 +184,9 @@ class DilatedConvModel():
         # Output layer
         model.add(Dense(encoder.nchars, activation='softmax'))
         return model
-    
-    def trim(model):
-        return model
 
 
-class WavenetModel():
+class WavenetModel(ModelMixin):
     """Implementation of Wavenet model
     
     The model is made of a series of blocks, each one made up of 
@@ -202,7 +212,8 @@ class WavenetModel():
         (0.0, 1.0),  # dropout
         [32, 64, 128, 256, 512]  # size of the embedding
     ]
-    
+
+    @staticmethod
     def create(inputtokens, encoder, kernels=64, wavenetblocks=1, 
                dropout=0, embedding=32):
         kernel_size = 2
@@ -282,13 +293,24 @@ class WavenetModel():
         model = make_parallel(model, len(gpus))
 
         return model
-    
+
+    @staticmethod
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
         return getcoremodel(model)
 
 
-class StackedLSTMModel():
+class SmallWavenet(WavenetModel):
+    """Implementation of very small Wavenet model for testing purposes"""
+    paramgrid = [
+        [4, 6, 8],  # kernels
+        [1, 1],  # wavenetblocks
+        (0.0, 1.0),  # dropout
+        [4, 6, 8]  # size of the embedding
+    ]
+
+
+class StackedLSTMModel(ModelMixin):
     """Implementation of stacked Long-Short Term Memory model
     
     Main reference is Andrej Karpathy post on text generation with LSTMs:
@@ -305,9 +327,9 @@ class StackedLSTMModel():
         (0.0, 1.0),  # dropout
         [32, 64, 128, 256, 512]  # size of the embedding
     ]
-    
-    def create(inputtokens, encoder, layers=1, units=16, dropout=0, 
-               embedding=32, optimizer='adam'):
+
+    @staticmethod
+    def create(inputtokens, encoder, layers=1, units=16, dropout=0, embedding=32):
         
         input_ = Input(shape=(inputtokens,), dtype='int32')
         
@@ -341,6 +363,7 @@ class StackedLSTMModel():
 
         return model
 
+    @staticmethod
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
         return getcoremodel(model)
