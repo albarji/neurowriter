@@ -340,19 +340,19 @@ class StackedLSTMModel(ModelMixin):
             
         # Bidirectional LSTM layer
         net = BatchNormalization()(net)
-        net = Bidirectional(LSTM(units, activation='relu', return_sequences=(layers>1)))(net)
+        net = Bidirectional(LSTM(units, return_sequences=(layers > 1)))(net)
         net = Dropout(dropout)(net)
             
         # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
             if i < layers-1:
                 block = BatchNormalization()(net)
-                block = LSTM(2*units, activation='relu', return_sequences=True)(block)
+                block = LSTM(2*units, return_sequences=True)(block)
                 block = Dropout(dropout)(block)
                 net = add([block, net])
             else:
                 net = BatchNormalization()(net)
-                net = LSTM(2*units, activation='relu')(net)
+                net = LSTM(2*units)(net)
                 net = Dropout(dropout)(net)
                     
         # Output layer
