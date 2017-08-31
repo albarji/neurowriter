@@ -19,6 +19,7 @@ from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
 from keras.layers.wrappers import Bidirectional
+from keras.layers.normalization import BatchNormalization
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
@@ -334,22 +335,23 @@ class StackedLSTMModel(ModelMixin):
         input_ = Input(shape=(inputtokens,), dtype='int32')
         
         # Embedding layer
-        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
-                            input_length=inputtokens)(input_)
+        net = Embedding(input_dim=encoder.nchars, output_dim=embedding, input_length=inputtokens)(input_)
         net = Dropout(dropout)(net)
             
         # Bidirectional LSTM layer
-        net = Bidirectional(LSTM(units, activation='relu', 
-                       return_sequences=(layers>1)))(net)
+        net = BatchNormalization()(net)
+        net = Bidirectional(LSTM(units, activation='relu', return_sequences=(layers>1)))(net)
         net = Dropout(dropout)(net)
             
         # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
             if i < layers-1:
-                block = LSTM(2*units, activation='relu', return_sequences=True)(net)
+                block = BatchNormalization()(net)
+                block = LSTM(2*units, activation='relu', return_sequences=True)(block)
                 block = Dropout(dropout)(block)
                 net = add([block, net])
             else:
+                net = BatchNormalization()(net)
                 net = LSTM(2*units, activation='relu')(net)
                 net = Dropout(dropout)(net)
                     
