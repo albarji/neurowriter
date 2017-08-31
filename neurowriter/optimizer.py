@@ -15,7 +15,6 @@ from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
 from tempfile import NamedTemporaryFile, TemporaryDirectory
-import tensorflow as tf
 
 
 # Optimizer parameters

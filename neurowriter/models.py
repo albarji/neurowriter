@@ -14,7 +14,6 @@ host, model parallelization is performed for faster training.
 from keras.models import Sequential, Model
 from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
 from keras.layers import add, multiply, concatenate
-from keras.layers.advanced_activations import ELU
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
@@ -187,6 +186,51 @@ class DilatedConvModel(ModelMixin):
         return model
 
 
+def gatedblock(dilation, dropout, kernels, kernel_size):
+    """Keras compatible Dilated convolution layer
+
+    Includes Gated activation, skip connections, batch normalization and dropout
+    """
+
+    def f(input_):
+        norm = BatchNormalization()(input_)
+        # Dropout of inputs
+        drop = Dropout(dropout)(norm)
+        # Normal activation
+        normal_out = Conv1D(kernels, kernel_size, padding='causal', dilation_rate=dilation, activation='tanh')(drop)
+        # Gate
+        gate_out = Conv1D(kernels, kernel_size, padding='causal', dilation_rate=dilation, activation='sigmoid')(drop)
+        # Point-wise nonlinear · gate
+        merged = multiply([normal_out, gate_out])
+        # Activation after gate
+        skip_out = Conv1D(kernels, 1)(merged)
+        # Residual connections: allow the network input to skip the
+        # whole block if necessary
+        out = add([skip_out, input_])
+        return out, skip_out
+
+    return f
+
+
+def wavenetblock(maxdilation, dropout, kernels, kernel_size):
+    """Keras compatible Wavenet layer
+
+    A Wavenet layer is made of a stack of gated blocks with exponentially increasing dilations
+    """
+    def f(input_):
+        dilation = 1
+        flow = input_
+        skip_connections = []
+        # Increasing dilation rates
+        while dilation < maxdilation:
+            flow, skip = gatedblock(dilation, dropout, kernels, kernel_size)(flow)
+            skip_connections.append(skip)
+            dilation *= 2
+        skip = add(skip_connections)
+        return flow, skip
+    return f
+
+
 class WavenetModel(ModelMixin):
     """Implementation of Wavenet model
     
@@ -196,7 +240,7 @@ class WavenetModel(ModelMixin):
     up training
     
     As an addition to the original formulation, ReLU activations have
-    been replaced by ELU units.
+    been replaced by SELU units.
     
     This implementation is based on those provided by
         - https://github.com/basveeling/wavenet
@@ -215,76 +259,26 @@ class WavenetModel(ModelMixin):
     ]
 
     @staticmethod
-    def create(inputtokens, encoder, kernels=64, wavenetblocks=1, 
-               dropout=0, embedding=32):
+    def create(inputtokens, encoder, kernels=64, wavenetblocks=1, dropout=0, embedding=32):
         kernel_size = 2
         maxdilation = inputtokens
         
-        def gatedblock(dilation):
-            """Dilated conv layer with Gated+ELU activ and skip connections"""
-            def f(input_):
-                # Dropout of inputs
-                drop = Dropout(dropout)(input_)
-                # Normal activation
-                normal_out = Conv1D(
-                    kernels, 
-                    kernel_size, 
-                    padding='causal', 
-                    dilation_rate = dilation ,
-                    activation='tanh'
-                )(drop)
-                
-                # Gate
-                gate_out = Conv1D(
-                    kernels, 
-                    kernel_size, 
-                    padding='causal', 
-                    dilation_rate = dilation, 
-                    activation='sigmoid'
-                )(drop)
-                # Point-wise nonlinear · gate
-                merged = multiply([normal_out, gate_out])
-                # Activation after gate
-                skip_out = ELU()(Conv1D(kernels, 1, padding='same')(merged))
-                # Residual connections: allow the network input to skip the 
-                # whole block if necessary
-                out = add([skip_out, input_])
-                return out, skip_out
-            return f
-        
-        def wavenetblock(maxdilation):
-            """Stack of gated blocks with exponentially increasing dilations"""
-            def f(input_):
-                dilation = 1
-                flow = input_
-                skip_connections = []
-                # Increasing dilation rates
-                while dilation < maxdilation:
-                    flow, skip = gatedblock(dilation)(flow)
-                    skip_connections.append(skip)
-                    dilation *= 2
-                skip = add(skip_connections)
-                return flow, skip
-            return f
-        
         input_ = Input(shape=(inputtokens,), dtype='int32')
         # Embedding layer
-        net = Embedding(input_dim=encoder.nchars, output_dim=embedding,
-                            input_length=inputtokens)(input_)
-        # Wavent starts!
-        net = Conv1D(kernels, 1, padding='same')(net)
+        net = Embedding(input_dim=encoder.nchars, output_dim=embedding, input_length=inputtokens)(input_)
+        net = Dropout(dropout)(net)
+        # Wavenet starts!
+        net = Conv1D(kernels, 1)(net)
         skip_connections = []
         for i in range(wavenetblocks):
-            net, skip = wavenetblock(maxdilation)(net)
+            net, skip = wavenetblock(maxdilation, dropout, kernels, kernel_size)(net)
             skip_connections.append(skip)
         if wavenetblocks > 1:
             net = add(skip_connections)
         else:
             net = skip
-        net = ELU()(net)
-        net = Conv1D(kernels, 1)(net)
-        net = ELU()(net)
-        net = Conv1D(kernels, 1)(net)
+        net = Conv1D(kernels, 1, activation='selu')(net)
+        net = Conv1D(kernels, 1, activation='selu')(net)
         net = Flatten()(net)
         net = Dense(encoder.nchars, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)

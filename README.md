@@ -4,7 +4,8 @@ THIS IS WORK IN PROGRESS
 
 ## TODOs and possible improvements
 
-* Add BatchNormalization layers.
+* Try DenseNet architecture, or modifications thereof for Wavenet
+* Add l2 regularization
 
 From Facebook's convolutional translation paper
 
@@ -12,12 +13,18 @@ From Facebook's convolutional translation paper
 * The position of each token is also added as a parallel embedding
 * Dropout for the embeddings and for the input of each convolutional block
 
+Other corpus to try:
+
+* http://www.thecocktaildb.com/
+
 ## References
 
 * WaveNet paper: https://arxiv.org/pdf/1609.03499.pdf
 * A Keras implementation of WaveNet: https://github.com/usernaamee/keras-wavenet/blob/master/simple-generative-model.py
 * Another one: https://github.com/basveeling/wavenet/blob/master/wavenet.py
 * Facebook's convolutional translation paper: https://arxiv.org/pdf/1705.03122.pdf
+* DenseNet: https://arxiv.org/pdf/1608.06993.pdf
+	* Keras implementation: https://github.com/tdeboissiere/DeepLearningImplementations/blob/master/DenseNet/densenet.py
 
 Parallelization models in Keras
 
