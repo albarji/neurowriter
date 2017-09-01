@@ -1,4 +1,4 @@
-FROM nvidia/cuda
+FROM nvidia/cuda:8.0-cudnn7-devel
 
 # Install system dependencies
 RUN apt-get update \
