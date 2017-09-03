@@ -3,3 +3,4 @@ tensorflow-gpu
 jupyter
 pandas
 h5py
+seaborn
