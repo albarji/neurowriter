@@ -256,14 +256,14 @@ class SubwordTokenizer:
         # Merge steps until maximum number of symbols reached
         finished = False
         while not finished:
-            # Merge as much as possible
+            # Merge symbols as much as possible
             corpus, freqs = self.mergingrun(corpus, freqs)
-            # If max number of symbols reached, try pruning the set and do another merge run
-            if len(self.symbols) == self.numsymbols:
-                self.prunesymbols(corpus)
-            # Else perform a final prune and end symbol generation
-            else:
-                self.prunesymbols(corpus)
+            # Now prune the set to remove small symbols that might have been embedded in others
+            beforeprune = len(self.symbols)
+            self.prunesymbols(corpus)
+            afterprune = len(self.symbols)
+            # If the prune was effective, try another merge run. Else finish the algorithm
+            if beforeprune == afterprune:
                 finished = True
         # Compile tokenizer for found symbols
         self.compile()
