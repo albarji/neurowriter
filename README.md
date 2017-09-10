@@ -1,4 +1,8 @@
-# Neurowriter
+<div align="center">
+  <img src="img/log.png" height="300"><br>
+</div>
+
+-----------------
 
 Tool for creating automated text generators, following the style of a given corpus of documents.
 
@@ -158,7 +162,7 @@ notebook instead.
 ### Generate text!
 
 Just follow the steps in the generate.ipynb. You will need to provide the name of the model trained in the previous
-step, and a seed to start the generation (which might be the empty string """)
+step, and a seed to start the generation (which might be the empty string "")
 
 For better results you can hand-tune the generation parameters at the bottom of the notebook. The **creativity** rate
 is probably the most significant: small values force the model produce only high probability sequences, while higher
