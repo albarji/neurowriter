@@ -178,6 +178,117 @@ values introduce randomness in the generation. As a rule of thumb, of the genera
 again and again, an increase in creativity might help, whereas the generator producing garbage text will need a
 decrease in creativity. Generally values between 0.2 and 0.75 give the best results.
 
+## Generation examples
+
+### Movie titles
+
+**Corpus**: set of movie titles obtained from [IMDB](http://www.imdb.com/)
+
+    Better Story<END>
+    Last Company<END>
+    The Love Balls: Part 2<END>
+    The Salence Truth of Boys<END>
+    Really Case to Disaster<END>
+    Ana House Thief<END>
+    The Secret of the Cast<END>
+    The Countdust of Story<END>
+    We We Travele<END>
+    The Tale of the Trome<END>
+    The Vecyme That White Edition<END>
+    All Bedroom<END>
+    Alive a Fall<END>
+    Star Medial Candy<END>
+    Star - To Polition Movie<END>
+    A 10 Money of Presents<END>
+    Search for All Are Episode Waters There Is the Superture and the Earth Home<END>
+    Mike the Surprise<END>
+    Last House<END>
+    Amant Start<END>
+    Secret Cast Hosudio<END>
+    Martina Kitchel<END>
+    The Man of the End of There's It Health Tall to Sea Pilot<END>
+    The Star Secret Story<END>
+    Ridet of the Dark Confession<END>
+    Under the Beach<END>
+    A 19<END>
+    Is #6<END>
+    Jack Just the Geast Comedy<END>
+    The Problems of the Good<END>
+    Headth St! Story of His for Million<END>
+    Super Centry<END>
+    Super D10000<END>
+    The Company of the Rush Special<END>
+    The Devil Is the Man of a Berrellist<END>
+    The Story of the Body<END>
+    Berney Engele<END>
+    The Student for Cast<END>
+    Anal Fire Part 2<END>
+    Monky Semifinals<END>
+    All Thing?<END>
+    The Decille Day<END>
+    
+### Shot recipes (spanish)
+
+**Corpus**: list of shot names and ingredients from [Wikipedal](http://wikipedal.org/Proyecto_Chupito)
+
+    Dencie: Ron, licor de melocotón y lima.<END>
+    Hiba: Pechè y naranja.<END>
+    Tetsns: Vodka, licor de melocotón y Blue kiwi .<END>
+    Aice Paja: Vodka, licor de melocotón y lima.<END>
+    Cura: Martini y menta.<END>
+    El venro: Licor 43, Batola: Vodka y granadina<END>
+    Direta: Martini, licor de melocotón, zumo de fresa y lima.<END>
+    More: Tequila, licor de melocotón, vodka y naranja.<END>
+    Tate: Vodka y menta .<END>
+    El menca: Vodka, licor de de mora.<END>
+    Vanco: Patxarán, limón y kiwi.<END>
+    Pitibe: Pechè y granadina.<END>
+    Esko Mei: Granadina, ron, licor de melocotón y granadina<END>
+    Rolas Pen: Ron y lima.<END>
+    Chula Vara: Licor de mora, Licor de avellana y granadina<END>
+    Doree: Patxarán, vodka y granadina<END>
+    
+### Sonnets (spanish)
+
+**Corpus**: [Spanish Golden-Age Sonnets](https://github.com/bncolorado/CorpusSonetosSigloDeOro)
+
+    LA LUZ DE MARTE
+    
+    Cuando en la esperanza de la frente
+    de la mano de la fortuna cría
+    por que en la esperanza y el pecho ardiente
+    en la vida el sol de aquel que no guía.
+    Par que se le han de que la luz de Marte,
+    y la aurora la que es el mármol que siento
+    en el mismo tiempo y en el cielo viene.<END>
+
+    FE DE CERA
+    
+    Por un fe de su deidad más se ofrece
+    de un tiempo y la tierra que se ve y en el cielo
+    por fin de tus lágrimas, y por la mano
+    de la vida y de más alas de la pena.
+    Si el alma que en la luz desvelada
+    la causa de esta parte de su aliento
+    en ver de su virtud la fe más de cera,
+    y no hay que de la luz de dolor no siento.<END>
+
+    DICHOSO TÚ, CIEGO
+    
+    Yo un huego que de un nieto y su misma parte
+    de tu mano alimenta un semblante
+    de la vejez del tiempo de su gloria
+    y en el que la queja lo que tu aliento
+    su valor vuela el mal en tan segura
+    tiene al sol, que en el rigor se atreve.
+    Dichoso tú, ciego, me dio el que siento
+    con que en que el mar de las estrellas toca
+    el aviso al que revelan batalla,
+    y el cuerpo se divide y en el cielo.
+    ¿Qué el bien, ¿cómo es ver su sentido mío?<END>
+
+Note: titles not generated, just manually added for effect
+
 ## TODOs and possible improvements
 
 Since this is still work in progress, here are some ideas I might try in the future:
