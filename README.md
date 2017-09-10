@@ -52,8 +52,10 @@ A text file containing a single document.
     
 Such a corpus can be loaded into neurowriter as follows:
 
-    from neurowriter.corpus import Corpus
-    corpus = Corpus.load_singletxt(filename)
+```python
+from neurowriter.corpus import Corpus
+corpus = Corpus.load_singletxt(filename)
+```
     
 #### Multiline text 
 
@@ -66,8 +68,10 @@ Note that documents with line breaks cannot be represented in this format.
     
 Such a corpus can be loaded into neurowriter as follows:
 
-    from neurowriter.corpus import Corpus
-    corpus = Corpus.load_multilinetxt(filename)
+```python
+from neurowriter.corpus import Corpus
+corpus = Corpus.load_multilinetxt(filename)
+```
 
 #### CSV
 
@@ -82,8 +86,10 @@ Other columns present in the file are loaded, but at present not used in the lea
     
 Such a corpus can be loaded into neurowriter as follows:
 
-    from neurowriter.corpus import Corpus
-    corpus = Corpus.load_csv(datafile)
+```python
+from neurowriter.corpus import Corpus
+corpus = Corpus.load_csv(datafile)
+```
     
 #### JSON
 
@@ -107,8 +113,10 @@ of the document. Othe fields present in the document are loaded, but at present 
   
 Such a corpus can be loaded into neurowriter as follows:
 
-    from neurowriter.corpus import Corpus
-    corpus = Corpus.load_json(datafile)
+```python
+from neurowriter.corpus import Corpus
+corpus = Corpus.load_json(datafile)
+```
   
 ### Tokenizing the text
 
