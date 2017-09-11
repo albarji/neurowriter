@@ -7,7 +7,6 @@ python:
 os: linux
 dist: trusty
 install:
-  - PACKAGE=neurowriter
   # Install miniconda3
   - sudo apt-get update
   - sudo apt-get install build-essential
@@ -17,8 +16,6 @@ install:
     bash Miniconda3-latest-Linux-x86_64.sh -b;
     export PATH="$HOME/miniconda3/bin:$PATH";
     rm Miniconda3-latest-Linux-x86_64.sh;
-  - conda env create -f environment.yml
-  - source activate $PACKAGE
   # Install neurowriter dependencies
   - make python-deps
 script:
