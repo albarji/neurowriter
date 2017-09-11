@@ -1,4 +1,4 @@
-.PHONY: help build-image notebook-server train-batch
+.PHONY: help build-image notebook-server train-batch tests
 
 help:
 	@echo "Running options:"
@@ -19,4 +19,7 @@ notebook-server:
 
 train-batch:
 	nvidia-docker run -d -it -v $(shell pwd):/neurowriter --entrypoint bash neurowriter runbatch.sh train.ipynb
+
+tests:
+	nosetests -v --with-coverage --cover-package=neurowriter
 

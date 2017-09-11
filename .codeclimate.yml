@@ -1,0 +1,10 @@
+engines:
+  pep8:
+    enabled: true
+  radon:
+    enabled: true
+
+ratings:
+   paths:
+- "**.py"
+
