@@ -1,8 +1,5 @@
 language: python
 python:
-  - "3.3"
-  - "3.4"
-  - "3.5"
   - "3.6"
 os: linux
 dist: trusty
@@ -19,7 +16,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   # Create test environment with neurowriter dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda create -q -n test-environment python=3.6
   - source activate test-environment
   - make python-deps
 script:
