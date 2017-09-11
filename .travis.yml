@@ -22,7 +22,6 @@ install:
   - make python-deps
   - pip install coveralls
 script:
-  - source activate test-environment
-  - make tests
+  - source activate test-environment && make tests
 after_success:
 - coveralls
