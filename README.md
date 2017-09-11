@@ -3,6 +3,9 @@
 </div>
 
 -----------------
+[![Build Status](https://travis-ci.org/albarji/neurowriter.svg?branch=master)](https://travis-ci.org/albarji/neurowriter)
+[![Coverage Status](https://coveralls.io/repos/github/albarji/neurowriter/badge.svg?branch=master)](https://coveralls.io/github/albarji/neurowriter?branch=master)
+[![Code Climate](https://codeclimate.com/github/albarji/neurowriter.svg)](https://codeclimate.com/github/albarji/neurowriter)
 
 Tool for creating automated text generators, following the style of a given corpus of documents.
 
