@@ -16,6 +16,8 @@ install:
     bash Miniconda3-latest-Linux-x86_64.sh -b;
     export PATH="$HOME/miniconda3/bin:$PATH";
     rm Miniconda3-latest-Linux-x86_64.sh;
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
   # Create test environment with neurowriter dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
