@@ -1,7 +1,5 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
   - "3.3"
   - "3.4"
   - "3.5"
@@ -9,7 +7,17 @@ python:
 os: linux
 dist: trusty
 install:
-    - make python-deps
+  # Install miniconda3
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  # Install neurowriter dependencies
+  - make python-deps
 script: make tests
 after_success:
 - coveralls
