@@ -3,7 +3,7 @@ python:
   - "3.6"
 os: linux
 dist: trusty
-install:
+before_install:
   # Install miniconda3
   - sudo apt-get update
   - sudo apt-get install build-essential
@@ -15,11 +15,14 @@ install:
     rm Miniconda3-latest-Linux-x86_64.sh;
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+install:
   # Create test environment with neurowriter dependencies
   - conda create -q -n test-environment python=3.6
   - source activate test-environment
   - make python-deps
+  - pip install coveralls
 script:
+  - source activate test-environment
   - make tests
 after_success:
 - coveralls

@@ -8,7 +8,7 @@ help:
 	@echo "\t train-batch \t Launches the training notebook in batch mode"
 
 python-deps:
-	conda install -q -y --file=conda.txt
+	conda install -y --file=conda.txt
 	pip install -r pip.txt
 
 build-image:
