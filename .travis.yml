@@ -21,12 +21,13 @@ install:
   - source activate test-environment
   - make python-deps
   - pip install coveralls
+script:
   # Testing conda environment
   - conda env list
   - conda list
-script:
-  - conda env list
-  - conda list
+  - which python
+  - which nosetests
+  # Tests
   - source activate test-environment && make tests
 after_success:
 - coveralls
