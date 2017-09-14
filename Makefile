@@ -1,8 +1,10 @@
 .PHONY: help build-image notebook-server train-batch tests
 
 condaextra = 
+docker = docker
 ifdef $(GPU)
   condaextra = --file=conda-gpu.txt
+  docker = nvidia-docker
 endif
 
 help:
@@ -17,13 +19,13 @@ python-deps:
 	pip install -r pip.txt
 
 build-image:
-	nvidia-docker build -t neurowriter .
+	$(docker) build -t neurowriter .
 
 notebook-server:
-	nvidia-docker run -it -v $(shell pwd):/neurowriter --net=host neurowriter
+	$(docker) run -it -v $(shell pwd):/neurowriter --net=host neurowriter
 
 train-batch:
-	nvidia-docker run -d -it -v $(shell pwd):/neurowriter --entrypoint bash neurowriter runbatch.sh train.ipynb
+	$(docker) run -d -it -v $(shell pwd):/neurowriter --entrypoint bash neurowriter runbatch.sh train.ipynb
 
 tests:
 	nosetests -v --with-coverage --cover-package=neurowriter --cover-erase

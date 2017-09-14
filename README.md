@@ -19,6 +19,10 @@ You will need an **Anaconda Python 3** distribution. Then run the following comm
 python packages in your active environment:
 
     make python-deps
+    
+or, if you want to build the project with GPU support, run
+
+    make python-deps GPU=1
 
 ### Docker deployment
 
@@ -26,9 +30,14 @@ You will need [docker](https://www.docker.com/) and permissions to build and run
 
     make build-image
     
-to build the Neurowriter Docker image. Once built, you can start a notebook server accesible from you host machine with
+to build the Neurowriter Docker image. If instead you want to build this image with GPU support, you will also need 
+[nvidia-docker](https://github.com/NVIDIA/nvidia-docker), and perform the build as 
 
-    make make notebook-server 
+    make build-image GPU=1
+
+Once built, you can start a notebook server accesible from you host machine with
+
+    make notebook-server 
     
 ## Usage
 
@@ -166,6 +175,10 @@ stop. To this end, you can run the training procedure in offline batch mode by e
 saving it, and then runnning
 
     make train-batch
+    
+or if you want to make use of the GPU,
+
+    make train-batch GPU=1
     
 Finally, if you wish to perform a training by hand-tuning the models hyperparameters, you can use the singletrain.ipynb
 notebook instead.
