@@ -298,6 +298,8 @@ class WavenetModel(ModelMixin):
         """Removes data-parallel scaffolding, for efficient prediction"""
         if len(get_available_gpus()) > 1:
             return getcoremodel(model)
+        else:
+            return model
 
 
 class SmallWavenet(WavenetModel):
@@ -370,6 +372,8 @@ class StackedLSTMModel(ModelMixin):
         """Removes data-parallel scaffolding, for efficient prediction"""
         if len(get_available_gpus()) > 1:
             return getcoremodel(model)
+        else:
+            return model
 
 
 class LSTMModel(StackedLSTMModel):
