@@ -26,5 +26,5 @@ train-batch:
 	nvidia-docker run -d -it -v $(shell pwd):/neurowriter --entrypoint bash neurowriter runbatch.sh train.ipynb
 
 tests:
-	nosetests -v --with-coverage --cover-package=neurowriter
+	nosetests -v --with-coverage --cover-package=neurowriter --cover-erase
 
