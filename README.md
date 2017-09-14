@@ -39,6 +39,10 @@ Once built, you can start a notebook server accesible from you host machine with
 
     make notebook-server 
     
+or the following to allow this notebook to make use of the GPUs in your host machine:
+
+    make notebook-server GPU=1
+    
 ## Usage
 
 The basic process to create a text generator is the following:
