@@ -1,10 +1,10 @@
 .PHONY: help build-image notebook-server train-batch tests
 
-condaextra = 
+condafile = conda.txt
 docker = docker
-ifdef $(GPU)
-  condaextra = --file=conda-gpu.txt
-  docker = nvidia-docker
+ifdef GPU
+  condafile=conda-gpu.txt
+  docker=nvidia-docker
 endif
 
 help:
@@ -15,7 +15,7 @@ help:
 	@echo "\t train-batch \t Launches the training notebook in batch mode"
 
 python-deps:
-	conda install -y --file=conda.txt $(condaextra)
+	conda install -y --file=$(condafile)
 	pip install -r pip.txt
 
 build-image:
