@@ -1,5 +1,10 @@
 .PHONY: help build-image notebook-server train-batch tests
 
+condaextra = 
+ifdef $(GPU)
+  condaextra = --file=conda-gpu.txt
+endif
+
 help:
 	@echo "Running options:"
 	@echo "\t python-deps \t Install all necessary dependencies in the local python conda environment"
@@ -8,7 +13,7 @@ help:
 	@echo "\t train-batch \t Launches the training notebook in batch mode"
 
 python-deps:
-	conda install -y --file=conda.txt
+	conda install -y --file=conda.txt $(condaextra)
 	pip install -r pip.txt
 
 build-image:

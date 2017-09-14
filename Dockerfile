@@ -14,14 +14,15 @@ RUN curl -o Miniconda3-latest-Linux-x86_64.sh https://repo.continuum.io/minicond
   && chmod +x Miniconda3-latest-Linux-x86_64.sh \
   && ./Miniconda3-latest-Linux-x86_64.sh -b -p "${MINICONDA_HOME}" \
   && rm Miniconda3-latest-Linux-x86_64.sh
-COPY conda.txt /root/conda.txt
-COPY pip.txt /root/pip.txt
-ENV ACCEPT_INTEL_PYTHON_EULA=yes
-RUN conda install -q -y --file=/root/conda.txt \
-  && conda clean -y -i -l -p -t \
-  && pip install -r /root/pip.txt
+WORKDIR /root
+COPY conda.txt conda.txt
+COPY conda-gpu.txt conda-gpu.txt
+COPY pip.txt pip.txt
+COPY Makefile Makefile
+RUN make python-deps
+RUN conda clean -y -i -l -p -t
 
-# Create project folder (to be volume-mounted)
+# Create project folder
 RUN mkdir neurowriter
 WORKDIR /neurowriter
 
