@@ -246,6 +246,16 @@ decrease in creativity. Generally values between 0.2 and 0.75 give the best resu
     Monky Semifinals<END>
     All Thing?<END>
     The Decille Day<END>
+    Rock Grand<END>
+    The Secret Home<END>
+    Morcia Raven<END>
+    Alasan  the F Hacking Kay<END>
+    The Internet World<END>
+    The Get to Fly Andrea Me Me Pant<END>
+    Betting Boss<END>
+    State Kids<END>
+    Spirit<END>
+    Love That Brother<END>
     
 ### Shot recipes (spanish)
 
