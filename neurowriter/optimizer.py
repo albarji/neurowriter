@@ -333,5 +333,6 @@ def hypertrain(modelclass, encoder, corpus, modelsfolder, n_calls=100, verbose=1
     if verbose >= 1:
         print("Best parameters are", bestparams)
         print("Best validation loss is", bestloss)
-        plot_convergence(optres)
+        if verbose >= 3:
+            plot_convergence(optres)
     return bestmodel
