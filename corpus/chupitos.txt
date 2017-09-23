@@ -1,700 +1,548 @@
-Mahtuerso: Tequila, cassalla, J&B, Licor de Arroz, Jägermeifter, Absenta negro  
-Kalashnikov / Aliento de Onyxia: Vodka, whisky, ron y absenta.
-El numero 1 de la lista/Diablo Negro :Absenta, tequila, vodka negro, wisky y lima
-Bolas azules / Frostmourne: Bacardi, Eristoff, MIG fuel, blue tropic y tabasco.
-El mata putëhs ++:JB , Tequila, Absenta, Vodka Negro, White LAbel, Blue tropick, Jack Danyel con Bioufroutas en la Coctelera.
-33susu:Licor 43,Ginebra y licor de manzana
-5 Coronas: Whisky, Tequila, Ginebra, Vodka, Ron
-El mata reyes: Vodka rojo, Vodka negro, Vodka de naranja,absenta,tequila y jagger.
-Tefuneitor:Absenta, Anis y Vodka
-Un Kah:Shot de Singani
-Xarop d'en gori :Anís, palo mallorquín, hierbas mezcladas y aguardiente
-Potencia roja: Absenta,licor de fresa
-Amatxi Power: Ron, Pacharan,Licor de melocotón, Licor de manzana.
-Lekunberri TV: Licor 43, tequila y vodka.
-Terminator/cucaracha: Whisky, vodka y ginebra. Se enciende con un mechero y se bebe con pajita con la llama activa.
-Playboy: Vodka negro, Licor 43 y Red Bull.
-Patada en los huevos: Ginebra y tequila.
-¿Donde está mi coche?: Tequila, vodka, whisky, ron y lima.
-Nurglete: Tequila y licor de hierbas.
-Ultrapitufo: Vodka, Blue Tropic y Burn.
-Flan alcohólico: Vodka y Licor 43.
-Semen del tío Alí: Blue tropic y Baileys .
-Fujiloco: Licor 43, vodka, vodka negro y limón.
-La cotoconda: Tequila, red Bull y sal.
-Yusé/Joselito: Tequila Jose Cuervo.
+100%: Vodka, tequila, ginebra partes iguales y tabasco
+11-S: Vodka, tequila y lima.
 16 Válvulas: Marie Brizard, vodka y Pippermint. .
-Amiguete: Vodka, ginebra, Malibú, tequila, ron blanco, lima, 7UP.
-Robelote: Whisky, ginebra y lima
-El destrozahígados: Tequila, vodka y orujo de hierbas.
-Chupito Varela: Ron, ginebra y vodka .
-Tam Tam Go!: Whisky y ron Brugal.
-Locura: Whisky y Marie Brizard.
-Lechuga / Licor del polo / Dragón verde: Vodka y Pippermint.
-Torada: Whisky y licor Amaretto.
-Pikachu: Matini, Limon, Vodka y Ginebra.
-Willy Guarida: Licor 56  y Whisky.
-Clásico/ "Chupa, toma, lame": Sólo tequila; se chupa sal , se bebe de un trago, y te comes una rodaja de limón.
-Galleguito: Orujo .
-Hermanos del dominó / Ángel: Whisky y orujo.
-Prestige: Tequila, Blue Tropic y un chorrito de licor café.
-Vaquero: Whisky y ron.
-Conde: Tequila, ron, whisky y Cointreau.
-Gorra: Brandy, tequila y ron.
-Ozzy Osbourne: Licor de café, vodka, ron y Malibú.
-Robe: Ginebra, ron y limón.
-Remamagüevos: Tequila, tabasco y Tía María.
-Golem: Cointreau y gotas de limón natural.
-Lingotazo: Ron, whisky y Licor 43.
-Coyote: Tequila, licor de café y Baileys.
-Búfalo: Tequila y ron.
-Fakir: Tequila y kiwi.
-Javito: Whisky y Baileys.
-Largarto: Ginebra y kiwi.
-Bomba: Licor 43 y vodka.
-Mini Gin-tonic ruso: Vodka y tónica.
-Flatline: Anís, tequila y tabasco.
-Charly: Whisky y Licor 43.
-Togue: Tequila, ginebra, vodka y kiwi.
-Explosivo: Tequila, ginebra, whisky, vodka y ron.
-Cua cua: Cointreau y Licor 43 .
-Ribasaky: Jagger, Licor 43 y Red Bull.
-Tragateli / Pirata mexicano: Ron, tequila y Tía María.
-Cabrero: Tequila, vodka, ron, licor de manzana y Licor 43.
-Cohete: Vodka, ginebra y licor de melocotón.
-Tercer Grado / RATAMAN: Tequila, whisky y ron.
-James Bond: Martini y vodka.
-Chalauskas: Blue Tropic, ron y tequila.
-Palmera V: Vodka, Malibú y kiwi.
-Yuyuma: Vodka, Ginebra y Coco
-Coquito: Pippermint y Malibú.
-Rocha: Licor de café y orujo de hierbas.
-Toguente: Whisky y limón.
-T.N.T.: Ginebra y granadina.
-Superbuga: Whisky y piña
-Kamikace: Tequila y limón.
-Bombero / Balazo: Tequila y whisky.
-Sangre: Martini rosso, tequila y vodka.
-Caimán: Pechè y whisky.
-Gallino: Mangaroca y whisky.
-Harakiri: Ron y limón.
-Termita: Tequila y Baileys.
-Virus: Baileys y vodka.
-B52: Crema de café, Baileys y Cointreau .
-Pedo mágico: Tequila, whisky, ginebra y menta.
-Feliu: Tequila, ginebra y vodka.
-Caballo loco: Aguardiente y tabasco.
-7 poderes: Vodka, ginebra, whisky, tequila, ron, Martini y licor de café.
-Muerte amarilla: Tequila, ron blanco, azúcar y unas gotas de limón natural. Agitado, no removido.
-Rally: Licor de limón y ron blanco.
-RTVG / Poseído: Ron, tequila, vodka y ginebra.
-TNT: Ginebra y granadina.
-TNT 2: Whisky y anís.
-Pásalo a Ga: Ron, tequila, vodka y granadina.
+18 añitos : Vodka caramelo, Vodka negro y lima 
+27: Jagermeister y licor de mora
+33susu:Licor 43,Ginebra y licor de manzana
+3 Fantásticos: 3/5 de Martini blanco y 2/5 Burn.
 3 magníficas: Ron añejo, Licor 43, Malibú, SevenUp y granadina.
-Desvirgator: Ginebra, Martini y anís.
-El ruso: Vodka y zumo de naranja.
-Tierra Santa: Orujo, whisky y ginebra.
-Facundo: Ginebra, vodka, tequila y Cointreau.
-EL VELA: Vodka, whisky y ron.
-Alirón alirón: Ginebra, vodka, ron añejo, Martini, licor de melocotón, licor de melocotón, lima, kiwi, limón.
-Sol y sombra: Anís y coñac, a partes iguales.
-Croissant: Anís y un chorrito de brandy.
-Cuatro reyes: Tequila, ginebra, vodka y whisky.
-Martin Walker: Whisky y Sprite.
-Dry mint: Pippermint y ginebra.
-Golpe bajo: Tequila y Cointreau.
-Abrasador: Whisky, ginebra y lima.
-Tumbamuertos: Whisky, vodka, Cointreau y una gotas de limón natural.
-Buenri: Whisky, tequila, vodka y Cointreau.
-Ferrari: Tía María y whisky.
-Cinco reyes / 5º elemento: Tequila, ginebra, ron, whisky y vodka.
-Alucinacion: Licor 43, vodka, vodka negro, ron, whisky, ginebra, leche y azúcar .
-REwELTA: Vodka, aguardiente y ron.
-Black Boy: Vodka negro y RedBull.
-Pica-Pica O CHUCHUE:PONCHE,COCA COLA, UN TOQUE DE LIMA
-Akí Mixmo: Cointreau, lima y mora .
-Sexo en la playa: Tequila, vodka y zumo de melocotón/plátano/piña .
-KGV: Kiwi, ginebra y vodka.
-Bomba: Whisky, ron, ginebra y vodka.
-Afrutado: Orujo y Cointreau.
-Tri.Nitro.Teluè.: Vodka, ron, ginebra, licor melocotón, zumo de piña, Malibú, whisky, tequila, RedBull y Licor 43.
-JTV: J&B, tequila y vodka.
-Patxi / Don Diego: Tequila y tabasco.
-Escuernacabres: Cointreau y menta .
-Catys: Whisky, licor de mora y licor de melocotón.
-Mickycristian's: Whisky y Cointreau .
-C43: Whisky, Ron y Licor 43.
-el caguen diogenes: Orujo y orujo y orujo.
-Don Limpio: Vodka , zumo de tomate , pimienta y KH 7
-Pollazo: Tequila, anís y whisky.
-Quemaexofagos: Negrita, Ginebra y Licor 43.
-Me estas estresando: Whisky, Ron y Malibú.
-Anestesia: Tequila, Ron y Whisky.
-Ácido en la cara: Whisky y tequila .
-Devil red: Vodka, Licor 43 y granadina.
-Tele5: Tequila, vodka y ginebra 
-Sepultura: Tequila, vodka, ron y ginebra
-Colpet: Tequila, gaseosa/tonica, granadina 
-Chupete Coyac:Amaretto, granadina y lima
-Cucaracha: cointreau y licor 43 
-Pito de mono: J&B, vodka, whisky y naranja.
-Sol y sombra 2: Vodka, vodka negro y un poco de Blue Tropic.
-TGV: Tequila, ginebra y vodka a partes iguales.
-Hielo++: Vodka, Licor melocoton, Licor manzana, Piña, Blue
-Electro++: 43, Malibu, Peche, Piña, Redbull
-Mini Gin-tonic ruso: Vodka y tónica.
-Charly: Whisky y Licor 43.
-Torre: Tequila, ginebra, vodka y kiwi.
-Explosivo: Tequila, ginebra, whisky, vodka y ron.
-Cua cua: Cointreau y Licor 43 .
-Tragateli / Pirata mexicano: Ron, tequila y Tía María.
-Cabrero: Tequila, vodka, ron, licor de manzana y Licor 43.
-Cohete: Vodka, ginebra y licor de melocotón.
-Tercer Grado / togue RATAMAN: don simon, agua de la ria y hacerse el borracho con el espada y con la boli XD XD
-James Bond: Martini y vodka.
-Chalauskas: Blue Tropic, ron y tequila.
-Haritz: Vodka, Malibú y kiwi.
-Coquito: Pippermint y Malibú.
-Torrente: Whisky y limón.
-El esprín: Whisky y piña.
-Kamikace: Tequila y limón.
-Sangre: Martini rosso, tequila y vodka.
-Caimán: Pechè y whisky.
-Harakiri: Ron y limón.
-Termita: Tequila y Baileys.
-Virus: Baileys y vodka.
-B52: Licor 43, Baileys y Cointreau .
-Pedo mágico: Tequila, whisky, ginebra y menta.
-Feliu: Tequila, ginebra y vodka.
+5 Coronas: Whisky, Tequila, Ginebra, Vodka, Ron
+7 Mares: Martini y SevenUp/Sprite.
 7 poderes: Vodka, ginebra, whisky, tequila, ron, Martini y licor de café.
-Muerte amarilla: Tequila, ron blanco, azúcar y unas gotas de limón natural. Agitado, no removido.
+8D: tequila vodka ginebra licores de todo tipo tabasco ron vino un espidifen sal azucar y lo flameas
+Abrasador: Whisky, ginebra y lima.
+Ácido en la cara: Whisky y tequila .
+Adrio: Ron, vodka, zumo de melocotón y granadina. 
+Africano: Licor de avellana, granadina y menta.
+Afrodisíaco 2: Tequila, vodka, y zumo de piña.
+Afrodisiaco: Licor de canela y chocolate.//Licor de mora, Menta y Canela en polvo.
+Afrodisíaco: Licor de mora, menta y canela.
+Afrutado: Orujo y Cointreau.
+After eight: Licor de menta y licor o batido de chocolate.
+Akí Mixmo: Cointreau, lima y mora .
+A la de Tres: Chartreusse verde y tónica
+Alde Iluna : Vodka, vodka negro y lima.
+Ale Ole: Ron y actimel
+Alien: Licor de melocotón y Blue Tropic.
+Alirón alirón: Ginebra, vodka, ron añejo, Martini, licor de melocotón, licor de melocotón, lima, kiwi, limón.
+Alucinacion: Licor 43, vodka, vodka negro, ron, whisky, ginebra, leche y azúcar .
+Amatxi Power: Ron, Pacharan,Licor de melocotón, Licor de manzana.
+Amiguete: Vodka, ginebra, Malibú, tequila, ron blanco, lima, 7UP.
+Amnesia: Vodka y Blue Tropic.
+Amor Amor : tequila, vodka rojo, granadina# Avellano mejicano: Tequila, Disaronno y lima.
+Anestesia: Tequila, Ron y Whisky.
+Aniquila: Tequila y Anis .
+Antro: Licor de melocotón y maracuyá.
+Apache / Forfait: Ginebra y limón.
+Aqua-Mendi: Vodka, Licor 43 y limón.
+Asereje: Vodka , clara de huevo y aceite
+Aspirador: Tequila, granadina y mangaroca.
+Aspirina: Anís y menta.
+Astérix: peppermintt, ginebra y moscatel a partes iguales
+Athletic de Bilbao: Cointreau, Bitter Kas, rodaja de naranja
+Athleti: Martini rosso y Martini blanco.
+Ave Cream: Licro 43 y avecren 
+B52: Crema de café, Baileys y Cointreau .
+B52: Licor 43, Baileys y Cointreau .
+Bálsamo: Pechè y limón.
+Bandido: Ginebra y lima.
+Baratheon: Jagermeister y leche.
+Barbarroja: Cuttysark, Martini rojo y granadina.
+Batido de fresa: Licor de fresa, Malibú.
+Bautizo : vodka, tequila, vodka red y 4 gotas de tabasco
+Berjón / Bob Omb: Vodka negro y Blue Tropic.
+Bertsolari: Licor de melocotón, limón, granadina.
+Bichito : Ron, Martini y ginebra , kiwi, limón, hielo y un sobre de azúcar.
+Bicho: Mangaroca y piña.
+Black Boy: Vodka negro y RedBull.
+Black Hole: Vodka blanco, vodka negro, Cointreau, Jägermeister, bebida isotónica ,zumo de piña, monster y sunny de fresa.
+Black point: Vodka negro, coca cola y dos gotas de granadina 
+Blue: Vodka, licor de melocotón y Blue Tropic.
+Bolas azules / Frostmourne: Bacardi, Eristoff, MIG fuel, blue tropic y tabasco.
+Bomba: Licor 43 y vodka.
+Bomba: Whisky, ron, ginebra y vodka.
+Bombero / Balazo: Tequila y whisky.
+Braga sucia: Tequila, Blue Tropic y granadina.
+Brito del norte: Licor de melocotón, vodka y Baileys.
+Brooklin: Licor de melocotón, licor de manzana y vodka.
+Bruja: Cointreau y piña.
+Buenri: Whisky, tequila, vodka y Cointreau.
+Búfalo: Tequila y ron.
+Búfalo verde: Tequila y lima.
+Bujía: Vodka y limón.
+bulbasur: lima y licor de melón.
+C43: Whisky, Ron y Licor 43.
+Caballo loco: Aguardiente y tabasco.
+Cabrero: Tequila, vodka, ron, licor de manzana y Licor 43.
+cachondo: Peché,kas naranja
+Cactus: Vodka y kiwi.
+Caimán: Pechè y whisky.
+Calamaro: Licor de fresa, vodka y Licor 43.
+Capazo: Vodka, Tequila y Tía María
+Caramelo: Anís, Pippermint y zumo de limón.
+Caramelo: Licor 43 y batido de vainilla.
+Caribeño: Malibú, ponche y lima.
+Cariñoso: Malibú y Biofrutas mediterráneo.
+Carlitos: Licor de café, Baileys y Cointreau.
+Carpe Diem: Licor de fresa, menta y granadina.
+'Carpediem: Tequila y Tía María .
+Castellano: Peché y Kas naranja .
+Castelló: Anís, ginebra y moscatel
+Catys: Whisky, licor de mora y licor de melocotón.
+CD Logroñés : Vodka y Granadina
+Cebollita: Ron, licor de melocotón y granadina
+Cerebrito / Cerebro de mono: Granadina y Baileys, en ese orden.
+Chacal: Pechè y vodka.
+Chachi: Ponche y kiwi.
+Chalauskas: Blue Tropic, ron y tequila.
+Charly: Whisky y Licor 43.
+Chati: Vodka, Blue Tropic y limón.
+Chinito: Licor de avellana, Baileys
+Chuche/Pica Pica: Ponche, CocaCola y un toque de lima.
+Chuchi: tequila, vodka y lima.
+Chupa-Chups/ Caramelo: Ponche, lima y Coca Cola
+Chupete Coyac:Amaretto, granadina y lima
+Chupi-Kriss: Vodka negro, Malibú, Martini blanco y zumo de piña.
+Chupito Aql: El liquido de los flases, vodka y tequila.
+Chupito del amor: Martini, Malibú, licor de lima y limón.
+Chupito Varela: Ron, ginebra y vodka .
+Ciervo volador: Licor de melocotón y tequila.
+Cinco reyes / 5º elemento: Tequila, ginebra, ron, whisky y vodka.
+Clásico/ "Chupa, toma, lame": Sólo tequila; se chupa sal , se bebe de un trago, y te comes una rodaja de limón.
+Coco-loco: Malibú, naranja y piña.
+Cohete: Vodka, ginebra y licor de melocotón.
+Colgate: Mangaroca y Pippermint.
+Collac / Altamar: Licor 43, ron, whisky, Malibú, licor de plátano, naranja, zumo de piña o melocotón y granadina.
+Colombiano: Licor de café y limón.
+Colony: Vodka con colonia bustamante
+Colpet: Tequila, gaseosa/tonica, granadina 
+Cómeme: Licor de manzana y vodka.
+Conde Drácula: Vodka Negro, Malibu y Granadina
+Conde: Tequila, ron, whisky y Cointreau.
+Contró: Coientrau, Tía María y Lima
+Coño caliente: Ginebra y limón .
+Coquito: Pippermint y Malibú.
+Corrida del cielo / Chupito del amor: Mangaroca, Blue Tropic y vodka.
+Corrida de Pitufo: Malibú, vodka y Blue Tropic. En caso de no tener Blue Tropic se puede hacer con Zumo de Piña.
+Corsario: Ron y Blue Tropic.
+Cortado: Licor de café y Baileys.
+Coscorrón: Aguardiente anisado y SevenUp.
+Coyote: Tequila, licor de café y Baileys.
+Cráter: Ginebra y Coca Cola.
+crazy train: licor de mora y bitter kas
+Croissant: Anís y un chorrito de brandy.
+Crucifixión: Martini, lima y granadina.
+Cua cua: Cointreau y Licor 43 .
+Cuartoizquierda / Skyler Puta: Vodka, licor de Manzana y Malibú.
+Cuatro reyes: Tequila, ginebra, vodka y whisky.
+Cubalibre / Pica pica/LuDiBa: Ponche y lima.
+Cuba Libre: Ron y Coca Cola.
+Cucaracha: cointreau y licor 43 
+Cucaracha: Whisky y licor de café.
+Cuervo: Pechè y kiwi.
+Culpable: Licor de manzana y mora.
+CUPRA/Mamada: Licor 43, Licor de Avellana y un poquito de batido de Vainilla
+Danae: Zumo de Naranja, Granadina, Vodka.
+Deba: Licor de melocotón, Martini y naranja.
+Destroyer 2014: Whisky 10%, Ginebra 10%, Ron 20%, Licor Melocoton 15%, Licor de Manzana 15%, 30% Blue Tropic
+Desvirgator: Ginebra, Martini y anís.
+Devil red: Vodka, Licor 43 y granadina.
+Diablo verde: Absenta y cannabis.
+Dinamita: Vodka y granadina.
+Divya: Santa Teresa y granadina.
+¿Donde está mi coche?: Tequila, vodka, whisky, ron y lima.
+Don Limpio: Vodka , zumo de tomate , pimienta y KH 7
+Doñana: Ginebra, Blue Tropic y lima.
+Doraemon: Patxarán y limón.
+Drácula: Lima, vodka rojo y granadina .
+Dragón azul: Vodka, tequila y Blue Tropic.
+Dragón: Martini y limón.
+Dry mint: Pippermint y ginebra.
+Duende: Licor de manzana, vodka y lima.
+Duende: Martini y kiwi.
+Dulcinea: Licor 43, granadina y kiwi.
+Dulzón: Licor de mora, Blue Tropic y granadina.
+El Arañon de vejo: Vodka rojo,cocacola ,y lima.
+Elaton: Absenta,tequila y bluetropic
+El basarrate: un chupito de vodka caramelo y hacerse el borracho y tirarse al suelo.
+El Bogli Olos: Vodka, ron, whisky, tomate, rodajas de pepino y una pizquita de azucar moreno
+El bruto: Malibu , coco exprimido y rodaja de Melon
+el caguen diogenes: Orujo y orujo y orujo.
+El Canibal: Absenta, tabasco y azucar
+El cesar: Ron con salsa cesar
+El chapando: no beber y decir k se está chapando prii
+el chouso: Whisky, red bull y saliva de chouso
+El cumple: Licor de Fresa, Fanta naranaja , fanta limon , coca cola , azucar y rodaja de sandia
+EL DEL PROFESOR DE TECNOLOGIA: licor cafe, absenta y red bull recien levantado y en cada cambio de clase
+El destrozahígados: Tequila, vodka y orujo de hierbas.
+Electro++: 43, Malibu, Peche, Piña, Redbull
+Electro +: Malibú, Peché y Redbull.
+Electro: Peché y limón.
+El esprín: Whisky y piña.
+El gato volador: Barceló,azucar de caña, limon.
+Elixir: Licor de mora y granadina.
+El Mariociclista: 1/5 Sansón; 2/5 zumo de platano; 2/5 kas de limón. Tomar a tragos suaves y sin prisa 
+El mata putëhs ++:JB , Tequila, Absenta, Vodka Negro, White LAbel, Blue tropick, Jack Danyel con Bioufroutas en la Coctelera.
+El mata reyes: Vodka rojo, Vodka negro, Vodka de naranja,absenta,tequila y jagger.
+El numero 1 de la lista/Diablo Negro :Absenta, tequila, vodka negro, wisky y lima
+El ¿pa k t pinxaah?: Vodka negro, licor 43 y naranja.
+El pantano: Bombay y burn .
+El ruso: Vodka y zumo de naranja.
+El Sapo: Menta, mangaroca, Blue Tropic y vodka.
+El Suave: Biofrutas con lo que quieras
+El Vallès: Tequila, whisky y lima
+EL VELA: Vodka, whisky y ron.
+Enfermerito: Sangría con licor de manzana. 
+Entrañas: Whisky, canela, capuccino, azúcar y licor de melocotón.
+Erik Gauss: Vodka rojo, naranjada, bourbon
+Escuernacabres: Cointreau y menta .
+Esmeralda: Licor de melocotón y kiwi.
+Espinete: Whisky, vainilla y granadina.
+Esportin: Granadina, mangaroca y Blue Tropic.
+Estel Ocean: Whisky, esencia de kiwi y Sprite
+E.T.: Mangaroca y Baileys.
+Evas: Ron, licor de melón y kiwi.
+Exótico: Licor 43, Malibú y Lima.
+Explosivo: Tequila, ginebra, whisky, vodka y ron.
+Expresive : Tonica, licor de hierbas y licor de manzana
+Facundo: Ginebra, vodka, tequila y Cointreau.
+Fairy: Amaretto, ron, Blue Tropic y lima.
+Fairy: Licor melocotón, Vodka, naranja y blue tropic.
+Fakir: Tequila y kiwi.
+Feliu: Tequila, ginebra y vodka.
+Ferrari: Tía María y whisky.
+Ferrerito: Frangelico y batido de chocolate.
+Fidji: Licor de mora, licor de fresa y Licor 43.
+Finca : Vodka negro,amaretto y lima o limón.
+Flamming Tijuana: Licor de cassis, jugo de piña, tequila. 
+Flan alcohólico: Vodka y Licor 43.
+Flatline: Anís, tequila y tabasco.
+Flotador: Cointreau, Baileys y Tía María a partes iguales, dejando escurrir despacio sobre una cucharilla para que no se mezclen los licores.
+Freskito: Tequila, licor de piña y lima.
+Fujiloco: Licor 43, vodka, vodka negro y limón.
+Furby: Ron, Mangaroca y limón.
+Galleguito: Orujo .
+Gallino: Mangaroca y whisky.
 Garzonmeister: Vodka, Licor 43 y Whisky.
 Gasolina Extra: Tequila, Guinebra, Vodka, Ron y Wisky
-Chuchi: tequila, vodka y lima.
-Mata ratas: Ron negro, ginebra y vodka.
-crazy train: licor de mora y bitter kas
-OSK: Vodka y Martini agitados, no removidos y Lima.
-Hulk: JackDaniels 3/4 y menta.
-Sangre de Alien: Ron negro, Vodka, Martini blanco  y Blue Tropic .
-Conde Drácula: Vodka Negro, Malibu y Granadina
-Ramón Parada: Absenta verde flameada
-Satelite: Malibu, Lima, Vodka negro, Granadina y Cointrea
-Diablo verde: Absenta y cannabis.
-Lugumba: Licor 43, Batido de chocholate
-Torombolo: Vodka, zumo de piña
-8D: tequila vodka ginebra licores de todo tipo tabasco ron vino un espidifen sal azucar y lo flameas
-100%: Vodka, tequila, ginebra partes iguales y tabasco
-Erik Gauss: Vodka rojo, naranjada, bourbon
-Puta: Absenta, Tequila.
-Torli: Curacao Azul, Granadina, Ginebra.
-Michelada: Cerveza Corona, limon,tabasco
-Kiss-cool: Vodka y Jet27
-Capazo: Vodka, Tequila y Tía María
-A la de Tres: Chartreusse verde y tónica
-Perro Rabioso/Chupito de Bruce Willis: Vodka, zumo de frambuesa o jaggermeister y unas gotitas de tabasco.
-Vallejo : Vodka blanco , Vodka negro, Malibú, Zumo de piña.
-The Xillas: Vodka  y Sangria.
-Aniquila: Tequila y Anis .
-El ¿pa k t pinxaah?: Vodka negro, licor 43 y naranja.
-El chapando: no beber y decir k se está chapando prii
-La melenahhhh: txupito con pelos dentroo.
-El pantano: Bombay y burn .
-El basarrate: un chupito de vodka caramelo y hacerse el borracho y tirarse al suelo.
-Astérix: peppermintt, ginebra y moscatel a partes iguales
-Manu Chao: Licor 43, Vodka blanco, Licor de piña, Melocotón y Granadina
-Levanta Muertos: Jägermeister, Tequila y Absenta
-T.G.V.R: Tequila,Ginebra,Vodka,Ron y una rodaja de naranja 
-Torero Español: Vodka, Licor de avellana , marmite y rodaja de coco
-Don Limpio: Vodka , zumo de tomate , pimienta y KH 7
-The Jagalú: Vodka, patxaran , zumo de piña
-El bruto: Malibu , coco exprimido y rodaja de Melon
-El Suave: Biofrutas con lo que quieras
-El cesar: Ron con salsa cesar
-Asereje: Vodka , clara de huevo y aceite
-Mamichurri: Whisky y mermelada de fresa
-Vodkanesa: Vodka , tomate natural y mayonesa 
-El cumple: Licor de Fresa, Fanta naranaja , fanta limon , coca cola , azucar y rodaja de sandia
-El Canibal: Absenta, tabasco y azucar
-Ale Ole: Ron y actimel
-Ave Cream: Licro 43 y avecren 
-Colony: Vodka con colonia bustamante
-Berjón / Bob Omb: Vodka negro y Blue Tropic.
-Orgasm: Granadina, Baileys y licor de manzana.
-Cuartoizquierda / Skyler Puta: Vodka, licor de Manzana y Malibú.
-Cortado: Licor de café y Baileys.
-Piruleta / Hadouken: Disaronno, lima y granadina.
-Exótico: Licor 43, Malibú y Lima.
-Mamada: Licor de avellana, vodka y Nata Montada.
-Kanu: Whisky y zumo de piña.
-Piel roja: Licor 43, Cointreau y granadina.
-Brito del norte: Licor de melocotón, vodka y Baileys.
-'Carpediem: Tequila y Tía María .
-Cucaracha: Whisky y licor de café.
-Pis de pitufo: Blue Tropic y licor de fresa.
-Lago azul: Licor de manzana y Blue Tropic.
-Toby: vodka, ginebra, tequila blanco, y mate
-Mora 40: Vodka blanco en abundancia y un toque de concentrado de mora .
-El Bogli Olos: Vodka, ron, whisky, tomate, rodajas de pepino y una pizquita de azucar moreno
-Pirata mexicano: Ron, tequila y Tía María.
-Afrodisíaco: Licor de mora, menta y canela.
-Afrodisíaco 2: Tequila, vodka, y zumo de piña.
-Duende: Licor de manzana, vodka y lima.
-Jedi: Tequila y licor .
-Maritrini: Martini y licor .
-Pander: Martini y licor de fresa.
-Colgate: Mangaroca y Pippermint.
-Amnesia: Vodka y Blue Tropic.
-Corsario: Ron y Blue Tropic.
-Bujía: Vodka y limón.
-Cactus: Vodka y kiwi.
-Cráter: Ginebra y Coca Cola.
-Satán: Martini, Baileys y lima.
-Pizo: Ron, Malibú y zumo de piña.
-Morrón / Falcon Punch: Cointreau y Baileys.
-Vaca cachonda: Vodka, tequila, ginebra y Blue Tropic.
-Corrida del cielo / Chupito del amor: Mangaroca, Blue Tropic y vodka.
-Cerebrito / Cerebro de mono: Granadina y Baileys, en ese orden.
-Corrida de Pitufo: Malibú, vodka y Blue Tropic. En caso de no tener Blue Tropic se puede hacer con Zumo de Piña.
-Mogollón: Granadina, menta y orujo.
-Bichito : Ron, Martini y ginebra , kiwi, limón, hielo y un sobre de azúcar.
-Mimo: Vodka, limón y kiwi.
-Blue: Vodka, licor de melocotón y Blue Tropic.
-Vitamina / I Am The Danger: Whisky, kiwi y Blue Tropic.
-Prohibido: Tequila, licor de melocotón y piña.
-Freskito: Tequila, licor de piña y lima.
-Rebes: Vodka, limón y granadina.
-Uoho: Martini, vodka y Blue Tropic.
-Meli: Licor 43, Pechè, limón y granadina.
-Sostén: Vodka y lima.
-Caribeño: Malibú, ponche y lima.
-Martincho: Licor 43, lima y Blue Tropic.
-Aqua-Mendi: Vodka, Licor 43 y limón.
-Marroncete: Vodka, ponche y lima.
-Txiki: Tequila, limón y kiwi.
-Chupito Aql: El liquido de los flases, vodka y tequila.
-Tequilamotxo: Tequila, kalimo del bueno.
-Chati: Vodka, Blue Tropic y limón.
-Moreno: Martini rosso, ron y Coca cola.
-11-S: Vodka, tequila y lima.
-Papot: Patxarán, tequila y granadina.
-Tanga: Ron y piña.
-Verdugo: Vodka y piña.
-Regaliz: Patxarán y Coca Cola.
-T.B.O.: Licor 43 y piña.
-Top-less: Ron y kiwi.
-Carlitos: Licor de café, Baileys y Cointreau.
-E.T.: Mangaroca y Baileys.
-Espinete: Whisky, vainilla y granadina.
-Cuba Libre: Ron y Coca Cola.
-Nitro: Tequila, granadina y zumo de limón.
-Voltio: Whisky y vainilla.
-Dinamita: Vodka y granadina.
-Apache / Forfait: Ginebra y limón.
-Bruja: Cointreau y piña.
-Chacal: Pechè y vodka.
-Chinito: Licor de avellana, Baileys
-Bandido: Ginebra y lima.
-Búfalo verde: Tequila y lima.
-Pousse-Café: Granadina, Cointreau, crema de menta y brandy.
-Hemorragia cerebral: Baileys, licor de melocotón y granadina.
-Ciervo volador: Licor de melocotón y tequila.
-Sexo en la playa: Vodka, licor de mora, zumo tropical y granadina.
-Amor Amor : tequila, vodka rojo, granadina# Avellano mejicano: Tequila, Disaronno y lima.
-Pimpollo: Vodka, licor de melocotón y kiwi.
-Morito: Licor de mora, Blue Tropic y piña.
-Coscorrón: Aguardiente anisado y SevenUp.
-Athleti: Martini rosso y Martini blanco.
-Loro de la muerte: Ron y zumo de manzana.
-Morsilisto: Tía María, crema catalana, nata y canela.
-Perras: Tía María y mora.
-Melón diesel: Licor de melón, Malibú, vodka y coco rallado.
-Naranjito II: Ron, Licor 43 y zumo de naranja.
-Lanzallamas: Brandy y licor de mora.
-After eight: Licor de menta y licor o batido de chocolate.
-Morito / Dracarys: Ron, lima y unas gotas de licor de mora.
-SuqiSuqi: Vodka blanco, Peché, Martini, limón y piña.
-Caramelo: Anís, Pippermint y zumo de limón.
-Pantera roja: Licor 43, Cointreau y granadina.
-Pantera naranja: Licor 43, Cointreau y licor de melocotón.
-Tito Percha: J&B y anís. A partes iguales.
-Tequiblue: Tequila y Blue Tropic.
-Divya: Santa Teresa y granadina.
-Luna negra: Vodka negro, Martini rojo y menta.
-Barbarroja: Cuttysark, Martini rojo y granadina.
-Morritos calientes / Fuego Valyrio: Licor 43 y tabasco.
-Pilillas afterawers: Whisky, ron, lima y mora.
-S.D. Huesca / Cubo Horádrico: Vodka rojo y licor de mora.
-Tastebomb: Vodka negro, vodka blanco, vodka rojo y granadina.
-Higado de rana: Lima, vodka y kiwi.
-Dragón azul: Vodka, tequila y Blue Tropic.
-Rayo azul: Bombay y Burn.
-Doñana: Ginebra, Blue Tropic y lima.
-Chupi-Kriss: Vodka negro, Malibú, Martini blanco y zumo de piña.
-Moginto: Ron blanco, ginebra y lima.
-Guanapito: Un vaso con ron y otro con zumo de piña. Se toma primero el de ron y a continuación el de zumo de piña.
-Kendal: Ginebra, Schweppes limon, zumo de naranja y azúcar.
-Kir Royale: Pacharán y champán.
+Gigoló: Licor de manzana y limón.
+Golem: Cointreau y gotas de limón natural.
+Golpe bajo: Tequila y Cointreau.
 Gominola: Ron añejo, ginebra, Malibú y lima.
-Lo que encuentro por casa: Cointreau y SevenUp.
-Hot Nurse: Vodka, ginebra y granadina.
-Braga sucia: Tequila, Blue Tropic y granadina.
-Entrañas: Whisky, canela, capuccino, azúcar y licor de melocotón.
-Perras: Ron, ginebra, limón y azúcar .
-CUPRA/Mamada: Licor 43, Licor de Avellana y un poquito de batido de Vainilla
-Semen del Señor: licor de melocoton, Licor 43, vodka, granadina y coco.
-Alde Iluna : Vodka, vodka negro y lima.
-Gualila: Vozka, vozka negro y kiwi.
-Padifre de kiwi: Peché y zumo de kiwi, tres gotas de limón y un poco de azúcar.
-3 Fantásticos: 3/5 de Martini blanco y 2/5 Burn.
-Matapijos: Patxarán, naranja, RedBull , piña, licor de melocotón y Malibú.
-Matapijos 2.0: Patxaran, naranja, Bluetropic, piña, licor de manzana y Malibú.
-P.P.:Patxaran, Piña
-Piro +: Vodka rojo, patxarán y cola.
-Hielo +: Vodka, licor de melocotón y Blue Tropic.
-Electro +: Malibú, Peché y Redbull.
-Hemorragia: Limón, ron, patxarán, ginebra y avellana .
-Chuche/Pica Pica: Ponche, CocaCola y un toque de lima.
-Muestra de sangre: Vodka, ron blanco, tequila y granadina.
-Flotador: Cointreau, Baileys y Tía María a partes iguales, dejando escurrir despacio sobre una cucharilla para que no se mezclen los licores.
-Sabado de rayada en el hotel: Bacardi, Malibú, licor de manzana, lima, granadina y zumo de piña.
-Fairy: Licor melocotón, Vodka, naranja y blue tropic.
-Verano Azul: Cointreau y Blue Tropic.
-López Mix: Vodka y Nestea.
-páh q t enamooreh: Tequila, cualquier bicho.
-Terciopelo: Licor melocotón y vodka caramelo.
-Mediterraneo: Vodka negro, zumo de melocotón, un poco de granadina
-Knaya: Bourbon, Blue Tropic y refresco de limón
-Expresive : Tonica, licor de hierbas y licor de manzana
-La hora del te : vodka con galletas maria.
-Susana Bombón : Licor de café, Bayliss, tequila, licor azul de Rives caliente y quemar
-CD Logroñés : Vodka y Granadina
-18 añitos : Vodka caramelo, Vodka negro y lima 
-Jesu: Vodka negro y licor de fresa. 
-Adrio: Ron, vodka, zumo de melocotón y granadina. 
-Vicenta / The North Remembers: Anís, orujo y licor de menta.
-Enfermerito: Sangría con licor de manzana. 
-Joaquín Sabina: Vodka, grinebra, limón y granadina
-Pepe Zorrillo:Leche y licor de mora
-Athletic de Bilbao: Cointreau, Bitter Kas, rodaja de naranja
-Tequilahuete: Tequila con un cacahuete
-Olmedator / Hacedora de viudas: Licor de melón, vodka y blue tropic.
-Ksk: Ponche, vodka y grosella
-Destroyer 2014: Whisky 10%, Ginebra 10%, Ron 20%, Licor Melocoton 15%, Licor de Manzana 15%, 30% Blue Tropic
-Black Hole: Vodka blanco, vodka negro, Cointreau, Jägermeister, bebida isotónica ,zumo de piña, monster y sunny de fresa.
-Flamming Tijuana: Licor de cassis, jugo de piña, tequila. 
-Semáforo: Tres chupitos: Ron con Granadina, Cointreau con Licor 43 y Vodka con Pippermint; tomar los tres en ese mismo orden
-Castelló: Anís, ginebra y moscatel
-Látigo Cepa: Licor de manzana, tequila y lima.
-Sangre de Mannoroth: Licor 43, ginebra y licor de manzana. 
+Gorra: Brandy, tequila y ron.
 Green Paradise: Tequila, kiwi y 7 UP. 
-Finca : Vodka negro,amaretto y lima o limón.
-El Mariociclista: 1/5 Sansón; 2/5 zumo de platano; 2/5 kas de limón. Tomar a tragos suaves y sin prisa 
-Magico Special: Ron miel, Licor 43 y granadina.
-Mar rojo: 50% de Helado de limón, 50% Cava, una pizca Bacardi Freezer de Sandia en este orden!
-Magico Special: Ron miel, Licor 43 y granadina.
-Orgasmo: Licor de melocotón y limón.
-Nevadito Badía: Licor de fresa, Blue Tropic, mangaroca y granadina .
-sporting: Granadina, mangaroca y Blue Tropic.
-Mentol: Menta y Baileys.
-Afrodisíaco: Licor de mora, menta y canela.
-Duende: Martini y kiwi.
-Dulcinea: Licor 43, granadina y kiwi.
-Deba: Licor de melocotón, Martini y naranja.
-Pum: Licor de café, Baileys y lima.
-Antro: Licor de melocotón y maracuyá.
-Dragón: Martini y limón.
-pene de toro: cola, limon, azucar, red bull
-Multifrutas: Mangaroca, licores de fruta que mas os gusten y pascual funciona
-Rana: Lima, licor de melocotón, y licor de manzana.
-Termita: Mangaroca, lima, granadina y vodka.
-Cubalibre / Pica pica/LuDiBa: Ponche y lima.
-7 Mares: Martini y SevenUp/Sprite.
-Aspirina: Anís y menta.
-Racing: Vodka, menta y lima.
-Pepino: Ron, ginebra, kiwi y lima.
-Rayao: Ron y granadina.
-Refresquito: Tequila y Blue Tropic.
-Bautizo : vodka, tequila, vodka red y 4 gotas de tabasco
-Pitufo: Martini, Blue Tropic y nata.
-Bertsolari: Licor de melocotón, limón, granadina.
-El Sapo: Menta, mangaroca, Blue Tropic y vodka.
-Piruleta: Amaretto, lima/zumo de piña y granadina.
-Chupa-Chups/ Caramelo: Ponche, lima y Coca Cola
-Africano: Licor de avellana, granadina y menta.
+Gualila: Vozka, vozka negro y kiwi.
+Guanapito: Un vaso con ron y otro con zumo de piña. Se toma primero el de ron y a continuación el de zumo de piña.
+Harakiri: Ron y limón.
+Haritz: Vodka, Malibú y kiwi.
 Hazme el amor:Licor de melocoton,zumo de melocoton y granadina
-Naranjito: Pechè y zumo de melocotón.
-Bicho: Mangaroca y piña.
-Limoncito: Licor de limón y limón.
-Mosca: Licor de mora y Coca Cola.
-Osasuna: Licor de melocotón, Blue Tropic y granadina.
-Alien: Licor de melocotón y Blue Tropic.
-Qué duro es ser vasco: Martini, licor de melocotón, kiwi y limón.
-Xbox 360: Martini, licor de manzana y kiwi.
-Perestroika: Blue Tropic y vodka.
-Pitufo: Pechè y Blue Tropic.
-Moranco: Licor de mora y lima.
-Crucifixión: Martini, lima y granadina.
-Cómeme: Licor de manzana y vodka.
-Querrico: Licor de fresa, Blue Tropic y limón.
-Colombiano: Licor de café y limón.
-Plasssh: Patxarán, Coca Cola y granadina.
-Calamaro: Licor de fresa, vodka y Licor 43.
-Chachi: Ponche y kiwi.
-Coco-loco: Malibú, naranja y piña.
-Doraemon: Patxarán y limón.
-Batido de fresa: Licor de fresa, Malibú.
-Simpa: Licor de mora, Martini.
-Tigre: Vodka y licor de melocotón.
-Krispy: Vodka, licor de mora y lima.
-Dulzón: Licor de mora, Blue Tropic y granadina.
-Mikel: Malibú y Blue Tropic.
-LON: Cointreau, limón y Blue Tropic.
-Xenon: Pippermint, granadina y lima.
-Machete: Licor de manzana, Cointreau y zumo piña
-Pollo-loco: Licor de limón y lima.
-Marcianito: Licor de limón y kiwi.
-Elixir: Licor de mora y granadina.
-Sarao: Licor de fresa y kiwi.
-Rana: Licor de manzana y kiwi.
-Tifón: Licor de limón y Blue Tropic.
-Trompo: Licor de mora y limón.
-Vampiro: Martini rosso y Coca Cola.
-Víbora: Malibú y limón.
-Afrodisiaco: Licor de canela y chocolate.//Licor de mora, Menta y Canela en polvo.
-Hussein: Blue Tropic y vainilla.
-Jarabe: Licor de fresa y granadina.
-Oasis: Licor 43 y limón.
-Señorita Pepis: Vodka, licor de melocotón y granadina.
-Tarzán: Vodka, kiwi y limón.
-Gigoló: Licor de manzana y limón.
-Cuervo: Pechè y kiwi.
-Makke: Licor de melocotón, licor de mora y limón.
-Lebene: Malibú, Blue Tropic y piña.
-Pijama: Licor de piña y piña.
-Sabrosón: Licor de avellana, Baileys y chocolate.
-Brooklin: Licor de melocotón, licor de manzana y vodka.
-Nájera: Licor 43, licor de avellana y canela en polvo.
-Riojanito: Pechè, granadina y naranja.
-Carpe Diem: Licor de fresa, menta y granadina.
-Zumito: Malibú, licor de melocotón y kiwi.
-Pitufina: Mangaroca, vainilla y Blue Tropic.
-Marea: Licor de piña, lima y kiwi.
-Pantera rosa: Licor de fresa, vainilla y granadina.
-Evas: Ron, licor de melón y kiwi.
-Pokemon: Malibú, licor de melocotón y piña.
-Fidji: Licor de mora, licor de fresa y Licor 43.
-Menda: Licor de melocotón, Blue Tropic y limón.
-Ruso blanco: Licor de café, vodka.
-Meteorito: Licor de limón y granadina.
-Volcán: Licor 43 y Coca Cola.
-Furby: Ron, Mangaroca y limón.
-Culpable: Licor de manzana y mora.
-Vaca loca: Mangaroca y menta.
-Zulú: Baileys y chocolate.
-Bálsamo: Pechè y limón.
-Neurona: Licor de mora y limón.
-Zar: Licor de café y vodka.
-Chupito del amor: Martini, Malibú, licor de lima y limón.
-Quita penas: Mora, melocotón y orujo.
-Morsilei: RonMiel y lima.
-Suavecito efí: Ginebra, Martini y licor de mora.
-Aspirador: Tequila, granadina y mangaroca.
-El Arañon de vejo: Vodka rojo,cocacola ,y lima.
-Fairy: Amaretto, ron, Blue Tropic y lima.
-Ikurriña: Vodka, licor de kiwi y granadina .
-Tabique: Vodka y anís .
-LoloLoco: Licor de sandía , licor de mora  y vodka .
-Playero: Martini blanco y zumo de piña.
-Collac / Altamar: Licor 43, ron, whisky, Malibú, licor de plátano, naranja, zumo de piña o melocotón y granadina.
-Teo: Martini blanco, licor de melocotón, kiwi y naranja.
-Peché blue: Peché y Blue Tropic.
-Ferrerito: Frangelico y batido de chocolate.
-Esmeralda: Licor de melocotón y kiwi.
-Petroleo / Tinta China: Vodka negro y lima.
-Vaca rosa: Batido de fresa y granadina.
-Moquito: Pippermint y vainilla.
-Polla de negro: Vodka negro y granadina.
-Coño caliente: Ginebra y limón .
-Castellano: Peché y Kas naranja .
-Cariñoso: Malibú y Biofrutas mediterráneo.
-Soleado: Baileys, Blue Tropic y lima.
 Hazme el amor: Licor de naranja o melocotón, granadina y zumo de melocotón.
-Raskel: Vodka y licor de mora.
-Marisolita: Ron y lima.
-Piro: Patxaran y granadina.
+Hemorragia cerebral: Baileys, licor de melocotón y granadina.
+Hemorragia: Limón, ron, patxarán, ginebra y avellana .
+Hermanos del dominó / Ángel: Whisky y orujo.
 Hielo: Licor de manzana y piña.
-Electro: Peché y limón.
-Vodka piruleta: Disaronno, Vodka y granadina.
-Prau: Tequila y kiwi.
-Magico Special: Ron miel, Licor 43 y granadina.
-Nevadito Badía: Licor de fresa, Blue Tropic, mangaroca y granadina .
-Esportin: Granadina, mangaroca y Blue Tropic.
-Mentol: Menta y Baileys.
-Afrodisíaco: Licor de mora, menta y canela.
-Duende: Martini y kiwi.
-Dulcinea: Licor 43, granadina y kiwi.
-Deba: Licor de melocotón, Martini y naranja.
-Pum: Licor de café, Baileys y lima.
-Antro: Licor de melocotón y maracuyá.
-Dragón: Martini y limón.
-La lagartija: Martini,caldo de pollo y rodaja de ciruela
-Multifrutas: Mangaroca, licores de fruta que mas os gusten y pascual funciona
-Rana: Lima, licor de melocotón, y licor de manzana.
-Termita: Mangaroca, lima, granadina y vodka.
-Cubalibre / Pica pica/LuDiBa: Ponche y lima.
-7 Mares: Martini y SevenUp/Sprite.
-Aspirina: Anís y menta.
-Racing: Vodka, menta y lima.
-Pepino: Ron, ginebra, kiwi y lima.
-Rayao: Ron y granadina.
-Refresquito: Tequila y Blue Tropic.
-Pitufo: Martini, Blue Tropic y nata.
-Bertsolari: Licor de melocotón, limón, granadina.
-El Sapo: Menta, mangaroca, Blue Tropic y vodka.
-Piruleta: Amaretto, lima/zumo de piña y granadina.
-Chupa-Chups/ Caramelo: Ponche, lima y Coca Cola
-Africano: Licor de avellana, granadina y menta.
-Hazme el amor:Licor de melocoton,zumo de melocoton y granadina
-Naranjito: Pechè y zumo de melocotón.
-Bicho: Mangaroca y piña.
-Limoncito: Licor de limón y limón.
-Mosca: Licor de mora y Coca Cola.
-Osasuna: Licor de melocotón, Blue Tropic y granadina.
-Alien: Licor de melocotón y Blue Tropic.
-Qué duro es ser vasco: Martini, licor de melocotón, kiwi y limón.
-Orgasmo: Licor de melocotón y limón.
-Perestroika: Blue Tropic y vodka.
-Pitufo: Pechè y Blue Tropic.
-Moranco: Licor de mora y lima.
-Crucifixión: Martini, lima y granadina.
-Cómeme: Licor de manzana y vodka.
-Querrico: Licor de fresa, Blue Tropic y limón.
-Colombiano: Licor de café y limón.
-Plasssh: Patxarán, Coca Cola y granadina.
-Calamaro: Licor de fresa, vodka y Licor 43.
-Chachi: Ponche y kiwi.
-Coco-loco: Malibú, naranja y piña.
-Doraemon: Patxarán y limón.
-Batido de fresa: Licor de fresa, Malibú.
-Simpa: Licor de mora, Martini.
-Tigre: Vodka y licor de melocotón.
-Krispy: Vodka, licor de mora y lima.
-Dulzón: Licor de mora, Blue Tropic y granadina.
-Mikel: Malibú y Blue Tropic.
-Xenon: Pippermint, granadina y lima.
-Machete: Licor de manzana, Cointreau y zumo piña
-Pollo-loco: Licor de limón y lima.
-Marcianito: Licor de limón y kiwi.
-Elixir: Licor de mora y granadina.
-Sarao: Licor de fresa y kiwi.
-Rana: Licor de manzana y kiwi.
-Tifón: Licor de limón y Blue Tropic.
-Trompo: Licor de mora y limón.
-Vampiro: Martini rosso y Coca Cola.
-Víbora: Malibú y limón.
-Afrodisiaco: Licor de canela y chocolate.//Licor de mora, Menta y Canela en polvo.
+Hielo +: Vodka, licor de melocotón y Blue Tropic.
+Hielo++: Vodka, Licor melocoton, Licor manzana, Piña, Blue
+Higado de rana: Lima, vodka y kiwi.
+Hot Nurse: Vodka, ginebra y granadina.
+Hulk: JackDaniels 3/4 y menta.
 Hussein: Blue Tropic y vainilla.
-Jarabe: Licor de fresa y granadina.
-Oasis: Licor 43 y limón.
-Señorita Pepis: Vodka, licor de melocotón y granadina.
-Tarzán: Vodka, kiwi y limón.
-Gigoló: Licor de manzana y limón.
-Cuervo: Pechè y kiwi.
-Makke: Licor de melocotón, licor de mora y limón.
-Lebene: Malibú, Blue Tropic y piña.
-Pijama: Licor de piña y piña.
-Sabrosón: Licor de avellana, Baileys y chocolate.
-Brooklin: Licor de melocotón, licor de manzana y vodka.
-Nájera: Licor 43, licor de avellana y canela en polvo.
-Riojanito: Pechè, granadina y naranja.
-Carpe Diem: Licor de fresa, menta y granadina.
-Zumito: Malibú, licor de melocotón y kiwi.
-Pitufina: Mangaroca, vainilla y Blue Tropic.
-Marea: Licor de piña, lima y kiwi.
-Pantera rosa: Licor de fresa, vainilla y granadina.
-Evas: Ron, licor de melón y kiwi.
-Pokemon: Malibú, licor de melocotón y piña.
-Fidji: Licor de mora, licor de fresa y Licor 43.
-Menda: Licor de melocotón, Blue Tropic y limón.
-Ruso blanco: Licor de café, vodka.
-Meteorito: Licor de limón y granadina.
-Volcán: Licor 43 y Coca Cola.
-Furby: Ron, Mangaroca y limón.
-Culpable: Licor de manzana y mora.
-Vaca loca: Mangaroca y menta.
-Zulú: Baileys y chocolate.
-Bálsamo: Pechè y limón.
-Neurona: Licor de mora y limón.
-Zar: Licor de café y vodka.
-Chupito del amor: Martini, Malibú, licor de lima y limón.
-Quita penas: Mora, melocotón y orujo.
-Morsilei: RonMiel y lima.
-Suavecito efí: Ginebra, Martini y licor de mora.
-Aspirador: Tequila, granadina y mangaroca.
-El Arañon de vejo: Vodka rojo,cocacola ,y lima.
-Fairy: Amaretto, ron, Blue Tropic y lima.
 Ikurriña: Vodka, licor de kiwi y granadina .
-Tabique: Vodka y anís .
-LoloLoco: Licor de sandía , licor de mora  y vodka .
-Drácula: Lima, vodka rojo y granadina .
-Playero: Martini blanco y zumo de piña.
-Collac / Altamar: Licor 43, ron, whisky, Malibú, licor de plátano, naranja, zumo de piña o melocotón y granadina.
-Teo: Martini blanco, licor de melocotón, kiwi y naranja.
-Peché blue: Peché y Blue Tropic.
-Ferrerito: Frangelico y batido de chocolate.
-Esmeralda: Licor de melocotón y kiwi.
-Petroleo / Tinta China: Vodka negro y lima.
-Vaca rosa: Batido de fresa y granadina.
-Moquito: Pippermint y vainilla.
-Polla de negro: Vodka negro y granadina.
-Coño caliente: Ginebra y limón .
-Castellano: Peché y Kas naranja .
-Cariñoso: Malibú y Biofrutas mediterráneo.
-Soleado: Baileys, Blue Tropic y lima.
-Hazme el amor: Licor de naranja o melocotón, granadina y zumo de melocotón.
-Raskel: Vodka y licor de mora.
-Marisolita: Ron y lima.
-Piro: Patxaran y granadina.
-Hielo: Licor de manzana y piña.
-Electro: Peché y limón.
-Vodka piruleta: Disaronno, Licor 43 y granadina.
-Prau: Tequila y kiwi.
 Jairo de la vida: Refresco de cola y cerveza.
-Caramelo: Licor 43 y batido de vainilla.
-Contró: Coientrau, Tía María y Lima
-Estel Ocean: Whisky, esencia de kiwi y Sprite
-LSD: Vodka Caramelo y naranja
-Puedo verte desnuda aunque lleves ropa: Absenta, ginebra, vermouth y vodka
-Cebollita: Ron, licor de melocotón y granadina
-Tipo duro: Licor de menta, Espidifen y agua
-Stromboli: Ron, Cocacola y Mentos
-Un día de Furia: Red bull, Cocacola y Sacarina
-T2010: Ron miel, ponche y lima
-El Vallès: Tequila, whisky y lima
-Tornillos: Ron miel, Nata y canela
-RM 7: Peché, vino y cola.
-pene de toro: cola ,redbull, azucar, limon, mango
-cachondo: Peché,kas naranja
-Virgen de Costana: Ron Ballantines, cola y limón.
-El gato volador: Barceló,azucar de caña, limon.
-Nube de chocolate: Licor 43 y batido de chocolate
-Danae: Zumo de Naranja, Granadina, Vodka.
-Panceta 43: Licor 43, salsa de panceta.
-Yeya 43, SAL&AL 43: Mezclar en este orden: actimel de fresa y plátano con licor 43, y añadir batido de Vainilla -Chocolate
-Sularus Sword: Zumo de naranja, blue tropic y yogurt griego de Danone.
-NoeToad: Tequila con un poco de negrita y esto lo chupamos con una regaliz de fresa.
-EL DEL PROFESOR DE TECNOLOGIA: licor cafe, absenta y red bull recien levantado y en cada cambio de clase
-el chouso: Whisky, red bull y saliva de chouso
-la teacher:Martini,licor 43,salsa de soja y hierba 
-SAN JOVI: Bio manzana, martini blanco, licor manzana, bacardi limón, limón, hielo, mali
-Ximixurry: Vodka, trina de limon, zumo de fresa, azucar i hielo .
-bulbasur: lima y licor de melón.
+James Bond: Martini y vodka.
+Jarabe: Licor de fresa y granadina.
+Javito: Whisky y Baileys.
+Jedi: Tequila y licor .
+Jesu: Vodka negro y licor de fresa. 
+Joaquín Sabina: Vodka, grinebra, limón y granadina
+JTV: J&B, tequila y vodka.
+Kalashnikov / Aliento de Onyxia: Vodka, whisky, ron y absenta.
 kalimotxo: vino tinto y coca cola 
-Elaton: Absenta,tequila y bluetropic
+Kamikace: Tequila y limón.
+Kanu: Whisky y zumo de piña.
+Kendal: Ginebra, Schweppes limon, zumo de naranja y azúcar.
+KGV: Kiwi, ginebra y vodka.
+Kir Royale: Pacharán y champán.
+Kiss-cool: Vodka y Jet27
+Knaya: Bourbon, Blue Tropic y refresco de limón
+Krispy: Vodka, licor de mora y lima.
+Ksk: Ponche, vodka y grosella
+La cotoconda: Tequila, red Bull y sal.
+Lago azul: Licor de manzana y Blue Tropic.
+La hora del te : vodka con galletas maria.
+La lagartija: Martini,caldo de pollo y rodaja de ciruela
+La melenahhhh: txupito con pelos dentroo.
+Lanzallamas: Brandy y licor de mora.
+Largarto: Ginebra y kiwi.
+la teacher:Martini,licor 43,salsa de soja y hierba 
+Látigo Cepa: Licor de manzana, tequila y lima.
+Lebene: Malibú, Blue Tropic y piña.
+Lechuga / Licor del polo / Dragón verde: Vodka y Pippermint.
+Lekunberri TV: Licor 43, tequila y vodka.
+Levanta Muertos: Jägermeister, Tequila y Absenta
+Limoncito: Licor de limón y limón.
+Lingotazo: Ron, whisky y Licor 43.
+Locura: Whisky y Marie Brizard.
+LoloLoco: Licor de sandía , licor de mora  y vodka .
+LON: Cointreau, limón y Blue Tropic.
+López Mix: Vodka y Nestea.
+Lo que encuentro por casa: Cointreau y SevenUp.
+Loro de la muerte: Ron y zumo de manzana.
+LSD: Vodka Caramelo y naranja
 Luchon: Baileys y Ron
-27: Jagermeister y licor de mora
-Testarossa: Vodka, fanta de limón y granadina 
-Black point: Vodka negro, coca cola y dos gotas de granadina 
+Lugumba: Licor 43, Batido de chocholate
+Luna negra: Vodka negro, Martini rojo y menta.
+Machete: Licor de manzana, Cointreau y zumo piña
+Magico Special: Ron miel, Licor 43 y granadina.
+Mahtuerso: Tequila, cassalla, J&B, Licor de Arroz, Jägermeifter, Absenta negro  
+Makke: Licor de melocotón, licor de mora y limón.
+Mamada: Licor de avellana, vodka y Nata Montada.
+Mamichurri: Whisky y mermelada de fresa
+Manu Chao: Licor 43, Vodka blanco, Licor de piña, Melocotón y Granadina
+Marcianito: Licor de limón y kiwi.
+Marea: Licor de piña, lima y kiwi.
+Marisolita: Ron y lima.
+Maritrini: Martini y licor .
+Mar rojo: 50% de Helado de limón, 50% Cava, una pizca Bacardi Freezer de Sandia en este orden!
+Marroncete: Vodka, ponche y lima.
+Martincho: Licor 43, lima y Blue Tropic.
+Martin Walker: Whisky y Sprite.
+Matapijos 2.0: Patxaran, naranja, Bluetropic, piña, licor de manzana y Malibú.
+Matapijos: Patxarán, naranja, RedBull , piña, licor de melocotón y Malibú.
+Mata ratas: Ron negro, ginebra y vodka.
+Mediterraneo: Vodka negro, zumo de melocotón, un poco de granadina
+Me estas estresando: Whisky, Ron y Malibú.
+Meli: Licor 43, Pechè, limón y granadina.
+Melón diesel: Licor de melón, Malibú, vodka y coco rallado.
+Menda: Licor de melocotón, Blue Tropic y limón.
+Mentol: Menta y Baileys.
+Meteorito: Licor de limón y granadina.
+Michelada: Cerveza Corona, limon,tabasco
+Mickycristian's: Whisky y Cointreau .
+Mikel: Malibú y Blue Tropic.
+Mimo: Vodka, limón y kiwi.
+Mini Gin-tonic ruso: Vodka y tónica.
+Moginto: Ron blanco, ginebra y lima.
+Mogollón: Granadina, menta y orujo.
+Moquito: Pippermint y vainilla.
+Mora 40: Vodka blanco en abundancia y un toque de concentrado de mora .
+Moranco: Licor de mora y lima.
+Moreno: Martini rosso, ron y Coca cola.
+Morito / Dracarys: Ron, lima y unas gotas de licor de mora.
+Morito: Licor de mora, Blue Tropic y piña.
+Morritos calientes / Fuego Valyrio: Licor 43 y tabasco.
+Morrón / Falcon Punch: Cointreau y Baileys.
+Morsilei: RonMiel y lima.
+Morsilisto: Tía María, crema catalana, nata y canela.
+Mosca: Licor de mora y Coca Cola.
+Muerte amarilla: Tequila, ron blanco, azúcar y unas gotas de limón natural. Agitado, no removido.
+Muestra de sangre: Vodka, ron blanco, tequila y granadina.
+Multifrutas: Mangaroca, licores de fruta que mas os gusten y pascual funciona
+Nájera: Licor 43, licor de avellana y canela en polvo.
+Naranjito II: Ron, Licor 43 y zumo de naranja.
+Naranjito: Pechè y zumo de melocotón.
+Neurona: Licor de mora y limón.
+Nevadito Badía: Licor de fresa, Blue Tropic, mangaroca y granadina .
+Nitro: Tequila, granadina y zumo de limón.
+NoeToad: Tequila con un poco de negrita y esto lo chupamos con una regaliz de fresa.
+Nube de chocolate: Licor 43 y batido de chocolate
+Nurglete: Tequila y licor de hierbas.
+Oasis: Licor 43 y limón.
+Olmedator / Hacedora de viudas: Licor de melón, vodka y blue tropic.
+Orgasm: Granadina, Baileys y licor de manzana.
+Orgasmo: Licor de melocotón y limón.
+Osasuna: Licor de melocotón, Blue Tropic y granadina.
+OSK: Vodka y Martini agitados, no removidos y Lima.
+Ozzy Osbourne: Licor de café, vodka, ron y Malibú.
+Padifre de kiwi: Peché y zumo de kiwi, tres gotas de limón y un poco de azúcar.
+páh q t enamooreh: Tequila, cualquier bicho.
+Palmera V: Vodka, Malibú y kiwi.
+Panceta 43: Licor 43, salsa de panceta.
+Pander: Martini y licor de fresa.
+Pantera naranja: Licor 43, Cointreau y licor de melocotón.
+Pantera roja: Licor 43, Cointreau y granadina.
+Pantera rosa: Licor de fresa, vainilla y granadina.
+Papot: Patxarán, tequila y granadina.
+Pásalo a Ga: Ron, tequila, vodka y granadina.
+Patada en los huevos: Ginebra y tequila.
+Patxi / Don Diego: Tequila y tabasco.
+Peché blue: Peché y Blue Tropic.
+Pedo mágico: Tequila, whisky, ginebra y menta.
+pene de toro: cola, limon, azucar, red bull
+pene de toro: cola ,redbull, azucar, limon, mango
+Pepe Zorrillo:Leche y licor de mora
+Pepino: Ron, ginebra, kiwi y lima.
+Perestroika: Blue Tropic y vodka.
+Perras: Ron, ginebra, limón y azúcar .
+Perras: Tía María y mora.
+Perro Rabioso/Chupito de Bruce Willis: Vodka, zumo de frambuesa o jaggermeister y unas gotitas de tabasco.
+Petroleo / Tinta China: Vodka negro y lima.
+Pica-Pica O CHUCHUE:PONCHE,COCA COLA, UN TOQUE DE LIMA
+Piel roja: Licor 43, Cointreau y granadina.
+Pijama: Licor de piña y piña.
+Pikachu: Matini, Limon, Vodka y Ginebra.
+Pilillas afterawers: Whisky, ron, lima y mora.
+Pimpollo: Vodka, licor de melocotón y kiwi.
+Pirata mexicano: Ron, tequila y Tía María.
+Piro: Patxaran y granadina.
+Piro +: Vodka rojo, patxarán y cola.
+Piruleta: Amaretto, lima/zumo de piña y granadina.
+Piruleta / Hadouken: Disaronno, lima y granadina.
+Pis de pitufo: Blue Tropic y licor de fresa.
+Pito de mono: J&B, vodka, whisky y naranja.
+Pitufina: Mangaroca, vainilla y Blue Tropic.
+Pitufo: Martini, Blue Tropic y nata.
+Pitufo: Pechè y Blue Tropic.
+Pizo: Ron, Malibú y zumo de piña.
+Plasssh: Patxarán, Coca Cola y granadina.
+Playboy: Vodka negro, Licor 43 y Red Bull.
+Playero: Martini blanco y zumo de piña.
+Pokemon: Malibú, licor de melocotón y piña.
+Polla de negro: Vodka negro y granadina.
+Pollazo: Tequila, anís y whisky.
+Pollo-loco: Licor de limón y lima.
+Potencia roja: Absenta,licor de fresa
+Pousse-Café: Granadina, Cointreau, crema de menta y brandy.
+P.P.:Patxaran, Piña
+Prau: Tequila y kiwi.
+Prestige: Tequila, Blue Tropic y un chorrito de licor café.
+Prohibido: Tequila, licor de melocotón y piña.
+Puedo verte desnuda aunque lleves ropa: Absenta, ginebra, vermouth y vodka
+Pum: Licor de café, Baileys y lima.
+Puta: Absenta, Tequila.
+Qué duro es ser vasco: Martini, licor de melocotón, kiwi y limón.
+Quemaexofagos: Negrita, Ginebra y Licor 43.
+Querrico: Licor de fresa, Blue Tropic y limón.
+Quita penas: Mora, melocotón y orujo.
+Racing: Vodka, menta y lima.
+Rally: Licor de limón y ron blanco.
+Ramón Parada: Absenta verde flameada
+Rana: Licor de manzana y kiwi.
+Rana: Lima, licor de melocotón, y licor de manzana.
+Raskel: Vodka y licor de mora.
+Rayao: Ron y granadina.
+Rayo azul: Bombay y Burn.
+Rebes: Vodka, limón y granadina.
+Refresquito: Tequila y Blue Tropic.
+Regaliz: Patxarán y Coca Cola.
+Remamagüevos: Tequila, tabasco y Tía María.
+REwELTA: Vodka, aguardiente y ron.
+Ribasaky: Jagger, Licor 43 y Red Bull.
 Ribinho14: Jagermeister y tequila
-Baratheon: Jagermeister y leche.
+Riojanito: Pechè, granadina y naranja.
+RM 7: Peché, vino y cola.
+Robe: Ginebra, ron y limón.
+Robelote: Whisky, ginebra y lima
+Rocha: Licor de café y orujo de hierbas.
+RTVG / Poseído: Ron, tequila, vodka y ginebra.
+Ruso blanco: Licor de café, vodka.
+Sabado de rayada en el hotel: Bacardi, Malibú, licor de manzana, lima, granadina y zumo de piña.
+Sabrosón: Licor de avellana, Baileys y chocolate.
+Sangre de Alien: Ron negro, Vodka, Martini blanco  y Blue Tropic .
+Sangre de Mannoroth: Licor 43, ginebra y licor de manzana. 
+Sangre: Martini rosso, tequila y vodka.
+SAN JOVI: Bio manzana, martini blanco, licor manzana, bacardi limón, limón, hielo, mali
+Sarao: Licor de fresa y kiwi.
+Satán: Martini, Baileys y lima.
+Satelite: Malibu, Lima, Vodka negro, Granadina y Cointrea
+S.D. Huesca / Cubo Horádrico: Vodka rojo y licor de mora.
+Semáforo: Tres chupitos: Ron con Granadina, Cointreau con Licor 43 y Vodka con Pippermint; tomar los tres en ese mismo orden
+Semen del Señor: licor de melocoton, Licor 43, vodka, granadina y coco.
+Semen del tío Alí: Blue tropic y Baileys .
+Señorita Pepis: Vodka, licor de melocotón y granadina.
+Sepultura: Tequila, vodka, ron y ginebra
+Sexo en la playa: Tequila, vodka y zumo de melocotón/plátano/piña .
+Sexo en la playa: Vodka, licor de mora, zumo tropical y granadina.
+Simpa: Licor de mora, Martini.
+Soleado: Baileys, Blue Tropic y lima.
+Sol y sombra 2: Vodka, vodka negro y un poco de Blue Tropic.
+Sol y sombra: Anís y coñac, a partes iguales.
+Sostén: Vodka y lima.
+sporting: Granadina, mangaroca y Blue Tropic.
+Stromboli: Ron, Cocacola y Mentos
+Suavecito efí: Ginebra, Martini y licor de mora.
+Sularus Sword: Zumo de naranja, blue tropic y yogurt griego de Danone.
+Superbuga: Whisky y piña
+SuqiSuqi: Vodka blanco, Peché, Martini, limón y piña.
+Susana Bombón : Licor de café, Bayliss, tequila, licor azul de Rives caliente y quemar
+T2010: Ron miel, ponche y lima
+Tabique: Vodka y anís .
+Tam Tam Go!: Whisky y ron Brugal.
+Tanga: Ron y piña.
+Tarzán: Vodka, kiwi y limón.
+Tastebomb: Vodka negro, vodka blanco, vodka rojo y granadina.
+T.B.O.: Licor 43 y piña.
+Tefuneitor:Absenta, Anis y Vodka
+Tele5: Tequila, vodka y ginebra 
+Teo: Martini blanco, licor de melocotón, kiwi y naranja.
+Tequiblue: Tequila y Blue Tropic.
+Tequilahuete: Tequila con un cacahuete
+Tequilamotxo: Tequila, kalimo del bueno.
+Tercer Grado / RATAMAN: Tequila, whisky y ron.
+Tercer Grado / togue RATAMAN: don simon, agua de la ria y hacerse el borracho con el espada y con la boli XD XD
+Terciopelo: Licor melocotón y vodka caramelo.
+Terminator/cucaracha: Whisky, vodka y ginebra. Se enciende con un mechero y se bebe con pajita con la llama activa.
+Termita: Mangaroca, lima, granadina y vodka.
+Termita: Tequila y Baileys.
+Testarossa: Vodka, fanta de limón y granadina 
+T.G.V.R: Tequila,Ginebra,Vodka,Ron y una rodaja de naranja 
+TGV: Tequila, ginebra y vodka a partes iguales.
+The Jagalú: Vodka, patxaran , zumo de piña
+The Xillas: Vodka  y Sangria.
+Tierra Santa: Orujo, whisky y ginebra.
+Tifón: Licor de limón y Blue Tropic.
+Tigre: Vodka y licor de melocotón.
+Tipo duro: Licor de menta, Espidifen y agua
+Tito Percha: J&B y anís. A partes iguales.
+TNT 2: Whisky y anís.
+T.N.T.: Ginebra y granadina.
+TNT: Ginebra y granadina.
+Toby: vodka, ginebra, tequila blanco, y mate
+Toguente: Whisky y limón.
+Togue: Tequila, ginebra, vodka y kiwi.
+Top-less: Ron y kiwi.
+Torada: Whisky y licor Amaretto.
+Torero Español: Vodka, Licor de avellana , marmite y rodaja de coco
+Torli: Curacao Azul, Granadina, Ginebra.
+Tornillos: Ron miel, Nata y canela
+Torombolo: Vodka, zumo de piña
+Torrente: Whisky y limón.
+Torre: Tequila, ginebra, vodka y kiwi.
+Tragateli / Pirata mexicano: Ron, tequila y Tía María.
+Tri.Nitro.Teluè.: Vodka, ron, ginebra, licor melocotón, zumo de piña, Malibú, whisky, tequila, RedBull y Licor 43.
+Trompo: Licor de mora y limón.
+Tumbamuertos: Whisky, vodka, Cointreau y una gotas de limón natural.
+Txiki: Tequila, limón y kiwi.
+Ultrapitufo: Vodka, Blue Tropic y Burn.
+Un día de Furia: Red bull, Cocacola y Sacarina
+Un Kah:Shot de Singani
+Uoho: Martini, vodka y Blue Tropic.
+Vaca cachonda: Vodka, tequila, ginebra y Blue Tropic.
+Vaca loca: Mangaroca y menta.
+Vaca rosa: Batido de fresa y granadina.
+Vallejo : Vodka blanco , Vodka negro, Malibú, Zumo de piña.
+Vampiro: Martini rosso y Coca Cola.
+Vaquero: Whisky y ron.
+Verano Azul: Cointreau y Blue Tropic.
+Verdugo: Vodka y piña.
+Víbora: Malibú y limón.
+Vicenta / The North Remembers: Anís, orujo y licor de menta.
+Virgen de Costana: Ron Ballantines, cola y limón.
+Virus: Baileys y vodka.
+Vitamina / I Am The Danger: Whisky, kiwi y Blue Tropic.
+Vodkanesa: Vodka , tomate natural y mayonesa 
+Vodka piruleta: Disaronno, Licor 43 y granadina.
+Vodka piruleta: Disaronno, Vodka y granadina.
+Volcán: Licor 43 y Coca Cola.
+Voltio: Whisky y vainilla.
+Willy Guarida: Licor 56  y Whisky.
+Xarop d'en gori :Anís, palo mallorquín, hierbas mezcladas y aguardiente
+Xbox 360: Martini, licor de manzana y kiwi.
+Xenon: Pippermint, granadina y lima.
+Ximixurry: Vodka, trina de limon, zumo de fresa, azucar i hielo .
+Yeya 43, SAL&AL 43: Mezclar en este orden: actimel de fresa y plátano con licor 43, y añadir batido de Vainilla -Chocolate
+Yusé/Joselito: Tequila Jose Cuervo.
+Yuyuma: Vodka, Ginebra y Coco
+Zar: Licor de café y vodka.
+Zulú: Baileys y chocolate.
+Zumito: Malibú, licor de melocotón y kiwi.
