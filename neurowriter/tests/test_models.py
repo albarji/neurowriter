@@ -18,6 +18,7 @@ from neurowriter.models import tensorslice
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
 tf.logging.set_verbosity(tf.logging.WARN)
 
+
 def test_tensorslice_normal():
     """Tensor slicing is performed correctly for data > slices"""
     data = np.array([
@@ -47,7 +48,8 @@ def test_tensorslice_normal():
         print("Expected:", expected)
         print("Obtained:", obtained)
         assert(np.allclose(obtained, expected))
-    
+
+
 def test_tensorslice_small():
     """Tensor slicing is performed correctly for data < slices"""
     data = np.array([

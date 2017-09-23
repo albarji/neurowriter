@@ -54,6 +54,9 @@ def make_parallel(model, gpu_count):
     
     Modifications by Álvaro Barbero.
     """
+    if gpu_count <= 1:
+        raise ValueError("At least 2 GPUs are required to make the model parallel")
+
     outputs_all = []
     for i in range(len(model.outputs)):
         outputs_all.append([])
@@ -284,15 +287,19 @@ class WavenetModel(ModelMixin):
         model = Model(inputs=input_, outputs=net)
         
         # Make data-parallel
-        gpus = get_available_gpus()
-        model = make_parallel(model, len(gpus))
+        ngpus = len(get_available_gpus())
+        if ngpus > 1:
+            model = make_parallel(model, ngpus)
 
         return model
 
     @staticmethod
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
-        return getcoremodel(model)
+        if len(get_available_gpus()) > 1:
+            return getcoremodel(model)
+        else:
+            return model
 
 
 class SmallWavenet(WavenetModel):
@@ -354,15 +361,19 @@ class StackedLSTMModel(ModelMixin):
         model = Model(inputs=input_, outputs=net)
         
         # Make data-parallel
-        gpus = get_available_gpus()
-        model = make_parallel(model, len(gpus))
+        ngpus = len(get_available_gpus())
+        if ngpus > 1:
+            model = make_parallel(model, ngpus)
 
         return model
 
     @staticmethod
     def trim(model):
         """Removes data-parallel scaffolding, for efficient prediction"""
-        return getcoremodel(model)
+        if len(get_available_gpus()) > 1:
+            return getcoremodel(model)
+        else:
+            return model
 
 
 class LSTMModel(StackedLSTMModel):
