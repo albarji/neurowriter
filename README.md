@@ -360,6 +360,43 @@ Note: titles not generated, just manually added for effect
     Czar would ought to fly down to the the great paintings and  crouching of the unearthly hand. The boy 
     had been a room of body as one in the summit of the old man should not see. The cubes of my legion was 
     the next day and the mo and in the same moment "I was relieved that is over the sanity [...]
+    
+### El Quijote de Cervantes (spanish)
+
+    Capítulo XXXVIII. De la aventura del sol fue Sancho, con la flaca de la señora
+    Dulcinea del Toboso, y que el hombre hizo de las manos a su buen caballero,
+    de que el que estaba apartada y con su espada de monte la fe que me
+    había de hacer en el lugar de don Quijote de la Mancha, y alabó -dijo
+    don Quijote-, y que no se le fue a otra vez ni el cercio, que no
+    hizo pan de zapato por don Quijote, en el cual el nombre, a comedimiento y
+    este caballo, fue a lo que el don Quijote se partiese de la mano, porque, antes
+    que se usan, las flaqueza de las manos que no encargaban y lo que se
+    dio la historia de la soledad, no se más de tocar de aquella cueva de
+    Montesinos, y que ya le echó donde los caballeros. A no fueron la muerte, que
+    no había venido a mi tierra, y no le dijese que él le pudiera.
+
+    Finalmente, don Quijote le dijo:
+
+    -Sí tenía -dijo don Quijote-, y es que ha de ser en fe y la dé a todos
+    si mi remedio no no me acuerdo por esta madre, y en las virtudes que yo me
+    no en qué favor les he visto de los hombres en el mundo, porque me quiere, y
+    que yo te acuerdo de la fecha.
+
+    A lo cual respondió don Quijote:
+
+    -El cual se puede ser tomar la imagen de que le da de verse en
+    ánimo que la atreva de las niñerías y de su que me tiene de la historia
+    disposición de la cabeza, no hay contado alguna para dormir que más de
+    volaro a lo que quisieres.
+
+    -No lo que yo quisiere saca Dios -dijo Sancho-: veamos un real que no lo
+    hubiera de ver a la ley que vio el cual, finalmente, yo no sé que no me
+    rede con que en él no parece que no lo ha sido de la batalla.
+
+    -Si la vida de una carca vuestra merced -respondió don Quijote-, que
+    no es algo de un verdadera que se había de estar que yo lo había de hacer en
+    el negocio de no lejos que trataba, y está un mundo no tiene la salud y
+    querido la medario, y quizá con sus pensamientos como se amenaza.
 
 ## TODOs and possible improvements
 
