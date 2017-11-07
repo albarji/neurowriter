@@ -1,5 +1,5 @@
 scikit-learn
-tensorflow-gpu
+keras-gpu
 jupyter
 pandas
 h5py
