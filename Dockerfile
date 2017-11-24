@@ -1,4 +1,4 @@
-FROM nvidia/cuda:8.0-cudnn7-devel
+FROM nvidia/cuda:9.0-cudnn7-devel
 
 # Install system dependencies
 RUN apt-get update \
@@ -15,11 +15,11 @@ RUN curl -o Miniconda3-latest-Linux-x86_64.sh https://repo.continuum.io/minicond
   && ./Miniconda3-latest-Linux-x86_64.sh -b -p "${MINICONDA_HOME}" \
   && rm Miniconda3-latest-Linux-x86_64.sh
 WORKDIR /root
+COPY pip.txt pip.txt
 COPY conda.txt conda.txt
 COPY conda-gpu.txt conda-gpu.txt
-COPY pip.txt pip.txt
 COPY Makefile Makefile
-RUN make python-deps
+RUN make python-deps GPU=1
 RUN conda clean -y -i -l -p -t
 
 # Create project folder

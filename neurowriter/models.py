@@ -200,13 +200,13 @@ def gatedblock(dilation, dropout, kernels, kernel_size):
         # Dropout of inputs
         drop = Dropout(dropout)(norm)
         # Normal activation
-        normal_out = Conv1D(kernels, kernel_size, padding='causal', dilation_rate=dilation, activation='tanh')(drop)
+        normal_out = Conv1D(kernels, kernel_size, dilation_rate=dilation, activation='tanh', padding='same')(drop)
         # Gate
-        gate_out = Conv1D(kernels, kernel_size, padding='causal', dilation_rate=dilation, activation='sigmoid')(drop)
+        gate_out = Conv1D(kernels, kernel_size, dilation_rate=dilation, activation='sigmoid', padding='same')(drop)
         # Point-wise nonlinear · gate
         merged = multiply([normal_out, gate_out])
         # Activation after gate
-        skip_out = Conv1D(kernels, 1)(merged)
+        skip_out = Conv1D(kernels, 1, activation='tanh')(merged)
         # Residual connections: allow the network input to skip the
         # whole block if necessary
         out = add([skip_out, input_])
@@ -263,7 +263,7 @@ class WavenetModel(ModelMixin):
 
     @staticmethod
     def create(inputtokens, encoder, kernels=64, wavenetblocks=1, dropout=0, embedding=32):
-        kernel_size = 2
+        kernel_size = 7
         maxdilation = inputtokens
         
         input_ = Input(shape=(inputtokens,), dtype='int32')
@@ -271,7 +271,8 @@ class WavenetModel(ModelMixin):
         net = Embedding(input_dim=encoder.nchars, output_dim=embedding, input_length=inputtokens)(input_)
         net = Dropout(dropout)(net)
         # Wavenet starts!
-        net = Conv1D(kernels, 1)(net)
+        net = BatchNormalization()(net)
+        net = Conv1D(kernels, 1, activation='tanh')(net)
         skip_connections = []
         for i in range(wavenetblocks):
             net, skip = wavenetblock(maxdilation, dropout, kernels, kernel_size)(net)
@@ -280,8 +281,8 @@ class WavenetModel(ModelMixin):
             net = add(skip_connections)
         else:
             net = skip
-        net = Conv1D(kernels, 1, activation='selu')(net)
-        net = Conv1D(kernels, 1, activation='selu')(net)
+        net = Conv1D(kernels, 1, activation='tanh')(net)
+        net = Conv1D(kernels, 1)(net)
         net = Flatten()(net)
         net = Dense(encoder.nchars, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)
