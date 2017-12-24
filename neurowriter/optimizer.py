@@ -68,7 +68,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
               (inputtokens, batchsize, str(optimizerclass), learningrate, str(modelparams)))
 
     # Build model with input parameters
-    model = modelclass.create(inputtokens, encoder, *modelparams)
+    model = modelclass.create(inputtokens, encoder.nchars, *modelparams)
     # Prepare optimizer
     optimizer = optimizerclass(lr=learningrate)
     # Compile model with optimizer

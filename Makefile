@@ -28,5 +28,5 @@ train-batch:
 	$(docker) run -d -it -v $(shell pwd):/neurowriter --entrypoint bash neurowriter runbatch.sh train.ipynb
 
 tests:
-	nosetests -v --with-coverage --cover-package=neurowriter --cover-erase
+	nosetests -v --nologcapture --with-coverage --cover-package=neurowriter --cover-erase
 

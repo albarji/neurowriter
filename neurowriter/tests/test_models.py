@@ -8,15 +8,11 @@ Tests for the models creation module.
 @author: Álvaro Barbero Jiménez
 """
 
-import os
 import tensorflow as tf
 import numpy as np
 
 from neurowriter.models import tensorslice
-
-# Minimice tensorflow log messages
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
-tf.logging.set_verbosity(tf.logging.WARN)
+from neurowriter.models import CNNLSTMModel
 
 
 def test_tensorslice_normal():
@@ -78,3 +74,26 @@ def test_tensorslice_small():
         for x, y in zip(obtained, expected):
             assert(x.shape == y.shape)
             assert(np.allclose(x, y))
+
+
+def test_train_cnnlstm():
+    """CNN-LSTM models can built correctly"""
+    paramsets = [
+        {"inputtokens": 128, "vocabsize": 1000},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 0, "lstmunits": 64, "lstmdropout": 0, "embedding": 256,
+         "embdropout": 0},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 64, "kernelsize": 3,
+         "convdropout": 0, "lstmunits": 64, "lstmdropout": 0, "embedding": 256, "embdropout": 0},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 2, "kernels": 256, "kernelsize": 5,
+         "convdropout": 0.5, "lstmunits": 128, "lstmdropout": 0.1, "embedding": 512, "embdropout": 0.5},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 3, "kernels": 1024, "kernelsize": 15,
+         "convdropout": 0.9, "lstmunits": 512, "lstmdropout": 0.9, "embedding": 1024, "embdropout": 0.5},
+    ]
+
+    for paramset in paramsets:
+        model = CNNLSTMModel.create(**paramset)
+        assert hasattr(model, "compile")
+        model.compile(optimizer='sgd', loss='categorical_crossentropy')
+        assert hasattr(model, "fit_generator")
+        assert hasattr(model, "summary")
+        model.summary()

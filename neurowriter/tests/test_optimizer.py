@@ -12,15 +12,9 @@ from neurowriter.corpus import Corpus
 from neurowriter.encoding import Encoder
 from neurowriter.tokenizer import CharTokenizer
 from tempfile import NamedTemporaryFile, mkdtemp
-import tensorflow as tf
-import os
 from shutil import copyfile, rmtree
 
 DATAFOLDER = "neurowriter/tests/data/"
-
-# Minimice tensorflow log messages
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-tf.logging.set_verbosity(tf.logging.WARN)
 
 
 def test_checkpoint():

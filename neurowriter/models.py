@@ -12,7 +12,7 @@ host, model parallelization is performed for faster training.
 """
 
 from keras.models import Sequential, Model
-from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout
+from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation
 from keras.layers import add, multiply, concatenate
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
@@ -151,7 +151,7 @@ class DilatedConvModel(ModelMixin):
     ]
 
     @staticmethod
-    def create(inputtokens, encoder, convlayers=5, kernels = 32,
+    def create(inputtokens, vocabsize, convlayers=5, kernels=32,
                convdrop=0.1, denselayers=0, denseunits=64, densedrop=0.1,
                embedding=32):
         kernel_size = 2
@@ -161,7 +161,7 @@ class DilatedConvModel(ModelMixin):
             
         model = Sequential()        
         # Embedding layer
-        model.add(Embedding(input_dim=encoder.nchars, output_dim=embedding,
+        model.add(Embedding(input_dim=vocabsize, output_dim=embedding,
                             input_length=inputtokens))
         # First conv+pool layer        
         model.add(Conv1D(kernels, kernel_size, padding='causal', 
@@ -185,7 +185,7 @@ class DilatedConvModel(ModelMixin):
             model.add(Dense(denseunits, activation='relu'))
             model.add(Dropout(densedrop))
         # Output layer
-        model.add(Dense(encoder.nchars, activation='softmax'))
+        model.add(Dense(vocabsize, activation='softmax'))
         return model
 
 
@@ -262,13 +262,13 @@ class WavenetModel(ModelMixin):
     ]
 
     @staticmethod
-    def create(inputtokens, encoder, kernels=64, wavenetblocks=1, dropout=0, embedding=32):
+    def create(inputtokens, vocabsize, kernels=64, wavenetblocks=1, dropout=0, embedding=32):
         kernel_size = 7
         maxdilation = inputtokens
         
         input_ = Input(shape=(inputtokens,), dtype='int32')
         # Embedding layer
-        net = Embedding(input_dim=encoder.nchars, output_dim=embedding, input_length=inputtokens)(input_)
+        net = Embedding(input_dim=vocabsize, output_dim=embedding, input_length=inputtokens)(input_)
         net = Dropout(dropout)(net)
         # Wavenet starts!
         net = BatchNormalization()(net)
@@ -284,7 +284,7 @@ class WavenetModel(ModelMixin):
         net = Conv1D(kernels, 1, activation='tanh')(net)
         net = Conv1D(kernels, 1)(net)
         net = Flatten()(net)
-        net = Dense(encoder.nchars, activation='softmax')(net)
+        net = Dense(vocabsize, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)
         
         # Make data-parallel
@@ -332,12 +332,12 @@ class StackedLSTMModel(ModelMixin):
     ]
 
     @staticmethod
-    def create(inputtokens, encoder, layers=1, units=16, dropout=0, embedding=32):
+    def create(inputtokens, vocabsize, layers=1, units=16, dropout=0, embedding=32):
         
         input_ = Input(shape=(inputtokens,), dtype='int32')
         
         # Embedding layer
-        net = Embedding(input_dim=encoder.nchars, output_dim=embedding, input_length=inputtokens)(input_)
+        net = Embedding(input_dim=vocabsize, output_dim=embedding, input_length=inputtokens)(input_)
         net = Dropout(dropout)(net)
             
         # Bidirectional LSTM layer
@@ -358,7 +358,7 @@ class StackedLSTMModel(ModelMixin):
                 net = Dropout(dropout)(net)
                     
         # Output layer
-        net = Dense(encoder.nchars, activation='softmax')(net)
+        net = Dense(vocabsize, activation='softmax')(net)
         model = Model(inputs=input_, outputs=net)
         
         # Make data-parallel
@@ -403,3 +403,54 @@ class SmallLSTMModel(StackedLSTMModel):
         (0.0, 1.0),  # dropout
         [4, 6, 8]  # size of the embedding
     ]
+
+
+class CNNLSTMModel(ModelMixin):
+    """Stack of Convolutional Layers followed by a Long-Short Term Memory model
+
+    This model is loosely inspired in the encoder model used in the Tacotron 2 network:
+        - https://research.googleblog.com/2017/12/tacotron-2-generating-human-like-speech.html
+    """
+
+    paramgrid = [
+        [0, 1, 2, 3],  # convolutional layers
+        [4, 8, 16, 32, 64, 128, 256, 512],  # convolutional kernels
+        [3, 5, 7, 9],  # kernel size
+        (0.0, 1.0),  # convolutional dropout
+        [16, 32, 64, 128, 256],  # LSTM units
+        (0.0, 1.0),  # LSTM dropout
+        [32, 64, 128, 256, 512],  # size of the embedding
+        (0.0, 1.0),  # Embedding dropout
+    ]
+
+    @staticmethod
+    def create(inputtokens, vocabsize, convlayers=3, kernels=512, kernelsize=5, convdropout=0.5, lstmunits=256,
+               lstmdropout=0.1, embedding=512, embdropout=0.5):
+
+        input_ = Input(shape=(inputtokens,), dtype='int32')
+
+        # Embedding layer
+        net = Embedding(input_dim=vocabsize, output_dim=embedding, input_length=inputtokens)(input_)
+        net = Dropout(embdropout)(net)
+
+        # Convolutional layers (if any)
+        for layer in range(convlayers):
+            net = Conv1D(kernels, kernelsize, padding='same')(net)
+            net = BatchNormalization()(net)
+            net = Activation('relu')(net)
+            net = Dropout(convdropout)(net)
+
+        # Bidirectional LSTM layer
+        net = Bidirectional(LSTM(lstmunits))(net)
+        net = Dropout(lstmdropout)(net)
+
+        # Output layer
+        net = Dense(vocabsize, activation='softmax')(net)
+        model = Model(inputs=input_, outputs=net)
+
+        # Make data-parallel
+        ngpus = len(get_available_gpus())
+        if ngpus > 1:
+            model = make_parallel(model, ngpus)
+
+        return model
