@@ -189,16 +189,19 @@ notebook instead.
 
 ### Generate text!
 
-Just follow the steps in the generate.ipynb. You will need to provide the name of the model trained in the previous
-step, and a seed to start the generation (which might be the empty string "")
+Either follow the steps in the generate.ipynb or use the command line script generate.py. You will need to provide the 
+name of the model trained in the previous step, and a seed to start the generation (which might be the empty string "")
 
-For better results you can hand-tune the generation parameters at the bottom of the notebook. The **creativity** rate
+For better results you can hand-tune other generation parameters, at the bottom of the notebook or at the command-line
+script. The **creativity** rate
 is probably the most significant: small values force the model produce only high probability sequences, while higher
-values introduce randomness in the generation. As a rule of thumb, of the generator keeps repeating the same patterns
+values introduce randomness in the generation. As a rule of thumb, if the generator keeps repeating the same patterns
 again and again, an increase in creativity might help, whereas the generator producing garbage text will need a
 decrease in creativity. Generally values between 0.2 and 0.75 give the best results.
 
 ## Generation examples
+
+Pre-trained models are available for some of these examples: check the **samplemodels** folder.
 
 ### Movie titles
 
@@ -397,6 +400,17 @@ Note: titles not generated, just manually added for effect
     no es algo de un verdadera que se había de estar que yo lo había de hacer en
     el negocio de no lejos que trataba, y está un mundo no tiene la salud y
     querido la medario, y quizá con sus pensamientos como se amenaza.
+    
+### El Apocalipsis (spanish)
+
+    EL Y los reyes de la tierra y de la tierra y de los siglos. Y el ángel tocó la trompeta, y el que está en el cielo y las cosas que están en él, y de la tierra y el que está sentado sobre el mar, y la tierra y vi a los hombres que no se halla de la tierra y de la tierra y de los siglos de los siglos. Y el templo de Dios y del Cordero. 
+
+    La mujer que estaba sentado en el cielo y las cosas que están en él me dijo: Estas son los que se llama de los siglos. Y el ángel tocó la trompeta, y la gloria y la tierra y el que es el libro de la tierra y el que está sentado en el cielo y las cosas que están en él el nombre de la tierra y de los siglos. 
+
+    7 El que tiene oído, oiga lo que estaban en el cielo y las cosas que están en ella se ha a venir; y el que estaba sentado en el cielo y las cosas que están en ella se ha sido con fuego y a la tierra y los que había en su mano un ángel derramó su copa sobre el mar. 
+
+    La mensada de oro, y los que había en el cielo y las cosas que están en ella se ha azufre. 
+
 
 ## TODOs and possible improvements
 
