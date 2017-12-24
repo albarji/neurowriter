@@ -1,44 +1,46 @@
 
 # coding: utf-8
 
-# # Text generation using a pre-trained model
+# Text generation using a pre-trained model
 # Generates a infinite amount of text using a pre-trained model, using the style learned in such model.
 
-# ## Global config
-
-# Name of pre-trained model/encoder (without enc/h5 extensions)
-pretrainedname = "superheroes14_bpe.json"
-
-
-# Seed text to use for generation. For free generation use an empty string.
-seed = ""
-
-
-# ### Process config
-encodername = pretrainedname + '.enc'
-modelname = pretrainedname + '.h5'
-
-
-# Load pre-trained encoder
-from neurowriter.encoding import Encoder, loadencoding
-encoder = loadencoding(encodername)
-
-
-# Load pre-trained model
+import argparse
 from keras.models import load_model
-model = load_model(modelname)
-
-
-# ## Text generation
+from neurowriter.encoding import loadencoding
 from neurowriter.writer import Writer
 from neurowriter.encoding import END
 
-print("Seed:", seed)
-writer = Writer(model, encoder, creativity=0.5, batchsize=1, beamsize=1)
-print("Generated:")
-print(seed, end='')
-for token in writer.generate(seed):
-    print(token, end='')
-    if token == END:
-        print('\n')
 
+def generate(pretrainedname, seed, creativity):
+    """Generates infinite text using a pre-trained model and a seed text"""
+    # Process config
+    encodername = pretrainedname + '.enc'
+    modelname = pretrainedname + '.h5'
+
+    # Load pre-trained encoder
+    encoder = loadencoding(encodername)
+
+    # Load pre-trained model
+    model = load_model(modelname)
+
+    # Text generation
+    print("Seed:", seed)
+    writer = Writer(model, encoder, creativity=creativity, batchsize=1, beamsize=1)
+    print("Generated:")
+    print(seed, end='')
+    for token in writer.generate(seed):
+        print(token, end='')
+        if token == END:
+            print('\n')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generates text following a pre-trained style model.')
+    parser.add_argument('model', type=str, help='name of the pre-trained model and encoder, without enc/h5 extensions')
+    parser.add_argument('--seed', type=str, help='seed to use to initialize the generator. Default: empty string',
+                        default='')
+    parser.add_argument('--creativity', type=float, help='amount of creativity in the generation. Default: 0.5',
+                        default=0.5)
+    args = parser.parse_args()
+
+    generate(pretrainedname=args.model, seed=args.seed, creativity=args.creativity)
