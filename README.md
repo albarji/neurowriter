@@ -403,11 +403,18 @@ Note: titles not generated, just manually added for effect
     
 ### El Apocalipsis (spanish)
 
-    EL Y los reyes de la tierra y de la tierra y de los siglos. Y el ángel tocó la trompeta, y el que está en el cielo y las cosas que están en él, y de la tierra y el que está sentado sobre el mar, y la tierra y vi a los hombres que no se halla de la tierra y de la tierra y de los siglos de los siglos. Y el templo de Dios y del Cordero. 
+    EL Y los reyes de la tierra y de la tierra y de los siglos. Y el ángel tocó la trompeta, y el que está en 
+    el cielo y las cosas que están en él, y de la tierra y el que está sentado sobre el mar, y la tierra y vi 
+    a los hombres que no se halla de la tierra y de la tierra y de los siglos de los siglos. Y el templo de 
+    Dios y del Cordero. 
 
-    La mujer que estaba sentado en el cielo y las cosas que están en él me dijo: Estas son los que se llama de los siglos. Y el ángel tocó la trompeta, y la gloria y la tierra y el que es el libro de la tierra y el que está sentado en el cielo y las cosas que están en él el nombre de la tierra y de los siglos. 
+    La mujer que estaba sentado en el cielo y las cosas que están en él me dijo: Estas son los que se llama 
+    de los siglos. Y el ángel tocó la trompeta, y la gloria y la tierra y el que es el libro de la tierra y 
+    el que está sentado en el cielo y las cosas que están en él el nombre de la tierra y de los siglos. 
 
-    7 El que tiene oído, oiga lo que estaban en el cielo y las cosas que están en ella se ha a venir; y el que estaba sentado en el cielo y las cosas que están en ella se ha sido con fuego y a la tierra y los que había en su mano un ángel derramó su copa sobre el mar. 
+    7 El que tiene oído, oiga lo que estaban en el cielo y las cosas que están en ella se ha a venir; y el 
+    que estaba sentado en el cielo y las cosas que están en ella se ha sido con fuego y a la tierra y los que 
+    había en su mano un ángel derramó su copa sobre el mar. 
 
     La mensada de oro, y los que había en el cielo y las cosas que están en ella se ha azufre. 
 
