@@ -1,4 +1,6 @@
 FROM nvidia/cuda:9.0-cudnn7-devel
+LABEL maintainer="Álvaro Barbero Jiménez"
+ARG INSTALL=install
 
 # Install system dependencies
 RUN apt-get update \
@@ -19,7 +21,7 @@ COPY pip.txt pip.txt
 COPY conda.txt conda.txt
 COPY conda-gpu.txt conda-gpu.txt
 COPY Makefile Makefile
-RUN make python-deps GPU=1
+RUN make ${INSTALL}
 RUN conda clean -y -i -l -p -t
 
 # Create project folder
