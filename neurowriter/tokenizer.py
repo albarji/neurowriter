@@ -42,6 +42,9 @@ class CharTokenizer:
     def transform(text):
         return list(text)
 
+    def __eq__(self, other):
+        return isinstance(other, CharTokenizer)
+
 
 class WordTokenizer:
     """Tokenizer that splits text in words
@@ -93,6 +96,11 @@ class WordTokenizer:
                     if char in self.symbols:
                         result.append(char)
         return result
+
+    def __eq__(self, other):
+        if not isinstance(other, WordTokenizer):
+            return False
+        return self.symbols == other.symbols
 
 
 class SubwordTokenizer:
@@ -277,3 +285,7 @@ class SubwordTokenizer:
             i += len(symbol)
         return transformed
 
+    def __eq__(self, other):
+        if not isinstance(other, SubwordTokenizer):
+            return False
+        return self.symbols == other.symbols

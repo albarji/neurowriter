@@ -9,7 +9,7 @@ Module for optimizing model desing.
 """
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adam, RMSprop, Nadam
+from keras.optimizers import SGD, Adam, RMSprop, Nadam
 from keras.models import load_model
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
@@ -24,8 +24,8 @@ RANDOMTRIALS = 10
 
 # Optimizer parameters
 OPTPARAMS = {
-    "batchsize": [8, 16, 32, 64, 128, 256],
-    "optimizer": ["adam", "rmsprop", "nadam"],
+    "batchsize": [32, 64, 128, 256, 512],
+    "optimizer": ["sgd", "adam", "rmsprop", "nadam"],
     "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4],
     "inputtokens": [4, 8, 16, 32, 64, 128],
 }
@@ -34,6 +34,7 @@ OPTPARAMS = {
 def optimizerbyname(optname):
     """Returns an optimizer class given its name"""
     optimizers = {
+        "sgd": SGD,
         "adam": Adam,
         "rmsprop": RMSprop,
         "nadam": Nadam
@@ -44,7 +45,7 @@ def optimizerbyname(optname):
     return optimizers[normalized]
 
 
-def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask=None, patience=20, batchsize=256,
+def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask=None, patience=10, batchsize=256,
                optimizerclass=Adam, learningrate=None, verbose=1, modelparams=[]):
     """Trains a keras model with given parameters
     
@@ -68,7 +69,7 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
               (inputtokens, batchsize, str(optimizerclass), learningrate, str(modelparams)))
 
     # Build model with input parameters
-    model = modelclass.create(inputtokens, encoder, *modelparams)
+    model = modelclass.create(inputtokens, encoder.nchars, *modelparams)
     # Prepare optimizer
     optimizer = optimizerclass(lr=learningrate)
     # Compile model with optimizer

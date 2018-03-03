@@ -18,11 +18,11 @@ You can make use of neurowriter either through a dockerized version, or you may 
 You will need an **Anaconda Python 3** distribution. Then run the following commands to install the required
 python packages in your active environment:
 
-    make python-deps
+    make install
     
 or, if you want to build the project with GPU support, run
 
-    make python-deps GPU=1
+    make install-gpu
 
 ### Docker deployment
 
@@ -33,7 +33,7 @@ You will need [docker](https://www.docker.com/) and permissions to build and run
 to build the Neurowriter Docker image. If instead you want to build this image with GPU support, you will also need 
 [nvidia-docker](https://github.com/NVIDIA/nvidia-docker), and perform the build as 
 
-    make build-image GPU=1
+    make build-image-gpu
 
 Once built, you can start a notebook server accesible from you host machine with
 
@@ -41,7 +41,7 @@ Once built, you can start a notebook server accesible from you host machine with
     
 or the following to allow this notebook to make use of the GPUs in your host machine:
 
-    make notebook-server GPU=1
+    make notebook-server-gpu
     
 ## Usage
 

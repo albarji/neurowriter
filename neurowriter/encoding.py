@@ -8,6 +8,7 @@
 import numpy as np
 from itertools import chain
 import pickle as pkl
+from collections import OrderedDict
 
 from neurowriter.genutils import batchedpatternsgenerator, infinitegenerator
 from neurowriter.genutils import maskedgenerator
@@ -48,9 +49,10 @@ class Encoder:
                 else doc
                 for doc in corpus
             ]))
+            tokens = sorted(list(tokens))
             print('Total tokens:', len(tokens) + len(SPCHARS))
-            self.char2index = dict((c, i) for i, c in enumerate(chain(SPCHARS ,tokens)))
-            self.index2char = dict((i, c) for i, c in enumerate(chain(SPCHARS ,tokens)))
+            self.char2index = OrderedDict((c, i) for i, c in enumerate(chain(SPCHARS, tokens)))
+            self.index2char = OrderedDict((i, c) for i, c in enumerate(chain(SPCHARS, tokens)))
 
     def encodetext(self, text, addstart=False, fixlength=None):
         """Transforms a single text to tensor representation
@@ -62,7 +64,7 @@ class Encoder:
         at the beginning until such length is met.    
         """
         # Tokenize text
-        tokens = self.tokenizer.transform(text) if self.tokenizer is not None else text
+        tokens = self.tokenizer.transform(text)
         return self.encodetokens(tokens, addstart, fixlength)
     
     def encodetokens(self, tokens, addstart=False, fixlength=None):
@@ -97,17 +99,17 @@ class Encoder:
             x = xfix
             
         return x
-        
-    def decodetext(self, X):
-        """Transforms a matrix representing a text into text form
-        
+
+    def decodeindexes(self, idx):
+        """Transforms a list of indexes representing a text into text form
+
         Special characters are ignored"""
         text = ""
-        for elem in X:
-            char = self.index2char[np.argmax(elem)]
+        for elem in idx:
+            char = self.index2char[elem]
             if char not in SPCHARS:
                 text += char
-                
+
         return text
 
     def patterngenerator(self, corpus, tokensperpattern, **kwargs):
@@ -119,7 +121,7 @@ class Encoder:
             - **kwargs: any other arguments are passed on to decodetext
         """
         # Pre-tokenized all corpus documents, for efficiency
-        tokenizedcorpus = [self.tokenizer.transform(doc) if self.tokenizer is not None else doc for doc in corpus]
+        tokenizedcorpus = [self.tokenizer.transform(doc) for doc in corpus]
         for pattern in self._tokenizedpatterngenerator(tokenizedcorpus, tokensperpattern, **kwargs):
             yield pattern
 
@@ -146,6 +148,16 @@ class Encoder:
     @property                
     def nchars(self):
         return len(self.char2index)
+
+    def __eq__(self, other):
+        """Compares whether two Encoders are equivalent"""
+        if not isinstance(other, Encoder):
+            return False
+        return (
+            self.char2index == other.char2index
+            and self.index2char == other.index2char
+            and self.tokenizer == other.tokenizer
+        )
 
 
 def loadencoding(filename):

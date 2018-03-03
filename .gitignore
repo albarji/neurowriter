@@ -106,3 +106,5 @@ corpus/**
 # Generated samples folder
 generatedsamples/**
 
+# PyCharm folder
+.idea/**
