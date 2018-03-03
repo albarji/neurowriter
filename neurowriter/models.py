@@ -137,6 +137,18 @@ class ModelMixin:
         return model
 
 
+class ParallelGpuModel(ModelMixin):
+    """Abstract class defining a GPU parallelized model"""
+
+    @staticmethod
+    def trim(model):
+        """Removes data-parallel scaffolding, for efficient prediction"""
+        if len(get_available_gpus()) > 1:
+            return getcoremodel(model)
+        else:
+            return model
+
+
 class DilatedConvModel(ModelMixin):
     """Model based on dilated convolutions + pooling + dense layers"""
     
@@ -234,7 +246,7 @@ def wavenetblock(maxdilation, dropout, kernels, kernel_size):
     return f
 
 
-class WavenetModel(ModelMixin):
+class WavenetModel(ParallelGpuModel):
     """Implementation of Wavenet model
     
     The model is made of a series of blocks, each one made up of 
@@ -294,26 +306,18 @@ class WavenetModel(ModelMixin):
 
         return model
 
-    @staticmethod
-    def trim(model):
-        """Removes data-parallel scaffolding, for efficient prediction"""
-        if len(get_available_gpus()) > 1:
-            return getcoremodel(model)
-        else:
-            return model
-
 
 class SmallWavenet(WavenetModel):
     """Implementation of very small Wavenet model for testing purposes"""
     paramgrid = [
         [4, 6, 8],  # kernels
-        [1, 1],  # wavenetblocks
+        [1, 2],  # wavenetblocks
         (0.0, 1.0),  # dropout
         [4, 6, 8]  # size of the embedding
     ]
 
 
-class StackedLSTMModel(ModelMixin):
+class StackedLSTMModel(ParallelGpuModel):
     """Implementation of stacked Long-Short Term Memory model
     
     Main reference is Andrej Karpathy post on text generation with LSTMs:
@@ -368,17 +372,9 @@ class StackedLSTMModel(ModelMixin):
 
         return model
 
-    @staticmethod
-    def trim(model):
-        """Removes data-parallel scaffolding, for efficient prediction"""
-        if len(get_available_gpus()) > 1:
-            return getcoremodel(model)
-        else:
-            return model
 
-
-class LSTMModel(StackedLSTMModel):
-    """Implementation of simple Long-Short Term Memory model
+class LSTMModel(ModelMixin):
+    """Implementation of simple one layer bidirectional Long-Short Term Memory model
     
     Main reference is Andrej Karpathy post on text generation with LSTMs:
         - http://karpathy.github.io/2015/05/21/rnn-effectiveness/
@@ -387,18 +383,41 @@ class LSTMModel(StackedLSTMModel):
     """
     
     paramgrid = [
-        [1, 1],  # layers
         [16, 32, 64, 128, 256, 512, 1024],  # units
         (0.0, 1.0),  # dropout
         [32, 64, 128, 256, 512]  # size of the embedding
     ]
 
+    @staticmethod
+    def create(inputtokens, vocabsize, units=16, dropout=0, embedding=32):
 
-class SmallLSTMModel(StackedLSTMModel):
+        input_ = Input(shape=(inputtokens,), dtype='int32')
+
+        # Embedding layer
+        net = Embedding(input_dim=vocabsize, output_dim=embedding, input_length=inputtokens)(input_)
+        net = Dropout(dropout)(net)
+
+        # Bidirectional LSTM layer
+        net = BatchNormalization()(net)
+        net = Bidirectional(LSTM(units, return_sequences=(layers > 1)))(net)
+        net = Dropout(dropout)(net)
+
+        # Output layer
+        net = Dense(vocabsize, activation='softmax')(net)
+        model = Model(inputs=input_, outputs=net)
+
+        # Make data-parallel
+        ngpus = len(get_available_gpus())
+        if ngpus > 1:
+            model = make_parallel(model, ngpus)
+
+        return model
+
+
+class SmallLSTMModel(LSTMModel):
     """Implementation of very small Long-Short Term Memory model for testing purposes"""
 
     paramgrid = [
-        [1, 1],  # layers
         [4, 6, 8],  # units
         (0.0, 1.0),  # dropout
         [4, 6, 8]  # size of the embedding
