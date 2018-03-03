@@ -19,7 +19,7 @@ install:
   # Create test environment with neurowriter dependencies
   - conda create -q -n test-environment python=3.6
   - source activate test-environment
-  - make python-deps
+  - make install
   - pip install nose coveralls
 script:
   # Tests
