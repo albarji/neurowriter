@@ -1,12 +1,9 @@
 version: "2"
 
 plugins:
-  duplication:
-    enable: true
-  fixme:
-    enable: true
-  markdownlint:
-    enable: true
+  duplication: true
+  fixme: true
+  markdownlint: true
   pep8:
     enabled: true
   radon:
