@@ -1,10 +1,17 @@
-engines:
+version: "2"
+
+plugins:
+  duplication:
+    enable: true
+  fixme:
+    enable: true
+  markdownlint:
+    enable: true
   pep8:
     enabled: true
   radon:
     enabled: true
-
-ratings:
-   paths:
-- "**.py"
-
+  shellcheck:
+    enabled: true
+  sonar-python:
+    enabled: true
