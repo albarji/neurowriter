@@ -1,5 +1,8 @@
 """Main file for training a neurowriter model"""
 
+import matplotlib as mpl
+mpl.use("Agg")
+
 import argparse
 import tempfile
 
@@ -8,7 +11,6 @@ from neurowriter.tokenizer import TOKENIZERSBYNAME, tokenizerbyname
 from neurowriter.models import MODELSBYNAME, modelbyname
 from neurowriter.encoding import Encoder
 from neurowriter.optimizer import hypertrain
-
 
 def train(corpus, corpusformat, encoderfile, modelfile, architecture, tokenizer, trials, tmpmodels, checkpoint,
           maxepochs):
