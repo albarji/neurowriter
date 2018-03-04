@@ -11,12 +11,8 @@ from neurowriter.writer import Writer
 from neurowriter.encoding import END
 
 
-def generate(pretrainedname, seed, creativity):
+def generate(modelname, encodername, seed, creativity):
     """Generates infinite text using a pre-trained model and a seed text"""
-    # Process config
-    encodername = pretrainedname + '.enc'
-    modelname = pretrainedname + '.h5'
-
     # Load pre-trained encoder
     encoder = loadencoding(encodername)
 
@@ -36,11 +32,12 @@ def generate(pretrainedname, seed, creativity):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates text following a pre-trained style model.')
-    parser.add_argument('model', type=str, help='name of the pre-trained model and encoder, without enc/h5 extensions')
+    parser.add_argument('model', type=str, help='name of the pre-trained model')
+    parser.add_argument('encoder', type=str, help='name of the pre-trained encoder')
     parser.add_argument('--seed', type=str, help='seed to use to initialize the generator. Default: empty string',
                         default='')
     parser.add_argument('--creativity', type=float, help='amount of creativity in the generation. Default: 0.5',
                         default=0.5)
     args = parser.parse_args()
 
-    generate(pretrainedname=args.model, seed=args.seed, creativity=args.creativity)
+    generate(modelname=args.model, encodername=args.encoder, seed=args.seed, creativity=args.creativity)
