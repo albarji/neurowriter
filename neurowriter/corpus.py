@@ -10,7 +10,6 @@ Module for loading training corpus in different formats.
 
 import pandas as pd
 import json
-from copy import copy
 
 
 class Corpus:
@@ -119,3 +118,11 @@ class Corpus:
             data.append(js)
         with open(corpusfile, "w") as f:
             json.dump(data, f)
+
+"""Dictionary of corpus loading functions indexed by a string"""
+FORMATTERSBYNAME = {
+    'singletxt': Corpus.load_singletxt,
+    'multilinetxt': Corpus.load_multilinetxt,
+    'csv': Corpus.load_csv,
+    'json': Corpus.load_json
+}
