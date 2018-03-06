@@ -48,13 +48,14 @@ or the following to allow this notebook to make use of the GPUs in your host mac
 The basic process to create a text generator is the following:
 
 * Prepare a **corpus** of documents in a **proper format**.
-* Select a **Tokenizer** and parse the corpus with it.
+* **Tokenize** the corpus (optional, but strongly recommended).
 * Select a **model architecture** to learn from the corpus and run the **training** process.
 * Use the created model to generate new texts!
 
 ### Preparing a corpus
 
-A corpus is a set of documents that will be used to train the text generator. The following corpus formats are accepted:
+A corpus is a set of documents that will be used to train the text generator. You will need to adequate your corpus
+according to one of the following formats:
 
 #### Single text
 
@@ -66,13 +67,6 @@ A text file containing a single document.
     
     PINEAPPLES!!!
     
-Such a corpus can be loaded into neurowriter as follows:
-
-```python
-from neurowriter.corpus import Corpus
-corpus = Corpus.load_singletxt(filename)
-```
-    
 #### Multiline text 
 
 A text file containing multiple documents, one document per line. 
@@ -82,12 +76,6 @@ Note that documents with line breaks cannot be represented in this format.
     The file stores one document per line.
     So there are three documents here.
     
-Such a corpus can be loaded into neurowriter as follows:
-
-```python
-from neurowriter.corpus import Corpus
-corpus = Corpus.load_multilinetxt(filename)
-```
 
 #### CSV
 
@@ -99,14 +87,7 @@ Other columns present in the file are loaded, but at present not used in the lea
     Na Boca da Noite,['Drama']
     The Other Side of the Wind,['Drama']
     Prata Palomares,['Thriller']
-    
-Such a corpus can be loaded into neurowriter as follows:
 
-```python
-from neurowriter.corpus import Corpus
-corpus = Corpus.load_csv(datafile)
-```
-    
 #### JSON
 
 A JSON file in the form [{doc1}, {doc2}, ...] where each document must contain a "text" attibute with the contents
@@ -127,14 +108,7 @@ of the document. Othe fields present in the document are loaded, but at present 
         }
     ]
   
-Such a corpus can be loaded into neurowriter as follows:
-
-```python
-from neurowriter.corpus import Corpus
-corpus = Corpus.load_json(datafile)
-```
-  
-### Tokenizing the text
+### Tokenizing the corpus
 
 A Tokenizer is a procedure for breaking down a document into its basic pieces. Neurowriter provides the following
 tokenizers.
@@ -146,58 +120,57 @@ tokenizers.
 For a corpus of documents that are more than a few words long, it is recommended to use the SubWordTokenizer. Note
 however this tokenizer can be quite slow. 
 
-To apply the tokenizer to a corpus, it is recommended to follow the steps in the notebook tokenize.ipynb. You will
-need to provide:
+To apply the tokenizer to a corpus, use the **tokenizecorpus.py** script. An example of use would be:
+
+    python tokenizecorpus.py corpus/toyseries.txt multilinetxt toyseries_bpe.json
+
+You will need to provide the following arguments: 
 
 * Name of the input corpus file
-* Function to use to load the corpus
-* Tokenizer class to use
+* Corpus format 
 * Name of output tokenize corpus file
+
+By default a SubWordTokenizer will be used. Other tokenizers can be selected using the **--tokenizer** argument. 
 
 ### Training the generator
 
-To train the generator follow the steps in the train.ipynb notebook. In particular, you will need to provide:
+To train the generator use the **train.py** script. For example:
 
-* Name of the corpus file
-* Function to use to load the corpus
-* Tokenizer to use (None if you are using an already tokenized corpus)
-* Model architecture
-* Number of hyperoptimization trials
+    python train.py toyseries_bpe.json json toyseries.enc toyseries.h5
 
-The following model architectures are implemented in Neurowriter:
+The following arguments must be provided:
 
-* **LSTMModel**: a bidirectional Long-Short Term Memory network.
-* **StackedLSTMModel**: a bidirectional Long-Short Term Memory network + more stacked LSTM layers.
-* **WavenetModel**: an implementation of the Wavenet model, adapted for text generation.
-* **DilatedConvModel**: a model based on dilated convolutions + dense layers.
+* Name of the (previously tokenized) corpus file
+* Corpus format. Note tokenizer corpus always follow JSON format.
+* Output file with model token encodings.
+* Output file with model weights.
 
-It is recommended to start with an LSTMModel. If the results are not good enough, moving to an StackedLSTMModel might
-produce improvements.
-
-Note the training process will be very slow, and if the connection with the notebook server is cut, the process will
-stop. To this end, you can run the training procedure in offline batch mode by editing the notebook, configuration,
-saving it, and then runnning
-
-    make train-batch
-    
-or if you want to make use of the GPU,
-
-    make train-batch GPU=1
-    
-Finally, if you wish to perform a training by hand-tuning the models hyperparameters, you can use the singletrain.ipynb
-notebook instead.
+Many other tunable parameters exists: run the script with **-h** to check them. One particularly important is the
+model architecture: by default an LSTM model is used, but faster or more expressive models are also included.
+If the results are not good enough, moving to an StackedLSTMModel might produce improvements.
 
 ### Generate text!
 
-Either follow the steps in the generate.ipynb or use the command line script generate.py. You will need to provide the 
-name of the model trained in the previous step, and a seed to start the generation (which might be the empty string "")
+Use the **generate.py** script to generate text!
 
-For better results you can hand-tune other generation parameters, at the bottom of the notebook or at the command-line
-script. The **creativity** rate
-is probably the most significant: small values force the model produce only high probability sequences, while higher
+    python generate.py toyseries.h5 toyseries.enc
+    
+Mandatory arguments are:
+
+* File with previously trained model token encodings.
+* File with previously trained model weights.
+
+This should be enough to start generating text. Note that generation will proceed indefinitely, outputting a **<END>**
+at the end of each generated document, then proceeding to generate another one.
+
+For better results you can hand-tune other generation parameters. The **creativity** rate is probably the most 
+significant: small values force the model to produce only high probability sequences, while higher
 values introduce randomness in the generation. As a rule of thumb, if the generator keeps repeating the same patterns
 again and again, an increase in creativity might help, whereas the generator producing garbage text will need a
 decrease in creativity. Generally values between 0.2 and 0.75 give the best results.
+
+You can also provide de model with a **seed** value that will be used to initialize the text generation. This is
+useful to prompt the model to start writing a chapter with a given name, for instance.
 
 ## Generation examples
 
