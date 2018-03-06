@@ -12,6 +12,7 @@ from neurowriter.models import MODELSBYNAME, modelbyname
 from neurowriter.encoding import Encoder
 from neurowriter.optimizer import hypertrain
 
+
 def train(corpus, corpusformat, encoderfile, modelfile, architecture, tokenizer, trials, tmpmodels, checkpoint,
           maxepochs):
     """Trains a Neurowriter model"""
