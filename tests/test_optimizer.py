@@ -14,7 +14,7 @@ from neurowriter.tokenizer import CharTokenizer
 from tempfile import NamedTemporaryFile, mkdtemp
 from shutil import copyfile, rmtree
 
-DATAFOLDER = "neurowriter/tests/data/"
+DATAFOLDER = "tests/data/"
 
 
 def test_checkpoint():
