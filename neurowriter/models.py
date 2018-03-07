@@ -12,7 +12,7 @@ host, model parallelization is performed for faster training.
 """
 
 from keras.models import Sequential, Model
-from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation
+from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation, GlobalMaxPool1D
 from keras.layers import add, multiply, concatenate
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
@@ -22,18 +22,6 @@ from keras.layers.normalization import BatchNormalization
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import re
-
-
-def modelbyname(modelname):
-    """Returns a model generating class by name"""
-    models = {
-        "dilatedconv" : DilatedConvModel,
-        "wavenet" : WavenetModel,
-        "lstm" : LSTMModel
-    }
-    if modelname not in models:
-        raise ValueError("Unknown model %s" % modelname)
-    return models[modelname]
 
 
 def get_available_gpus():
@@ -399,7 +387,7 @@ class LSTMModel(ModelMixin):
 
         # Bidirectional LSTM layer
         net = BatchNormalization()(net)
-        net = Bidirectional(LSTM(units, return_sequences=(layers > 1)))(net)
+        net = Bidirectional(LSTM(units))(net)
         net = Dropout(dropout)(net)
 
         # Output layer
@@ -473,3 +461,45 @@ class CNNLSTMModel(ModelMixin):
             model = make_parallel(model, ngpus)
 
         return model
+
+
+class PerceptronModel(ModelMixin):
+    """Toy model that only uses embedding + dense layer"""
+
+    paramgrid = [
+        [2, 4, 8],  # dense units
+        (0.0, 1.0),  # densedrop
+        [16, 32, 64],  # size of the embedding
+    ]
+
+    @staticmethod
+    def create(inputtokens, vocabsize, denseunits=8, densedrop=0.1, embedding=32):
+        model = Sequential()
+        # Embedding layer
+        model.add(Embedding(input_dim=vocabsize, output_dim=embedding,
+                            input_length=inputtokens))
+        model.add(GlobalMaxPool1D())
+        # Hidden layer
+        model.add(Dense(denseunits, activation='relu'))
+        model.add(Dropout(densedrop))
+        # Output layer
+        model.add(Dense(vocabsize, activation='softmax'))
+        return model
+
+"""Dictionary of model architectures indexed by a string"""
+MODELSBYNAME = {
+    "dilatedconv": DilatedConvModel,
+    "wavenet": WavenetModel,
+    "lstm": LSTMModel,
+    "stackedlstm": StackedLSTMModel,
+    "smalllstm": SmallWavenet,
+    "cnnlstm": CNNLSTMModel,
+    "pcp": PerceptronModel
+}
+
+
+def modelbyname(modelname):
+    """Returns a model generating class by name"""
+    if modelname not in MODELSBYNAME:
+        raise ValueError("Unknown model %s" % modelname)
+    return MODELSBYNAME[modelname]

@@ -7,14 +7,14 @@ Tests for the optimizer module.
 """
 
 from neurowriter.optimizer import chekpointappend, checkpointload, hypertrain
-from neurowriter.models import SmallWavenet
+from neurowriter.models import PerceptronModel, SmallWavenet
 from neurowriter.corpus import Corpus
 from neurowriter.encoding import Encoder
 from neurowriter.tokenizer import CharTokenizer
 from tempfile import NamedTemporaryFile, mkdtemp
 from shutil import copyfile, rmtree
 
-DATAFOLDER = "neurowriter/tests/data/"
+DATAFOLDER = "tests/data/"
 
 
 def test_checkpoint():
@@ -42,7 +42,7 @@ def test_checkpoint():
 
 def test_hypertrain_run():
     """A small hypertraining procedure can be run"""
-    modelclass = SmallWavenet
+    modelclass = PerceptronModel
     corpus = Corpus(["This is a very small corpus for testing the hypertrain procedure.", "Hope it works!!!"])
     encoder = Encoder(corpus, CharTokenizer)
 

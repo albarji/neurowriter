@@ -1,4 +1,4 @@
-.PHONY: help install install-gpu build-image build-image-gpu notebook-server train-batch tests
+.PHONY: help install install-gpu build-image build-image-gpu notebook-server train-batch tests tests-docker tests-nvidiadocker
 
 help:
 	@echo "Running options:"
@@ -35,3 +35,9 @@ train-batch:
 
 tests:
 	nosetests -v --nologcapture --with-coverage --cover-package=neurowriter --cover-erase
+
+tests-docker:
+	nosetests -v --nologcapture tests/test_mains.py:_test_docker_tokenize_train_generate
+
+tests-nvidiadocker:
+	nosetests -v --nologcapture tests/test_mains.py:_test_nvidiadocker_tokenize_train_generate

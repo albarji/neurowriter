@@ -18,18 +18,6 @@ from itertools import chain
 from neurowriter.linkedlist import LinkedList
 
 
-def tokenizerbyname(tokenizername):
-    """Returns a tokenizer class by name"""
-    tokenizers = {
-        "char": CharTokenizer,
-        "word": WordTokenizer,
-        "subword": SubwordTokenizer,
-    }
-    if tokenizername not in tokenizers:
-        raise ValueError("Unknown tokenizer %s" % tokenizername)
-    return tokenizers[tokenizername]
-
-
 class CharTokenizer:
     """Tokenizer that splits a text into its basic characters"""
 
@@ -289,3 +277,18 @@ class SubwordTokenizer:
         if not isinstance(other, SubwordTokenizer):
             return False
         return self.symbols == other.symbols
+
+
+"""Dictionary of tokenizers indexed by a string"""
+TOKENIZERSBYNAME = {
+    "char": CharTokenizer,
+    "word": WordTokenizer,
+    "subword": SubwordTokenizer,
+}
+
+
+def tokenizerbyname(tokenizername):
+    """Returns a tokenizer class by name"""
+    if tokenizername not in TOKENIZERSBYNAME:
+        raise ValueError("Unknown tokenizer %s" % tokenizername)
+    return TOKENIZERSBYNAME[tokenizername]

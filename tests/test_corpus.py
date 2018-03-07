@@ -10,7 +10,7 @@ Tests for the corpus loading module.
 
 from neurowriter.corpus import Corpus
 
-DATAFOLDER = "neurowriter/tests/data/"
+DATAFOLDER = "tests/data/"
 
 
 def test_corpus_singletxtload():
