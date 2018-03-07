@@ -34,15 +34,11 @@ to build the Neurowriter Docker image. If instead you want to build this image w
 [nvidia-docker](https://github.com/NVIDIA/nvidia-docker), and perform the build as 
 
     make build-image-gpu
-
-Once built, you can start a notebook server accesible from you host machine with
-
-    make notebook-server 
     
-or the following to allow this notebook to make use of the GPUs in your host machine:
+Running a container of this image opens a command line terminal inside the container, which you can use to execute
+the main scripts interactively, or a particular script by providing the command as parameters to docker run. 
+We highly recommend mounting a volume to store the processing results outside the container.    
 
-    make notebook-server-gpu
-    
 ## Usage
 
 The basic process to create a text generator is the following:
