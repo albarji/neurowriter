@@ -11,7 +11,7 @@ from neurowriter.writer import Writer
 from neurowriter.encoding import END
 
 
-def generate(modelname, encodername, seed, creativity):
+def generate(modelname, encodername, seed, creativity, maxtokens=None):
     """Generates infinite text using a pre-trained model and a seed text"""
     # Load pre-trained encoder
     encoder = loadencoding(encodername)
@@ -24,7 +24,9 @@ def generate(modelname, encodername, seed, creativity):
     writer = Writer(model, encoder, creativity=creativity, batchsize=1, beamsize=1)
     print("Generated:")
     print(seed, end='')
-    for token in writer.generate(seed):
+    for i, token in enumerate(writer.generate(seed)):
+        if maxtokens is not None and i >= maxtokens:
+            break
         print(token, end='')
         if token == END:
             print('\n')
@@ -38,6 +40,9 @@ if __name__ == '__main__':
                         default='')
     parser.add_argument('--creativity', type=float, help='amount of creativity in the generation. Default: 0.5',
                         default=0.5)
+    parser.add_argument('--maxtokens', type=int, help='maximum number of tokens to generate. Default: never stop',
+                        default=None)
     args = parser.parse_args()
 
-    generate(modelname=args.model, encodername=args.encoder, seed=args.seed, creativity=args.creativity)
+    generate(modelname=args.model, encodername=args.encoder, seed=args.seed, creativity=args.creativity,
+             maxtokens=args.maxtokens)

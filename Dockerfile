@@ -32,6 +32,6 @@ WORKDIR /neurowriter
 ENV LANG C.UTF-8  
 ENV LC_ALL C.UTF-8
 
-# Launche Jupyter notebook with appropriate options
-CMD jupyter notebook --allow-root --no-browser --ip='*'
+# Launch bash terminal
+ENTRYPOINT bash
 

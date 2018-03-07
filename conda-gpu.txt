@@ -1,6 +1,4 @@
 scikit-learn
 keras-gpu
-jupyter
 pandas
 h5py
-seaborn
