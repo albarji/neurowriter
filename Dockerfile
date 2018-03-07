@@ -24,14 +24,13 @@ COPY Makefile Makefile
 RUN make ${INSTALL}
 RUN conda clean -y -i -l -p -t
 
-# Create project folder
+# App files
 RUN mkdir neurowriter
+COPY *.py /neurowriter/
+COPY neurowriter /neurowriter/neurowriter
+COPY corpus /neurowriter/corpus
 WORKDIR /neurowriter
 
 # Define locale
 ENV LANG C.UTF-8  
 ENV LC_ALL C.UTF-8
-
-# Launch bash terminal
-ENTRYPOINT bash
-
