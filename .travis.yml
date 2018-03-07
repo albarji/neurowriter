@@ -15,8 +15,6 @@ before_install:
     rm Miniconda3-latest-Linux-x86_64.sh;
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  # Install docker
-  - wget -qO- https://get.docker.com/ | sh
 install:
   # Create test environment with neurowriter dependencies
   - conda create -q -n test-environment python=3.6
@@ -25,6 +23,6 @@ install:
   - pip install nose coveralls
 script:
   # Tests
-  - source activate test-environment && make tests
+  - source activate test-environment && make tests tests-docker
 after_success:
   - coveralls

@@ -37,7 +37,7 @@ def test_tokenize_train_generate():
     run_tokenize_train_generate()
 
 
-def test_docker_tokenize_train_generate():
+def _test_docker_tokenize_train_generate():
     """Tokenization, training and generation main scripts can be run correctly in docker"""
     run_tokenize_train_generate(docker="docker")
 
