@@ -386,7 +386,43 @@ Note: titles not generated, just manually added for effect
     había en su mano un ángel derramó su copa sobre el mar. 
 
     La mensada de oro, y los que había en el cielo y las cosas que están en ella se ha azufre. 
+    
+    
+### Harry Potter (english)
 
+    "I have never been able to get a matter of a Death Eater," said Harry, "and I knew what it is a little 
+    the a few people who were a little Death Eaters -"
+    "You are able to be in the castle and you do not be a mother."
+    "I have been a few days ago -"
+    "No time to break down, Severus, you are not going to keep it at the same time to see you," said 
+    Dumbledore. "I shall be a little chance to make the power of the other last time now. You cant know what 
+    you can have to get a lot of the other other Potter and her old boy and your head wants to be a chance 
+    that you are hiding you to fight the place that You-Know-Who would be to keep the snake to see you in the 
+    grounds."
+    "What is it, Voldemort?" Harry asked, and he had never seen the Death Eaters in the castle. "You know how 
+    I have been and the Death Eaters we found out of the forest of the Death Eaters will be to find him, he 
+    can do it."
+    "I see it for him and I must be able to get in the castle, and you are not the same time you think he was 
+    the same time, and I know I will not have seen a little curse and to tell him that he could be able to 
+    fight him and we have been a few years ago, and it was a word of the Order of the Phoenix with the boy - " 
+    "I know what Voldemort had been going to fight the place where you are killed my name," said Harry. 
+    "He was dead!"
+    [...]
+
+    "The Death Eaters will be able to do it -"
+    "I could not speak to you, I got the way to the Chamber of Secrets," said Harry, looking at him at once.
+    "I could be a Death Eater and you got the snake. If you are not a new boy - they can have to do it. Of 
+    course, I thought I saw you to come to the Great Hall, and the Death Eaters were head of the room at 
+    Hogwarts, and we can keep the students in the hall of the full castle, and they know that you can be the 
+    last time he was listening to the plan to be a little fight. You have been in the castle for the place 
+    where you have been and the Sorting Hat Potter is not on the back of the castle, and you can have a hundred 
+    death of the Slytherin House of the Dark Arts in the world  well do you like to do a man and he was in the 
+    forest, was all the same time to do it, and I can see that you were trying to be the way to have a few 
+    steps to the castle, the only thing he was two inches at Hogwarts, and he had to do here, but you know what 
+    he was going to be brave in the Order of the Phoenix to see it, but you were up to the castle and he was 
+    lying here . . . I was at the moment that he was not to have a matter of the last time he was  that you 
+    will be here to me with the Sorting Hat."
+    [...]
 
 ## TODOs and possible improvements
 
