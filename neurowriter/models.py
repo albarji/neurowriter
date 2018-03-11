@@ -12,9 +12,8 @@ host, model parallelization is performed for faster training.
 """
 
 from keras.models import Sequential, Model
-from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation, GlobalMaxPool1D
+from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation, GlobalMaxPool1D, CuDNNLSTM
 from keras.layers import add, multiply, concatenate
-from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
 from keras.layers.wrappers import Bidirectional
@@ -96,8 +95,8 @@ def tensorslice(data, idx, parts):
     shape = tf.shape(data)
     startidx = shape[:1] * idx // parts
     endidx = shape[:1] * (idx+1) // parts
-    start = tf.concat([ startidx, shape[1:]*0 ],axis=0)
-    size = tf.concat([ endidx-startidx, shape[1:] ],axis=0)
+    start = tf.concat([startidx, shape[1:]*0], axis=0)
+    size = tf.concat([endidx-startidx, shape[1:]], axis=0)
     return tf.slice(data, start, size)
 
 
@@ -334,19 +333,19 @@ class StackedLSTMModel(ParallelGpuModel):
             
         # Bidirectional LSTM layer
         net = BatchNormalization()(net)
-        net = Bidirectional(LSTM(units, return_sequences=(layers > 1)))(net)
+        net = Bidirectional(CuDNNLSTM(units, return_sequences=(layers > 1)))(net)
         net = Dropout(dropout)(net)
             
         # Rest of LSTM layers with residual connections (if any)
         for i in range(1, layers):
             if i < layers-1:
                 block = BatchNormalization()(net)
-                block = LSTM(2*units, return_sequences=True)(block)
+                block = CuDNNLSTM(2*units, return_sequences=True)(block)
                 block = Dropout(dropout)(block)
                 net = add([block, net])
             else:
                 net = BatchNormalization()(net)
-                net = LSTM(2*units)(net)
+                net = CuDNNLSTM(2*units)(net)
                 net = Dropout(dropout)(net)
                     
         # Output layer
@@ -387,7 +386,7 @@ class LSTMModel(ModelMixin):
 
         # Bidirectional LSTM layer
         net = BatchNormalization()(net)
-        net = Bidirectional(LSTM(units))(net)
+        net = Bidirectional(CuDNNLSTM(units))(net)
         net = Dropout(dropout)(net)
 
         # Output layer
@@ -448,7 +447,7 @@ class CNNLSTMModel(ModelMixin):
             net = Dropout(convdropout)(net)
 
         # Bidirectional LSTM layer
-        net = Bidirectional(LSTM(lstmunits))(net)
+        net = Bidirectional(CuDNNLSTM(lstmunits))(net)
         net = Dropout(lstmdropout)(net)
 
         # Output layer

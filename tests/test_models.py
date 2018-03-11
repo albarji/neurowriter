@@ -11,19 +11,25 @@ Tests for the models creation module.
 import tensorflow as tf
 import numpy as np
 
-from neurowriter.models import tensorslice
-from neurowriter.models import CNNLSTMModel
+from neurowriter.models import get_available_gpus, tensorslice
+from neurowriter.models import CNNLSTMModel, LSTMModel, StackedLSTMModel, WavenetModel, DilatedConvModel
+
+
+def test_getgpus():
+    """The list of GPU devices can be recovered"""
+    gpus = get_available_gpus()
+    assert isinstance(gpus, list)
 
 
 def test_tensorslice_normal():
     """Tensor slicing is performed correctly for data > slices"""
     data = np.array([
-        [[1,1,1], [1,1,1], [1,1,1]],
-        [[2,2,2], [2,2,2], [2,2,2]],
-        [[3,3,3], [3,3,3], [3,3,3]],
-        [[4,4,4], [4,4,4], [4,4,4]],
-        [[5,5,5], [5,5,5], [5,5,5]],
-        [[6,6,6], [6,6,6], [6,6,6]]
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+        [[2, 2, 2], [2, 2, 2], [2, 2, 2]],
+        [[3, 3, 3], [3, 3, 3], [3, 3, 3]],
+        [[4, 4, 4], [4, 4, 4], [4, 4, 4]],
+        [[5, 5, 5], [5, 5, 5], [5, 5, 5]],
+        [[6, 6, 6], [6, 6, 6], [6, 6, 6]]
     ])
     datatensor = tf.constant(data)
     
@@ -49,13 +55,13 @@ def test_tensorslice_normal():
 def test_tensorslice_small():
     """Tensor slicing is performed correctly for data < slices"""
     data = np.array([
-        [[1,1,1], [1,1,1], [1,1,1]],
-        [[2,2,2], [2,2,2], [2,2,2]],
-        [[3,3,3], [3,3,3], [3,3,3]]
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+        [[2, 2, 2], [2, 2, 2], [2, 2, 2]],
+        [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
     ])
     datatensor = tf.constant(data)
 
-    nulldata = np.zeros([0,3,3])
+    nulldata = np.zeros([0, 3, 3])
     tests = [
         (4, [nulldata, data[0:1], data[1:2], data[2:3]]),
         (5, [nulldata, data[0:1], nulldata, data[1:2], data[2:3]]),
@@ -76,6 +82,110 @@ def test_tensorslice_small():
             assert(np.allclose(x, y))
 
 
+def model_build_checks(modelclass, paramsets):
+    """Performs a series on check on a model class
+
+    Arguments
+        modelclass: class of the model to test
+        paramets: iterable of sets of parameters to try in constructor
+    """
+    for paramset in paramsets:
+        model = modelclass.create(**paramset)
+        assert hasattr(model, "compile")
+        model.compile(optimizer='sgd', loss='categorical_crossentropy')
+        assert hasattr(model, "fit_generator")
+        assert hasattr(model, "summary")
+        model.summary()
+
+
+def test_train_dilatedconv():
+    """Dilated convolution models can be built correctly"""
+    paramsets = [
+        {"inputtokens": 128, "vocabsize": 1000},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "densedrop": 0.1},
+        {"inputtokens": 128, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 1000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 1, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 32, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.1, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.5, "denselayers": 1,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.5, "denselayers": 2,
+         "denseunits": 64, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.5, "denselayers": 2,
+         "denseunits": 128, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.5, "denselayers": 2,
+         "denseunits": 128, "embedding": 64},
+        {"inputtokens": 256, "vocabsize": 2000, "convlayers": 2, "kernels": 64, "convdrop": 0.5, "denselayers": 0,
+         "denseunits": 0, "embedding": 64}
+    ]
+    model_build_checks(DilatedConvModel, paramsets)
+
+
+def test_train_wavenet():
+    """Wavenet models can be built correctly"""
+    paramsets = [
+        {"inputtokens": 128, "vocabsize": 1000},
+        {"inputtokens": 128, "vocabsize": 1000, "kernels": 64},
+        {"inputtokens": 128, "vocabsize": 1000, "kernels": 64, "wavenetblocks": 1},
+        {"inputtokens": 128, "vocabsize": 1000, "kernels": 64, "wavenetblocks": 1, "dropout": 0},
+        {"inputtokens": 128, "vocabsize": 1000, "kernels": 64, "wavenetblocks": 1, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 1000, "kernels": 64, "wavenetblocks": 1, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "kernels": 64, "wavenetblocks": 1, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "kernels": 256, "wavenetblocks": 1, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "kernels": 256, "wavenetblocks": 3, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "kernels": 256, "wavenetblocks": 3, "dropout": 0.5, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "kernels": 256, "wavenetblocks": 3, "dropout": 0.5, "embedding": 512},
+    ]
+    model_build_checks(WavenetModel, paramsets)
+
+
+def test_train_lstm():
+    """LSTM models can be built correctly"""
+    paramsets = [
+        {"inputtokens": 128, "vocabsize": 1000},
+        {"inputtokens": 128, "vocabsize": 1000, "units": 16},
+        {"inputtokens": 128, "vocabsize": 1000, "units": 16, "dropout": 0},
+        {"inputtokens": 128, "vocabsize": 1000, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 1000, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "units": 128, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "units": 128, "dropout": 0.5, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "units": 128, "dropout": 0.5, "embedding": 256},
+    ]
+    model_build_checks(LSTMModel, paramsets)
+
+
+def test_train_stackedlstm():
+    """StackedLSTM models can be built correctly"""
+    paramsets = [
+        {"inputtokens": 128, "vocabsize": 1000},
+        {"inputtokens": 128, "vocabsize": 1000, "layers": 1},
+        {"inputtokens": 128, "vocabsize": 1000, "layers": 1, "units": 16},
+        {"inputtokens": 128, "vocabsize": 1000, "layers": 1, "units": 16, "dropout": 0},
+        {"inputtokens": 128, "vocabsize": 1000, "layers": 1, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 1000, "layers": 1, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "layers": 1, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "layers": 3, "units": 16, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "layers": 3, "units": 128, "dropout": 0, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "layers": 3, "units": 128, "dropout": 0.5, "embedding": 32},
+        {"inputtokens": 256, "vocabsize": 2000, "layers": 3, "units": 128, "dropout": 0.5, "embedding": 256},
+    ]
+    model_build_checks(StackedLSTMModel, paramsets)
+
+
 def test_train_cnnlstm():
     """CNN-LSTM models can built correctly"""
     paramsets = [
@@ -89,11 +199,4 @@ def test_train_cnnlstm():
         {"inputtokens": 128, "vocabsize": 1000, "convlayers": 3, "kernels": 1024, "kernelsize": 15,
          "convdropout": 0.9, "lstmunits": 512, "lstmdropout": 0.9, "embedding": 1024, "embdropout": 0.5},
     ]
-
-    for paramset in paramsets:
-        model = CNNLSTMModel.create(**paramset)
-        assert hasattr(model, "compile")
-        model.compile(optimizer='sgd', loss='categorical_crossentropy')
-        assert hasattr(model, "fit_generator")
-        assert hasattr(model, "summary")
-        model.summary()
+    model_build_checks(CNNLSTMModel, paramsets)
