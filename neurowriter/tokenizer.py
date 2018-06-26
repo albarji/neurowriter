@@ -144,7 +144,7 @@ class SubwordTokenizer:
 
 
 class BPETokenizer(SubwordTokenizer):
-    """Tokenizer that splits text in descriptive subword parts
+    """Tokenizer that splits text in descriptive subword parts, using the BPE algorithm.
 
     Subword parts are trained for each corpus, building from single
     characters and using a Byte Pair Encoding (BPE) method.
@@ -295,11 +295,29 @@ class BPETokenizer(SubwordTokenizer):
         self.compile()
 
 
+class SubwordsListTokenizer(SubwordTokenizer):
+    """Tokenizer that splits the text following a given list of valid subwords"""
+    def __init__(self, subwords):
+        """Creates a SubwordListTokenizer through a list of valid subwords"""
+        self.subwords = set(subwords)
+        super().__init__()
+
+    def fit(self, corpus):
+        """Fits the tokenizer using a corpus.
+
+        The tokenizer will recognize all characters present in the corpus
+        plus the subwords given at initialization.
+        """
+        self.symbols = set(chain(*[doc for doc in corpus])) | self.subwords
+        self.compile()
+
+
 """Dictionary of tokenizers indexed by a string"""
 TOKENIZERSBYNAME = {
     "char": CharTokenizer,
     "word": WordTokenizer,
     "bpe": BPETokenizer,
+    "subwordslist": SubwordsListTokenizer,
 }
 
 
