@@ -12,7 +12,7 @@ import random
 import string
 import time
 
-from neurowriter.tokenizer import WordTokenizer, SubwordTokenizer
+from neurowriter.tokenizer import WordTokenizer, BPETokenizer
 
 
 def test_WordTokenizerExact():
@@ -55,7 +55,7 @@ def test_SubwordTokenizerExact():
     corpus = ["aaabdaaabac"]
     expected = {'a', 'b', 'c', 'd', 'aaab'}
     
-    tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
+    tok = BPETokenizer(numsymbols=1024, minfreq=2)
     
     tok.fit(corpus)
     print("Expected", expected)
@@ -74,7 +74,7 @@ def test_SubwordTokenizerAtLeast():
                 'a green '
             }
     
-    tok = SubwordTokenizer(numsymbols=1024, minfreq=2, crosswords=True)
+    tok = BPETokenizer(numsymbols=1024, minfreq=2, crosswords=True)
     
     tok.fit(corpus)
     print("Expected", expected)
@@ -92,7 +92,7 @@ def test_SubwordTokenizerAtLeast_nocrossword():
         'green'
     }
 
-    tok = SubwordTokenizer(numsymbols=1024, minfreq=2, crosswords=False)
+    tok = BPETokenizer(numsymbols=1024, minfreq=2, crosswords=False)
 
     tok.fit(corpus)
     print("Expected", expected)
@@ -104,7 +104,7 @@ def test_SubwordTokenizerAtLeast_nocrossword():
 def test_SubwordTokenizerTransform():
     """The subword tokenizer correctly transforms a toy example"""
     train = ["aaababdaaabcab"]
-    tok = SubwordTokenizer(numsymbols=1024, minfreq=2)
+    tok = BPETokenizer(numsymbols=1024, minfreq=2)
     tok.fit(train)
     
     test = "aaabababaabcdabaa"
@@ -124,7 +124,7 @@ def test_SubwordTokenizerTimes():
            % (n, symbols))
     data = [''.join(random.choice(string.ascii_letters) for _ in range(n))]
     start = time.time()
-    tok = SubwordTokenizer(numsymbols=symbols, minfreq=2)
+    tok = BPETokenizer(numsymbols=symbols, minfreq=2)
     tok.fit(data)
     end = time.time()
     print("Fit time:", end-start)

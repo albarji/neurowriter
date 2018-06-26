@@ -92,6 +92,58 @@ class WordTokenizer:
 
 
 class SubwordTokenizer:
+    """Abstract tokenizer that splits text in descriptive subword parts
+
+    Subclasses must implement the fit method.
+    """
+    def __init__(self):
+        # Symbols (subwords) recognized by this tokenizer
+        self.symbols = None
+        # Precompiled expression that accelerates transformation
+        self.detector = None
+
+    def bestmatch(self, string):
+        """Find the best matching symbol at the beginning of a string"""
+        # Precompile matcher if needed
+        if self.detector is None:
+            if self.symbols is None:
+                raise ValueError("Tokenizer has not been fitted")
+            else:
+                self.compile()
+        match = self.detector.match(string)
+        if match is not None:
+            return match.group()
+        else:
+            return None
+
+    def compile(self):
+        """Compiles the subword tokenizer parsing the subword symbols for more efficiency"""
+        # Sort symbols by length, so larger symbols have precedence
+        srt = sorted(self.symbols, key=lambda x: len(x), reverse=True)
+        # Escape special symbols
+        srt = [re.escape(token) for token in srt]
+        # Detect any symbol, with precedence for larger ones
+        self.detector = re.compile('|'.join(srt))
+
+    def fit(self, corpus):
+        raise NotImplementedError
+
+    def transform(self, text):
+        transformed = []
+        i = 0
+        while i < len(text):
+            symbol = self.bestmatch(text[i:])
+            transformed.append(symbol)
+            i += len(symbol)
+        return transformed
+
+    def __eq__(self, other):
+        if not isinstance(other, SubwordTokenizer):
+            return False
+        return self.symbols == other.symbols
+
+
+class BPETokenizer(SubwordTokenizer):
     """Tokenizer that splits text in descriptive subword parts
 
     Subword parts are trained for each corpus, building from single
@@ -114,8 +166,7 @@ class SubwordTokenizer:
         self.numsymbols = numsymbols
         self.minfreq = minfreq
         self.crosswords = crosswords
-        self.symbols = None
-        self.detector = None
+        super().__init__()
 
     def validpair(self, s1, s2):
         """Checks that a pair a symbols is valid for joining
@@ -124,10 +175,8 @@ class SubwordTokenizer:
         active.
         """
         # If crosswords option is active, we can join anything
-        if self.crosswords:
-            return True
-        # Else, if both are already a composite symbol, it's ok to join
-        elif len(s1) > 1 and len(s2) > 1:
+        # If both are already a composite symbol, it's also ok to join
+        if self.crosswords or (len(s1) > 1 and len(s2) > 1):
             return True
         # If any of them are characters, check that both are valid word symbols
         else:
@@ -185,25 +234,6 @@ class SubwordTokenizer:
         del freqs[(leftsymbol, rightsymbol)]
 
         return corpus, freqs, symbols
-
-    def compile(self):
-        """Compiles the parsing expression for more efficiency"""
-        # Sort symbols by length, so larger symbols have precedence
-        srt = sorted(self.symbols, key=lambda x: len(x), reverse=True)
-        # Escape special symbols
-        srt = [re.escape(token) for token in srt]
-        # Detect any symbol, with precedence for larger ones
-        self.detector = re.compile('|'.join(srt))
-
-    def bestmatch(self, string):
-        """Find the best matching symbol at the beggining of a string"""
-        if self.detector is None:
-            raise ValueError("Tokenizer has not been fitted")
-        match = self.detector.match(string)
-        if match is not None:
-            return match.group()
-        else:
-            return None
 
     def prunesymbols(self, corpus):
         """Removes from the list of symbols those that appear unfrequently in the corpus
@@ -264,26 +294,12 @@ class SubwordTokenizer:
         # Compile tokenizer for found symbols
         self.compile()
 
-    def transform(self, text):
-        transformed = []
-        i = 0
-        while i < len(text):
-            symbol = self.bestmatch(text[i:])
-            transformed.append(symbol)
-            i += len(symbol)
-        return transformed
-
-    def __eq__(self, other):
-        if not isinstance(other, SubwordTokenizer):
-            return False
-        return self.symbols == other.symbols
-
 
 """Dictionary of tokenizers indexed by a string"""
 TOKENIZERSBYNAME = {
     "char": CharTokenizer,
     "word": WordTokenizer,
-    "subword": SubwordTokenizer,
+    "bpe": BPETokenizer,
 }
 
 

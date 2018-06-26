@@ -111,7 +111,7 @@ tokenizers.
 
 * **CharTokenizer**: breaks down the document into basic characters.
 * **WordTokenizer**: breaks down the document into basic characters + frequent words.
-* **SubWordTokenizer**: breaks down the document into basic characters + frequent subword pieces, using a BPE algorithm.
+* **BPETokenizer**: breaks down the document into basic characters + frequent subword pieces, using a BPE algorithm.
 
 For a corpus of documents that are more than a few words long, it is recommended to use the SubWordTokenizer. Note
 however this tokenizer can be quite slow. 
@@ -126,7 +126,7 @@ You will need to provide the following arguments:
 * Corpus format 
 * Name of output tokenize corpus file
 
-By default a SubWordTokenizer will be used. Other tokenizers can be selected using the **--tokenizer** argument. 
+By default a BPETokenizer will be used. Other tokenizers can be selected using the **--tokenizer** argument. 
 
 ### Training the generator
 
