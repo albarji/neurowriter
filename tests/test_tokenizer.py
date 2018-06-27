@@ -12,7 +12,7 @@ import random
 import string
 import time
 
-from neurowriter.tokenizer import WordTokenizer, BPETokenizer
+from neurowriter.tokenizer import WordTokenizer, BPETokenizer, SubwordsListTokenizer
 
 
 def test_WordTokenizerExact():
@@ -49,7 +49,7 @@ def test_WordTokenizerTransform():
     assert(obtained == expected)
 
 
-def test_SubwordTokenizerExact():
+def test_BPETokenizerExact():
     """The subword tokenizer obtains the exact expected symbols for toy data"""
     
     corpus = ["aaabdaaabac"]
@@ -65,7 +65,7 @@ def test_SubwordTokenizerExact():
     assert(expected == tok.symbols)
 
 
-def test_SubwordTokenizerAtLeast():
+def test_BPETokenizerAtLeast():
     """The subword tokenizer obtains at least a set of expected symbols"""
     
     corpus = ["a green dog inside a green house"]
@@ -83,7 +83,7 @@ def test_SubwordTokenizerAtLeast():
     assert(len(expected - tok.symbols) == 0)
 
 
-def test_SubwordTokenizerAtLeast_nocrossword():
+def test_BPETokenizerAtLeast_nocrossword():
     """The subword tokenizer obtains at least a set of expected symbols, avoiding word crossings"""
 
     corpus = ["a green dog inside a green house"]
@@ -101,7 +101,7 @@ def test_SubwordTokenizerAtLeast_nocrossword():
     assert (len(expected - tok.symbols) == 0)
 
 
-def test_SubwordTokenizerTransform():
+def test_BPETokenizerTransform():
     """The subword tokenizer correctly transforms a toy example"""
     train = ["aaababdaaabcab"]
     tok = BPETokenizer(numsymbols=1024, minfreq=2)
@@ -116,7 +116,7 @@ def test_SubwordTokenizerTransform():
     assert(obtained == expected)
 
 
-def test_SubwordTokenizerTimes():
+def test_BPETokenizerTimes():
     """Performs some runtime tests on the subword tokenizer"""
     n = 10000
     symbols = 5000
@@ -133,3 +133,36 @@ def test_SubwordTokenizerTimes():
     tok.transform(data[0])
     end = time.time()
     print("Transform time:", end-start)
+
+
+def test_SubwordsListTokenizerExact():
+    """The subwords list tokenizer obtains the exact expected symbols for toy data"""
+
+    corpus = ["a green big dog inside a green big house"]
+    subwords = ["gre", "en", "bi", "og", "insi", "de", "hou", "se"]
+    expected = {"gre", "en", "bi", "g", "d", "og", "insi", "de", "a", "hou", "se",
+                "r", "e", "n", "b", "i", "g", "s", "d", "h", "o", "u", " "}
+
+    tok = SubwordsListTokenizer(subwords=subwords)
+
+    tok.fit(corpus)
+    print("Expected", expected)
+    print("Obtained", tok.symbols)
+    print("Expected but not found", expected - tok.symbols)
+    print("Found but not expected", tok.symbols - expected)
+    assert (expected == tok.symbols)
+
+
+def test_SubwordsListTransform():
+    """The subword list tokenizer correctly transforms a toy example"""
+    train = ["aaababdaaabcab"]
+    tok = SubwordsListTokenizer(subwords=["aa", "ab", "bd", "aaab", "ca", "b"])
+    tok.fit(train)
+
+    test = "aaabababaabcdabaa"
+    expected = ["aaab", "ab", "ab", "aa", "b", "c", "d", "ab", "aa"]
+
+    obtained = tok.transform(test)
+    print("Expected", expected)
+    print("Obtained", obtained)
+    assert (obtained == expected)
