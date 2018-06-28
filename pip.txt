@@ -1,1 +1,1 @@
-scikit-optimize=0.3
+scikit-optimize==0.3
