@@ -41,12 +41,9 @@ def collaborate_document(writer, maxlines=14):
         composition = composition + input("HUMAN-> ") + "\n"
         lines += 1
         print(f"--AI--> ", end='')
-        seed = composition
-        for token in writer.generate(seed):
-            print(token, end='')
-            composition += token
-            if token == "\n":
-                break
+        line = generate_line(writer, composition)
+        print(line, end='')
+        composition += line
         lines += 1
 
     print("\n\n")
@@ -54,6 +51,17 @@ def collaborate_document(writer, maxlines=14):
           "Thanks for your inspiration!\n")
     print(composition)
     return composition
+
+
+def generate_line(writer, seed):
+    """Returns a line of generated text using a given writer and seed"""
+    line = ""
+    token = None
+    generator = writer.generate(seed)
+    while token != "\n":
+        token = next(generator)
+        line += token
+    return line
 
 
 if __name__ == '__main__':
