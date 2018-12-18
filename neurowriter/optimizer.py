@@ -14,7 +14,7 @@ from keras.models import load_model
 from skopt import gbrt_minimize
 from skopt.plots import plot_convergence
 from keras import backend
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 import pickle as pkl
 
 # Loss to account for failed hyperoptmimization trials

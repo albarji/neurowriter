@@ -10,6 +10,7 @@ Tests for the models creation module.
 
 import tensorflow as tf
 import numpy as np
+from keras import backend
 
 from neurowriter.models import get_available_gpus, tensorslice
 from neurowriter.models import CNNLSTMModel, LSTMModel, StackedLSTMModel, WavenetModel, DilatedConvModel
@@ -96,6 +97,8 @@ def model_build_checks(modelclass, paramsets):
         assert hasattr(model, "fit_generator")
         assert hasattr(model, "summary")
         model.summary()
+        del model
+        backend.clear_session()
 
 
 def test_train_dilatedconv():
