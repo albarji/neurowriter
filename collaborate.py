@@ -60,7 +60,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Human-machine collaborative text generation, '
                     'following the style of a pre-trained style model.')
-    parser.add_argument('model', type=str, help='name of the pre-trained model')
+    parser.add_argument('model', type=str,
+                        help='name of the pre-trained model')
     parser.add_argument('encoder', type=str,
                         help='name of the pre-trained encoder')
     parser.add_argument('--seed', type=str,

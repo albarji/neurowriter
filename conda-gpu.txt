@@ -2,3 +2,4 @@ scikit-learn
 keras-gpu
 pandas
 h5py
+matplotlib
