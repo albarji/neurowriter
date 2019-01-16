@@ -2,3 +2,4 @@ scikit-learn
 keras
 pandas
 h5py
+matplotlib=3.0.2

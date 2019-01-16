@@ -13,7 +13,6 @@ host, model parallelization is performed for faster training.
 
 from keras.models import Sequential, Model
 from keras.layers import Conv1D, MaxPooling1D, Dense, Flatten, Input, Dropout, Activation, GlobalMaxPool1D, CuDNNLSTM
-# TODO: CuDNNLSTM doesn't work in CPU. We need to detect this setting and use standard LSTM instead
 from keras.layers import add, multiply, concatenate
 from keras.layers.embeddings import Embedding
 from keras.layers.core import Lambda
