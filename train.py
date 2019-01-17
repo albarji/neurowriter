@@ -1,8 +1,5 @@
 """Main file for training a neurowriter model"""
 
-import matplotlib as mpl
-mpl.use("Agg")
-
 import argparse
 import tempfile
 
