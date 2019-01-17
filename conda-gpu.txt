@@ -2,4 +2,4 @@ scikit-learn
 keras-gpu
 pandas
 h5py
-matplotlib
+matplotlib=3.0.2
