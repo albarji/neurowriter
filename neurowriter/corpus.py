@@ -23,7 +23,7 @@ class Corpus:
 
         Arguments:
             docs: iterable of documents, each document an iterable of tokens
-            conds: itearable of condiners, each conditioner a dictionary of conditining variables
+            conds: iterable of conditioners, each conditioner a dictionary of conditioning variables
         """
         if docs is not None:
             if conds is None:

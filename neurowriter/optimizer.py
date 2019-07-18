@@ -16,6 +16,7 @@ from skopt.plots import plot_convergence
 from keras import backend
 from tempfile import NamedTemporaryFile
 import pickle as pkl
+from pytorch_transformers import BertForSequenceClassification, AdamW, WarmupLinearSchedule
 
 # Loss to account for failed hyperoptmimization trials
 FAILEDTRIALLOSS = 1000
@@ -25,41 +26,24 @@ RANDOMTRIALS = 10
 # Optimizer parameters
 OPTPARAMS = {
     "batchsize": [32, 64, 128, 256, 512],
-    "optimizer": ["sgd", "adam", "rmsprop", "nadam"],
     "learningrate": [2e-3, 1e-3, 5e-4, 2e-4, 1e-4],
     "inputtokens": [4, 8, 16, 32, 64, 128],
 }
 
 
-def optimizerbyname(optname):
-    """Returns an optimizer class given its name"""
-    optimizers = {
-        "sgd": SGD,
-        "adam": Adam,
-        "rmsprop": RMSprop,
-        "nadam": Nadam
-    }
-    normalized = optname.lower()
-    if normalized not in optimizers:
-        raise ValueError("Unknown optimizer", optname)
-    return optimizers[normalized]
-
-
-def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask=None, patience=10, batchsize=256,
-               optimizerclass=Adam, learningrate=None, verbose=1, modelparams=[]):
+def trainmodel(modelclass, inputtokens, corpus, maxepochs=1000, valmask=None, patience=10, batchsize=256,
+               learningrate=None, verbose=1, modelparams=[]):
     """Trains a keras model with given parameters
     
     Arguments
         modelclass: class defining the generative model
         inputtokens: number of input tokens the model will receive at a time
-        encoder: encoder object used to transform from tokens to number
         corpus: corpus to use for training
         maxepochs: maximum allowed training epochs for each model
         valmask: boolean mask marking patterns to use for validation.
             Input None to use all the data for training AND validation.
         patience: number of epochs without improvement for early stopping
         batchsize: number of patterns per training batch
-        optimizerclass: keras class of the optimizer to use
         learningrate: learning rate to use in the optimizer
         verbose: verbosity level (0 to 2)
         modelparams: list of parameters to be passed to the modelkind function
@@ -69,11 +53,14 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
               (inputtokens, batchsize, str(optimizerclass), learningrate, str(modelparams)))
 
     # Build model with input parameters
-    model = modelclass.create(inputtokens, encoder.nchars, *modelparams)
+    model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased')
+
+    # Build model with input parameters
+    #model = modelclass.create(inputtokens, encoder.nchars, *modelparams)
     # Prepare optimizer
-    optimizer = optimizerclass(lr=learningrate)
+    #optimizer = optimizerclass(lr=learningrate)
     # Compile model with optimizer
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+    #model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     # Prepare masks
     if valmask is not None:
@@ -108,6 +95,16 @@ def trainmodel(modelclass, inputtokens, encoder, corpus, maxepochs=1000, valmask
         batchsize=batchsize, 
         infinite=True
     )
+
+    # Prepare optimizer and schedule (linear warmup and decay)
+    # Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80
+    no_decay = ['bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': args.weight_decay},
+        {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+    optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
+    scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.warmup_steps, t_total=t_total)
 
     # Model training
     with NamedTemporaryFile() as modelfile:
