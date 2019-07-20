@@ -38,25 +38,6 @@ def batchedgenerator(generatorfunction):
     return modgenerator
 
 
-def batchedpatternsgenerator(generatorfunction):
-    """Decorator that assumes patterns (X,y) and stacks them in batches
-    
-    This can be thought of a specialized version of the batchedgenerator
-    that assumes the base generator returns instances of data patterns,
-    as tuples of numpy arrays (X,y). When grouping them in batches the
-    numpy arrays are stacked so that each returned batch has a pattern 
-    per row.
-    
-    A "batchsize" parameter is added to the generator, that if specified
-    groups the data in batches of such size.
-    """
-    def modgenerator(*args, **kwargs):
-        for batch in batchedgenerator(generatorfunction)(*args, **kwargs):
-            Xb, yb = zip(*batch)
-            yield np.stack(Xb), np.stack(yb)
-    return modgenerator
-
-
 def infinitegenerator(generatorfunction):
     """Decorator that makes a generator replay indefinitely
     
