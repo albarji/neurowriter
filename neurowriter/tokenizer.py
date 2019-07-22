@@ -21,8 +21,10 @@ CLS = "[CLS]"
 SEP = "[SEP]"
 # Null value in sequence special token
 NULL = "[NULL]"
+# Unknown token
+UNK = "[UNK]"
 # Dictionary of all special tokens
-SPECIAL_TOKENS = [NULL, CLS, SEP]
+SPECIAL_TOKENS = [NULL, CLS, SEP, UNK]
 
 
 class Tokenizer():

@@ -8,7 +8,7 @@
 import numpy as np
 import itertools
 
-from neurowriter.symbols import NULL, START, END
+from neurowriter.tokenizer import NULL, CLS, SEP
 
 class Writer():      
     def __init__(self, model, encoder, creativity=0, beamsize=5, batchsize=3):

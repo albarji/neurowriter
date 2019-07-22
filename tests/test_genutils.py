@@ -11,8 +11,7 @@ Tests for the general utilities module
 import numpy as np
 from itertools import islice
 
-from neurowriter.genutils import batchedgenerator, batchedpatternsgenerator
-from neurowriter.genutils import infinitegenerator, maskedgenerator
+from neurowriter.genutils import batchedgenerator, infinitegenerator, maskedgenerator
         
 def test_batchedgenerator():
     """Batched generator works as expected"""
@@ -42,65 +41,6 @@ def test_batchedgenerator():
         print("Expected", expected)
         print("Obtained", obtained)
         assert(expected == obtained) 
-        
-def test_batchedpatternsgenerator():
-    """Batched patterns generator works as expected"""
-    
-    @batchedpatternsgenerator
-    def genfun():
-        for i in range(10):
-            yield np.array([i]), np.array([i])
-            
-    tests = [
-        (1, [(np.array([[0]]),np.array([[0]])),
-             (np.array([[1]]),np.array([[1]])),
-             (np.array([[2]]),np.array([[2]])),
-             (np.array([[3]]),np.array([[3]])),
-             (np.array([[4]]),np.array([[4]])),
-             (np.array([[5]]),np.array([[5]])),
-             (np.array([[6]]),np.array([[6]])),
-             (np.array([[7]]),np.array([[7]])),
-             (np.array([[8]]),np.array([[8]])),
-             (np.array([[9]]),np.array([[9]]))]),    
-        (2, [(np.array([[0],[1]]),np.array([[0],[1]])),
-             (np.array([[2],[3]]),np.array([[2],[3]])),
-             (np.array([[4],[5]]),np.array([[4],[5]])),
-             (np.array([[6],[7]]),np.array([[6],[7]])),
-             (np.array([[8],[9]]),np.array([[8],[9]]))]),
-        (3, [(np.array([[0],[1],[2]]),np.array([[0],[1],[2]])),
-             (np.array([[3],[4],[5]]),np.array([[3],[4],[5]])),
-             (np.array([[6],[7],[8]]),np.array([[6],[7],[8]])),
-             (np.array([[9]]),np.array([[9]]))]),
-        (4, [(np.array([[0],[1],[2],[3]]),np.array([[0],[1],[2],[3]])),
-             (np.array([[4],[5],[6],[7]]),np.array([[4],[5],[6],[7]])),
-             (np.array([[8],[9]]),np.array([[8],[9]]))]),
-        (5, [(np.array([[0],[1],[2],[3],[4]]),np.array([[0],[1],[2],[3],[4]])),
-             (np.array([[5],[6],[7],[8],[9]]),np.array([[5],[6],[7],[8],[9]]))]),
-        (6, [(np.array([[0],[1],[2],[3],[4],[5]]),
-              np.array([[0],[1],[2],[3],[4],[5]])),
-             (np.array([[6],[7],[8],[9]]), np.array([[6],[7],[8],[9]]))]),
-        (7, [(np.array([[0],[1],[2],[3],[4],[5],[6]]),
-              np.array([[0],[1],[2],[3],[4],[5],[6]])),
-             (np.array([[7],[8],[9]]), np.array([[7],[8],[9]]))]),
-        (8, [(np.array([[0],[1],[2],[3],[4],[5],[6],[7]]),
-              np.array([[0],[1],[2],[3],[4],[5],[6],[7]])),
-             (np.array([[8],[9]]), np.array([[8],[9]]))]),
-        (9, [(np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8]]),
-              np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8]])),
-             (np.array([[9]]), np.array([[9]]))]),
-        (10, [(np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8],[9]]),
-              np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8],[9]]))]),
-        (11, [(np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8],[9]]),
-              np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8],[9]]))])
-    ]
-    
-    for batchsize, expected in tests:
-        obtained = list(genfun(batchsize=batchsize))
-        print("Batch size", batchsize)
-        print("Expected", expected)
-        print("Obtained", obtained)
-        for b1, b2 in zip(expected, obtained):
-            assert(np.allclose(b1,b2))
 
 def test_infinitegenerator():
     """Infinite generator works as expected"""

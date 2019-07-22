@@ -17,36 +17,24 @@ import torch
 from tqdm import tqdm
 
 
-def train(dataset, outputdir, inputtokens=128, maxepochs=1000, valmask=None, patience=10, batchsize=256,
-               learningrate=5e-5):
+def train(dataset, outputdir, maxepochs=1000,patience=10, learningrate=5e-5):
     """Trains a keras model with given parameters
     
     Arguments
         dataset: dataset to use for training
         outputdir: directory in which to save model
-        inputtokens: number of input tokens the model will receive at a time
         maxepochs: maximum allowed training epochs for each model
-        valmask: boolean mask marking patterns to use for validation.
-            Input None to use all the data for training AND validation.
         patience: number of epochs without improvement for early stopping
-        batchsize: number of patterns per training batch
         learningrate: learning rate to use in the optimizer
     """
-    print(f"Training with inputtokens={inputtokens}, batchsize={batchsize}, learningrate={learningrate}")
+    print(f"Training with learningrate={learningrate}")
 
     # Prepare GPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Build model with input parameters
-    model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=len(dataset.labels))
+    model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=dataset.lenlabels)
     model.to(device)
-
-    # Build model with input parameters
-    #model = modelclass.create(inputtokens, encoder.nchars, *modelparams)
-    # Prepare optimizer
-    #optimizer = optimizerclass(lr=learningrate)
-    # Compile model with optimizer
-    #model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     print("Number of training batches:", len(dataset))
     if len(dataset) == 0:
@@ -92,14 +80,19 @@ def train(dataset, outputdir, inputtokens=128, maxepochs=1000, valmask=None, pat
             model.zero_grad()
             global_step += 1
 
-        # TODO: use valgenerator to measure performance and make early stopping
-        #results = evaluate(args, model, tokenizer)
-        #for key, value in results.items():
-        #    tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
+        # Measure loss in validation set
+        evalloss = eval(model, dataset)
 
-        tb_writer.add_scalar('lr', scheduler.get_lr()[0], global_step)
-        tb_writer.add_scalar('loss', (tr_loss - logging_loss), global_step)
+        lr = scheduler.get_lr()[0]
+        tb_writer.add_scalar('lr', lr, global_step)
+        print(f"lr={lr}")
+        loss = tr_loss - logging_loss
+        print(f"loss={loss}")
+        tb_writer.add_scalar('loss', loss, global_step)
+        print(f"evalloss={evalloss}")
+        tb_writer.add_scalar('evalloss', evalloss, global_step)
         logging_loss = tr_loss
+
 
         # Save model checkpoint
         check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(global_step))
@@ -109,3 +102,28 @@ def train(dataset, outputdir, inputtokens=128, maxepochs=1000, valmask=None, pat
         model_to_save.save_pretrained(check_dir)
 
     return global_step, tr_loss / global_step
+
+
+def eval(model, dataset):
+    """Evaluates the performance of a model in a given dataset. The validation part of the dataset is used"""
+    # Prepare GPU
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Evaluation all data batches
+    eval_loss = 0.0
+    nb_eval_steps = 0
+    for batch in tqdm(dataset.valbatches(), desc="Evaluation batch"):
+        model.eval()
+        batch = tuple(t.to(device) for t in batch)
+        with torch.no_grad():
+            inputs = {'input_ids':      batch[0],
+                        'attention_mask': batch[1],
+                        'token_type_ids': batch[2],
+                        'labels':         batch[3]}
+            outputs = model(**inputs)
+            tmp_eval_loss = outputs[0]
+            eval_loss += tmp_eval_loss.mean().item()
+        nb_eval_steps += 1
+
+    eval_loss = eval_loss / nb_eval_steps
+    return eval_loss

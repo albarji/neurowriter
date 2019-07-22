@@ -20,7 +20,7 @@ def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs):
     dataset = Dataset(corpus, tokenizer, inputtokens)
 
     # Model training
-    train(dataset, outputdir, inputtokens=inputtokens, maxepochs=maxepochs, patience=10, batchsize=8)
+    train(dataset, outputdir, maxepochs=maxepochs, patience=10)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Neurowriter model")

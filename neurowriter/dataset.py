@@ -10,7 +10,7 @@ from itertools import chain
 import torch
 
 from neurowriter.genutils import batchedgenerator, infinitegenerator, maskedgenerator
-from neurowriter.tokenizer import CLS, SEP, NULL
+from neurowriter.tokenizer import CLS, SEP, NULL, UNK, SPECIAL_TOKENS
 
 class Dataset():
     """Class managing dataset creation for training the language generation model"""
@@ -33,16 +33,13 @@ class Dataset():
         self.batchsize = batchsize
         self.trainvalratio = trainvalratio
         # Tokenize whole corpus, store tokenized form
+        import pdb; pdb.set_trace()
         self.tokenizedcorpus = [self.tokenizer.encodetext(doc) for doc in corpus]
-        # Store unique tokens in this corpus
-        self.labels = sorted(list(set(chain(*self.tokenizedcorpus))))
-        # TODO: arrange classes in a 0...n-1 fashion, and also replacen low frequency tokens by UNK
+        # TODO: replace low frequency tokens by UNK
         # Store indexes of special tokens
-        self.special = {
-            "[NULL]": self.tokenizer.encodetext(NULL)[0],
-            "[CLS]": self.tokenizer.encodetext(CLS)[0],
-            "[SEP]": self.tokenizer.encodetext(SEP)[0],
-        }
+        self.special = {sp: self.tokenizer.encodetext(sp)[0] for sp in SPECIAL_TOKENS}
+        # Store unique tokens in this corpus
+        self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, [self.special[UNK]]))))
         # Prepare train/val masks
         self.trainmask = [1] * trainvalratio + [0]
         self.valmask = [0] * trainvalratio + [1]
@@ -73,7 +70,7 @@ class Dataset():
                 )
                 mask = [0] * padded + [1] * (real + 2)  # +2 to account for CLS and SEP
                 types = [0] * len(x)
-                yindex = self.tokenizer.encodetokens([tokens[i]])[0]
+                yindex = self._idx_to_label(self.tokenizer.encodetokens([tokens[i]])[0])
                 yield x, mask, types, yindex
 
     def _patterngenerator(self, mask=None):
@@ -103,3 +100,10 @@ class Dataset():
 
     def __len__(self):
         return self.len
+
+    def _idx_to_label(self, tokenidx):
+        return self.uniquetokens.index(tokenidx)
+
+    @property
+    def lenlabels(self):
+        return len(self.uniquetokens)
