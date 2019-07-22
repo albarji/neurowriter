@@ -17,7 +17,7 @@ import torch
 from tqdm import tqdm
 
 
-def train(dataset, outputdir, maxepochs=1000,patience=10, learningrate=5e-5):
+def train(dataset, outputdir, maxepochs=1000,patience=10, learningrate=5e-5, checkpointepochs=10):
     """Trains a keras model with given parameters
     
     Arguments
@@ -57,8 +57,10 @@ def train(dataset, outputdir, maxepochs=1000,patience=10, learningrate=5e-5):
     global_step = 0
     tr_loss, logging_loss = 0.0, 0.0
     model.zero_grad()
-    for epoch in range(maxepochs):
-        epoch_iterator = tqdm(dataset.trainbatches(), desc="Iteration")
+    ntrainbatches = len(list(dataset.trainbatches()))
+    for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
+        train_loss = 0
+        epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=ntrainbatches)
         for batch in epoch_iterator:
             # Forward pass through network
             model.train()
@@ -68,38 +70,39 @@ def train(dataset, outputdir, maxepochs=1000,patience=10, learningrate=5e-5):
                         'token_type_ids': batch[2],
                         'labels':         batch[3]}
             ouputs = model(**inputs)
-            loss = ouputs[0]  # model outputs are always tuple in pytorch-transformers (see doc)
+            model_loss = ouputs[0]
+            train_loss += model_loss.mean().item()
 
             # Backpropagation
-            loss.backward()
+            model_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
-            tr_loss += loss.item()
             scheduler.step()  # Update learning rate schedule
             optimizer.step()
             model.zero_grad()
             global_step += 1
 
         # Measure loss in validation set
-        evalloss = eval(model, dataset)
+        eval_loss = eval(model, dataset)
 
         lr = scheduler.get_lr()[0]
         tb_writer.add_scalar('lr', lr, global_step)
         print(f"lr={lr}")
-        loss = tr_loss - logging_loss
-        print(f"loss={loss}")
-        tb_writer.add_scalar('loss', loss, global_step)
-        print(f"evalloss={evalloss}")
-        tb_writer.add_scalar('evalloss', evalloss, global_step)
+        train_loss = train_loss / ntrainbatches
+        print(f"train_loss={train_loss}")
+        tb_writer.add_scalar('train_loss', train_loss, global_step)
+        print(f"eval_loss={eval_loss}")
+        tb_writer.add_scalar('eval_loss', eval_loss, global_step)
         logging_loss = tr_loss
 
 
         # Save model checkpoint
-        check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(global_step))
-        if not os.path.exists(check_dir):
-            os.makedirs(check_dir)
-        model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
-        model_to_save.save_pretrained(check_dir)
+        if epoch % checkpointepochs == 0:
+            check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(epoch))
+            if not os.path.exists(check_dir):
+                os.makedirs(check_dir)
+            model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
+            model_to_save.save_pretrained(check_dir)
 
     return global_step, tr_loss / global_step
 

@@ -19,24 +19,17 @@ def test_reversible_encoding():
     """Encoding a text and decoding it produces the same result"""
     texts = [
         "Glory to mankind",
-        "Endless forms most beautiful",
+        "Endless forms most beautiful [END]",
         "abcdedg 1251957151"
-    ]
-    options = [
-        {"addstart":False, "fixlength":None},
-        {"addstart":True, "fixlength":None},
-        {"addstart":False, "fixlength":16},
-        {"addstart":True, "fixlength":16}
     ]
 
     tokenizer = Tokenizer()
 
     for text in texts:
-        for option in options:
-            coded = tokenizer.encodetext(text, **option)
-            decoded = tokenizer.decodeindexes(coded)
+        coded = tokenizer.encodetext(text)
+        decoded = tokenizer.decodeindexes(coded)
 
-            print("Original text: %s" % text)
-            print("Encoded text: " + str(coded))
-            print("Decoded text: %s" % decoded)
-            assert text == decoded
+        print("Original text: %s" % text)
+        print("Encoded text: " + str(coded))
+        print("Decoded text: %s" % decoded)
+        assert text == decoded

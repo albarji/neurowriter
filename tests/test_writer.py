@@ -11,8 +11,6 @@ Tests for the Writer module
 import numpy as np
 
 from neurowriter.writer import Writer
-from neurowriter.encoding import Encoder
-from neurowriter.tokenizer import CharTokenizer
 from neurowriter.corpus import Corpus
 
 
@@ -22,7 +20,7 @@ class MockModel():
         return [[0.5, 0.3, 0.2]]
 
 
-def test_writer_beamsearch():
+def _test_writer_beamsearch():
     """Beam search works as expected"""
     mockmodel = MockModel()
     corpus = Corpus(["abc"])
@@ -37,7 +35,7 @@ def test_writer_beamsearch():
     assert obtained == expected
 
 
-def test_writer_beamsearch_long():
+def _test_writer_beamsearch_long():
     """Beam search works as expected for long batch sizes"""
     mockmodel = MockModel()
     corpus = Corpus(["abc"])
