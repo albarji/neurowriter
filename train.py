@@ -5,7 +5,7 @@ import tempfile
 
 from neurowriter.corpus import FORMATTERSBYNAME
 from neurowriter.dataset import Dataset
-from neurowriter.optimizer import train
+from neurowriter.model import Model
 from neurowriter.tokenizer import Tokenizer
 
 
@@ -20,8 +20,8 @@ def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpoin
     dataset = Dataset(corpus, tokenizer, inputtokens, trainvalratio=trainvalratio)
 
     # Model training
-    print(dataset.uniquetokens) # FIXME
-    train(dataset, outputdir, maxepochs=maxepochs, patience=10, checkpointepochs=checkpointepochs)
+    model = Model()
+    model.fit(dataset, outputdir, maxepochs=maxepochs, patience=10, checkpointepochs=checkpointepochs)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Neurowriter model")
