@@ -2,9 +2,7 @@ name: neurowriter
 dependencies:
   - pytorch=1.0.1
   - pandas=0.24.2
-  - tensorboard=1.14.0
   - tqdm=4.32.1
   - pip:
     - gpustat==0.5.0
     - pytorch-transformers==1.0.0
-    - tensorboardX==1.8

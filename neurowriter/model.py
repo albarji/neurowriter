@@ -14,7 +14,6 @@ import os
 import pickle as pkl
 from pytorch_transformers import BertForSequenceClassification, AdamW, WarmupLinearSchedule
 from tempfile import NamedTemporaryFile
-from tensorboardX import SummaryWriter
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -69,11 +68,7 @@ class Model:
         t_total = maxepochs * len(dataset)
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
-        # Tensorboard
-        tb_writer = SummaryWriter()
-
         global_step = 0
-        tr_loss = 0.0
         best_eval_loss = math.inf
         no_improvement = 0
         best_model = None
@@ -107,13 +102,10 @@ class Model:
             eval_loss = self.eval(dataset)
 
             lr = scheduler.get_lr()[0]
-            tb_writer.add_scalar('lr', lr, global_step)
             print(f"lr={lr}")
             train_loss = train_loss / ntrainbatches
             print(f"train_loss={train_loss}")
-            tb_writer.add_scalar('train_loss', train_loss, global_step)
             print(f"eval_loss={eval_loss}")
-            tb_writer.add_scalar('eval_loss', eval_loss, global_step)
 
             # Check early stopping
             if eval_loss < best_eval_loss:
