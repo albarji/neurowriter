@@ -8,6 +8,8 @@ Module for creating, training and applying generation models.
 @author: Álvaro Barbero Jiménez
 """
 
+import copy
+import math
 import os
 import pickle as pkl
 from pytorch_transformers import BertForSequenceClassification, AdamW, WarmupLinearSchedule
@@ -72,6 +74,9 @@ class Model:
 
         global_step = 0
         tr_loss = 0.0
+        best_eval_loss = math.inf
+        no_improvement = 0
+        best_model = None
         self.model.zero_grad()
         ntrainbatches = len(list(dataset.trainbatches()))
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
@@ -110,12 +115,28 @@ class Model:
             print(f"eval_loss={eval_loss}")
             tb_writer.add_scalar('eval_loss', eval_loss, global_step)
 
+            # Check early stopping
+            if eval_loss < best_eval_loss:
+                best_eval_loss = eval_loss
+                no_improvement = 0
+                best_model = copy.deepcopy(self.model)
+            else:
+                no_improvement += 1
+            if no_improvement >= patience:
+                print(f"No improvement after {patience} epochs, stopping training")
+                break
+
             # Save model checkpoint
-            if epoch % checkpointepochs == 0:
+            if checkpointepochs is not None and epoch % checkpointepochs == 0:
                 check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(epoch))
                 self.save(check_dir)
 
-        return global_step, tr_loss / global_step
+        # Save best model
+        self.model = best_model
+        model_dir = os.path.join(outputdir, 'best')
+        self.save(model_dir)
+
+        return self
 
     def eval(self, dataset):
         """Evaluates the performance of the model in a given dataset. The validation part of the dataset is used"""
