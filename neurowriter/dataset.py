@@ -8,9 +8,12 @@ Module managing dataset creation for training the language generation model
 
 from itertools import chain
 import torch
+import logging
 
 from neurowriter.genutils import batchedgenerator, infinitegenerator, maskedgenerator
 from neurowriter.tokenizer import CLS, SEP, PAD, UNK, END, SPECIAL_TOKENS
+
+MAX_CONTEXT_BERT = 510  # BERT accepts 512, but we need to account for [CLS] and [SEP] added symbols
 
 class Dataset():
     """Class managing dataset creation for training the language generation model"""
@@ -29,8 +32,13 @@ class Dataset():
         """
         if tokensperpattern < 1:
             raise ValueError(f"tokensperpattern must be >= 1, received value was {tokensperpattern}")
+        if tokensperpattern > MAX_CONTEXT_BERT:  
+            logging.warning(f"Context too large, limiting to {MAX_CONTEXT_BERT}")
+            self.tokensperpattern = MAX_CONTEXT_BERT
+        else:
+            self.tokensperpattern = tokensperpattern
+
         self.tokenizer = tokenizer
-        self.tokensperpattern = tokensperpattern
         self.batchsize = batchsize
         self.trainvalratio = trainvalratio
         # Tokenize whole corpus, store tokenized form

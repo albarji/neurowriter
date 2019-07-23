@@ -9,6 +9,7 @@ Module for creating, training and applying generation models.
 """
 
 import copy
+import logging
 import math
 import os
 import pickle as pkl
@@ -42,7 +43,7 @@ class Model:
             patience: number of epochs without improvement for early stopping
             learningrate: learning rate to use in the optimizer
         """
-        print(f"Training with learningrate={learningrate}")
+        logging.info(f"Training with learningrate={learningrate}")
 
         # Save dataset info into the model, which will be used later for generation
         self.labels = dataset.uniquetokens
@@ -53,7 +54,7 @@ class Model:
                                                                    num_labels=dataset.lenlabels)
         self.model.to(self.device)
 
-        print("Number of training batches:", len(dataset))
+        logging.info(f"Number of training batches: {len(dataset)}")
         if len(dataset) == 0:
             raise ValueError("Insufficient data for training in the current setting")
 
@@ -65,7 +66,8 @@ class Model:
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
         optimizer = AdamW(optimizer_grouped_parameters, lr=learningrate, eps=1e-8)
-        t_total = maxepochs * len(dataset)
+        ntrainbatches = len(list(dataset.trainbatches()))
+        t_total = maxepochs * ntrainbatches
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
         global_step = 0
@@ -73,7 +75,6 @@ class Model:
         no_improvement = 0
         best_model = None
         self.model.zero_grad()
-        ntrainbatches = len(list(dataset.trainbatches()))
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
             epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=ntrainbatches)
@@ -102,10 +103,14 @@ class Model:
             eval_loss = self.eval(dataset)
 
             lr = scheduler.get_lr()[0]
-            print(f"lr={lr}")
+            logging.info(f"lr={lr}")
             train_loss = train_loss / ntrainbatches
-            print(f"train_loss={train_loss}")
-            print(f"eval_loss={eval_loss}")
+            logging.info(f"train_loss={train_loss}")
+            logging.info(f"eval_loss={eval_loss}")
+
+            # Generation sample
+            sample = self.generate(dataset.tokenizer)
+            logging.info(f"Generation sample: {sample}")
 
             # Check early stopping
             if eval_loss < best_eval_loss:
@@ -115,7 +120,7 @@ class Model:
             else:
                 no_improvement += 1
             if no_improvement >= patience:
-                print(f"No improvement after {patience} epochs, stopping training")
+                logging.info(f"No improvement after {patience} epochs, stopping training")
                 break
 
             # Save model checkpoint

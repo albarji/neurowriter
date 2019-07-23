@@ -1,6 +1,7 @@
 """Main file for training a neurowriter model"""
 
 import argparse
+import logging
 import tempfile
 
 from neurowriter.corpus import FORMATTERSBYNAME
@@ -8,12 +9,14 @@ from neurowriter.dataset import Dataset
 from neurowriter.model import Model
 from neurowriter.tokenizer import Tokenizer
 
+logging.basicConfig(level=logging.INFO)
+
 
 def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpointepochs, trainvalratio):
     """Trains a Neurowriter model"""
     # Load corpus
     corpus = FORMATTERSBYNAME[corpusformat](corpus)
-    print("Training with corpus:", corpus[0][0:1000])
+    logging.info(f"Training with corpus: {corpus[0][0:1000]}")
 
     # Build dataset
     tokenizer = Tokenizer()
