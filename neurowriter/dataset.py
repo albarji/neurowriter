@@ -25,6 +25,7 @@ class Dataset():
             - batchsize: size of the batches in which to group the paterns
             - trainvalratio: ratio between training and validation patterns.
                 trainvalratio=3 means 3 training patterns for each validation pattern.
+                If None or 0, the whole dataset is used both for train and validation
         """
         if tokensperpattern < 1:
             raise ValueError(f"tokensperpattern must be >= 1, received value was {tokensperpattern}")
@@ -40,8 +41,11 @@ class Dataset():
         # TODO: replace low frequency tokens by UNK
         self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, [self.special[END]]))))
         # Prepare train/val masks
-        self.trainmask = [1] * trainvalratio + [0]
-        self.valmask = [0] * trainvalratio + [1]
+        if trainvalratio is not None and trainvalratio > 0:
+            self.trainmask = [1] * trainvalratio + [0]
+            self.valmask = [0] * trainvalratio + [1]
+        else:
+            self.trainmask = self.valmask = [1]
         # Measure dataset length (in training batches)
         self.len = len(list(self.trainbatches()))
 
