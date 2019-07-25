@@ -12,7 +12,7 @@ import random
 import string
 import time
 
-from neurowriter.tokenizer import Tokenizer
+from neurowriter.tokenizer import Tokenizer, CLS, SEP, PAD
 
 
 def test_reversible_encoding():
@@ -33,3 +33,43 @@ def test_reversible_encoding():
         print("Encoded text: " + str(coded))
         print("Decoded text: %s" % decoded)
         assert text == decoded
+
+
+def test_bert_encoding():
+    """Encoding a text in BERT format returns appropriate indexes"""
+    tokenizer = Tokenizer()
+
+    CLSidx = tokenizer.vocab[CLS]
+    SEPidx = tokenizer.vocab[SEP]
+    PADidx = tokenizer.vocab[PAD]
+    inputs = [
+        {"tokens": [1, 2, 3], "padding": 0},
+        {"tokens": [4, 5, 6, 7], "padding": 1},
+        {"tokens": [8], "padding": 3},
+    ]
+    expected = [
+        [
+            [CLSidx, 1, 2, 3, SEPidx], 
+            [1, 1, 1, 1, 1], 
+            [0, 0, 0, 0, 0]
+        ],
+        [
+            [PADidx, CLSidx, 4, 5, 6, 7, SEPidx], 
+            [0, 1, 1, 1, 1, 1, 1], 
+            [0, 0, 0, 0, 0, 0, 0]
+        ],
+        [
+            [PADidx, PADidx, PADidx, CLSidx, 8, SEPidx], 
+            [0, 0, 0, 1, 1, 1], 
+            [0, 0, 0, 0, 0, 0]
+        ]
+    ]
+
+    for inp, exp in zip(inputs, expected):
+        print(f"Inputs: {inp}")
+        print(f"Expected: {exp}")
+        real = tokenizer.encode_bert(**inp)
+        print(f"Real: {real}")
+        for e, r in zip(exp, real):
+            assert e == r
+    

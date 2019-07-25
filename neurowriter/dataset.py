@@ -11,7 +11,7 @@ import torch
 import logging
 
 from neurowriter.genutils import batchedgenerator, infinitegenerator, maskedgenerator
-from neurowriter.tokenizer import CLS, SEP, PAD, UNK, END, SPECIAL_TOKENS
+from neurowriter.tokenizer import END
 
 MAX_CONTEXT_BERT = 510  # BERT accepts 512, but we need to account for [CLS] and [SEP] added symbols
 
@@ -43,11 +43,9 @@ class Dataset():
         self.trainvalratio = trainvalratio
         # Tokenize whole corpus, store tokenized form
         self.tokenizedcorpus = [self.tokenizer.encodetext(doc) for doc in corpus]
-        # Store indexes of special tokens
-        self.special = {sp: self.tokenizer.encodetext(sp)[0] for sp in SPECIAL_TOKENS}
         # Store unique tokens in this corpus
         # TODO: replace low frequency tokens by UNK
-        self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, [self.special[END]]))))
+        self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, [self.tokenizer.vocab[END]]))))
         # Prepare train/val masks
         if trainvalratio is not None and trainvalratio > 0:
             self.trainmask = [1] * trainvalratio + [0]
@@ -63,26 +61,13 @@ class Dataset():
         """Generator of all patterns in the dataset, decorated to accept batches and masks"""
         for tokens in self.tokenizedcorpus:
             # Add document end token
-            extended_tokens = tokens + [self.special[END]]
+            extended_tokens = tokens + [self.tokenizer.vocab[END]]
             for i in range(len(extended_tokens)):
-                # BERT encoding for single sentences 
-                # (https://github.com/huggingface/pytorch-transformers/blob/master/examples/utils_glue.py#L426)
-                #  tokens:   [PAD] [PAD]   ... [CLS] the dog is hairy . [SEP]
-                #  mask:     0      0           1     1   1   1  1    1   1
-                #  type_ids: 0      0      ...  0     0   0   0  0    0   0
-                # The mask has 1 for real tokens and 0 for padding tokens. Only real
-                # tokens are attended to.
-
-                # Add padding and [CLS] [SEP] symbols
-                padded = max(self.tokensperpattern - i, 0)
-                real = self.tokensperpattern - padded
-
-                x = (
-                    [self.special[PAD]] * padded + 
-                    [self.special[CLS]] + extended_tokens[i-real:i] + [self.special[SEP]]
-                )
-                mask = [0] * padded + [1] * (real + 2)  # +2 to account for CLS and SEP
-                types = [0] * len(x)
+                # Encode context in BERT style
+                padding = max(self.tokensperpattern - i, 0)
+                real = self.tokensperpattern - padding
+                x, mask, types = self.tokenizer.encode_bert(extended_tokens[i-real:i], padding)
+                # Encode target token
                 yindex = self._idx_to_label(extended_tokens[i])
                 yield x, mask, types, yindex
 

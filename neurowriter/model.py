@@ -48,6 +48,9 @@ class Model:
         # Save dataset info into the model, which will be used later for generation
         self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
+        ntrainbatches = len(list(dataset.trainbatches()))
+        nvalbatches = len(list(dataset.valbatches()))
+        logging.info(f"Training batches {ntrainbatches}, validation batches {nvalbatches}")
 
         # Build model with input parameters
         self.model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', 
@@ -66,7 +69,6 @@ class Model:
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
         optimizer = AdamW(optimizer_grouped_parameters, lr=learningrate, eps=1e-8)
-        ntrainbatches = len(list(dataset.trainbatches()))
         t_total = maxepochs * ntrainbatches
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
@@ -167,21 +169,26 @@ class Model:
         """
         tokenized_context = tokenizer.encodetext(seed)
         generated = []
+        self.model.eval()
 
         # Pretokenize some special symbols
-        specialidx = {s: tokenizer.encodetext(s)[0] for s in [CLS, SEP, END]}
+        ENDidx = tokenizer.encodetext(END)[0]
 
         for _ in range(maxlength):
-            indexed_tokens = [specialidx[CLS]] + tokenized_context + [specialidx[SEP]]
-            tokens_tensor = torch.tensor([indexed_tokens]).to(self.device)
+            tokens, mask, types = tokenizer.encode_bert(tokenized_context)
+            inputs = {
+                'input_ids':      torch.tensor([tokens]).to(self.device),
+                'attention_mask': torch.tensor([mask]).to(self.device),
+                'token_type_ids': torch.tensor([types]).to(self.device)
+            }
             with torch.no_grad():
-                logits = self.model(tokens_tensor)[0]
+                logits = self.model(**inputs)[0]
                 logits = logits / temperature
                 log_probs = F.softmax(logits, dim=-1)
                 predicted_index = torch.multinomial(log_probs, num_samples=1)[0][0].tolist()
                 predicted_index = self.labels[predicted_index]
                 # Stop if END token generated
-                if predicted_index == specialidx[END]:
+                if predicted_index == ENDidx:
                     return tokenizer.decodeindexes(generated)
                 tokenized_context.append(predicted_index)
                 generated.append(predicted_index)

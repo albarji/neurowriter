@@ -22,14 +22,30 @@ CORPUS = [
 class MockTokenizer():
     """Simple tokenizer to use in tests"""
     def __init__(self):
+        # List of tokens
         self.encoding = sorted(list(set(
             chain(*[tokens.split(" ") for tokens in CORPUS], ["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[END]"])
         )))
+        # Map from tokens to indices
+        self.encoding = {
+            token: idx
+            for idx, token in enumerate(self.encoding)
+        }
     
     def encodetext(self, text):
         tokens = text.split(" ")
-        return [self.encoding.index(token) for token in tokens]
+        return [self.encoding[token] for token in tokens]
 
+    def encode_bert(self, tokens, padding=0):
+        x = [self.encoding["[PAD]"]] * padding
+        x += [self.encoding["[CLS]"]] + tokens + [self.encoding["[SEP]"]]
+        mask = [0] * padding + [1] * (len(tokens) + 2)
+        types = [0] * len(x)
+        return x, mask, types
+
+    @property
+    def vocab(self):
+        return self.encoding
 
 def test_patterns():
     """Test a Dataset produces a correct set of patterns"""
@@ -127,3 +143,27 @@ def test_patterns():
         print(f"Expected {expected[i]}")
         print(f"Obtained {valdata[i]}")
         assert all(torch.all(t.eq(e)) for t, e in zip(valdata[i], expected[i]))
+
+
+def test_patterns_noval():
+    """Test a Dataset produces a correct set of patterns when no validation ratio is provided"""
+    tokenizer = MockTokenizer()
+
+    options = [
+        {"tokensperpattern": 1, "batchsize": 1},
+        {"tokensperpattern": 2, "batchsize": 1},
+        {"tokensperpattern": 1, "batchsize": 2},
+        {"tokensperpattern": 2, "batchsize": 2}
+    ]
+
+    for opt in options:
+        dataset = Dataset(CORPUS, tokenizer, trainvalratio=0, **opt)
+
+        traindata = list(dataset.trainbatches())
+        valdata = list(dataset.valbatches())
+        assert len(traindata) == len(valdata)
+
+        for i in range(len(traindata)):
+            print(f"Train data {traindata[i]}")
+            print(f"Validation data {valdata[i]}")
+            assert all(torch.all(t.eq(e)) for t, e in zip(traindata[i], valdata[i]))

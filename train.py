@@ -12,7 +12,8 @@ from neurowriter.tokenizer import Tokenizer
 logging.basicConfig(level=logging.INFO)
 
 
-def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpointepochs, trainvalratio):
+def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpointepochs, trainvalratio,
+              batchsize):
     """Trains a Neurowriter model"""
     # Load corpus
     corpus = FORMATTERSBYNAME[corpusformat](corpus)
@@ -20,7 +21,7 @@ def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpoin
 
     # Build dataset
     tokenizer = Tokenizer()
-    dataset = Dataset(corpus, tokenizer, inputtokens, trainvalratio=trainvalratio)
+    dataset = Dataset(corpus, tokenizer, inputtokens, trainvalratio=trainvalratio, batchsize=batchsize)
 
     # Model training
     model = Model()
@@ -36,7 +37,8 @@ if __name__ == "__main__":
     parser.add_argument("--checkpointepochs", type=int, default=10, help="Create a model checkpoint every n epochs")
     parser.add_argument("--trainvalratio", type=int, default=3, 
                         help="Number of training patterns for each validation pattern")
+    parser.add_argument("--batchsize", type=int, default=8, help="Size of training batches")
     args = parser.parse_args()
 
     run_train(args.corpus, args.corpusformat, args.outputdir, inputtokens=args.inputtokens, maxepochs=args.maxepochs,
-              checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio)
+              checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio, batchsize=args.batchsize)

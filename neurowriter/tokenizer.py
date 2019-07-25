@@ -44,3 +44,29 @@ class Tokenizer():
 
         Special characters are ignored"""
         return self.tokenizer.decode(idx, clean_up_tokenization_spaces=True)
+
+    def encode_bert(self, tokens, padding=0):
+        """Encodes a sequence of tokens as the set of index sequences expected by BERT
+
+        BERT encoding for single sentences 
+        (https://github.com/huggingface/pytorch-transformers/blob/master/examples/utils_glue.py#L426)
+            tokens:   [PAD] [PAD]   ... [CLS] the dog is hairy . [SEP]
+            mask:     0      0           1     1   1   1  1    1   1
+            type_ids: 0      0      ...  0     0   0   0  0    0   0
+        The mask has 1 for real tokens and 0 for padding tokens. Only real
+        tokens are attended to.
+
+        Arguments:
+            - padding: how much padding to add at the beginning of the encoded sequence
+        """
+        x = (
+            [self.tokenizer.vocab[PAD]] * padding + 
+            [self.tokenizer.vocab[CLS]] + tokens + [self.tokenizer.vocab[SEP]]
+        )
+        mask = [0] * padding + [1] * (len(tokens) + 2)  # +2 to account for CLS and SEP
+        types = [0] * len(x)
+        return x, mask, types
+
+    @property
+    def vocab(self):
+        return self.tokenizer.vocab
