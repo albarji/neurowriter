@@ -33,7 +33,7 @@ class Tokenizer():
     def __init__(self):
         """Creates a new Tokenizer"""
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
-        self.tokenizer.add_tokens(SPECIAL_TOKENS)
+        self.tokenizer.add_tokens([END])
 
     def encodetext(self, text):
         """Transforms a single text to indexes representation"""

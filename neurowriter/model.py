@@ -48,8 +48,8 @@ class Model:
         # Save dataset info into the model, which will be used later for generation
         self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
-        ntrainbatches = len(list(dataset.trainbatches()))
-        nvalbatches = len(list(dataset.valbatches()))
+        ntrainbatches = sum([1 for _ in dataset.trainbatches()])
+        nvalbatches = sum([1 for _ in dataset.valbatches()])
         logging.info(f"Training batches {ntrainbatches}, validation batches {nvalbatches}")
 
         # Build model with input parameters
@@ -79,34 +79,31 @@ class Model:
         self.model.zero_grad()
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
+            self.model.train()
             epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=ntrainbatches)
             for batch in epoch_iterator:
                 # Forward pass through network
-                self.model.train()
-                batch = tuple(t.to(self.device) for t in batch)
-                inputs = {'input_ids':      batch[0],
-                            'attention_mask': batch[1],
-                            'token_type_ids': batch[2],
-                            'labels':         batch[3]}
-                ouputs = self.model(**inputs)
-                model_loss = ouputs[0]
+                model_loss = self._process_batch(batch)
                 train_loss += model_loss.mean().item()
 
                 # Backpropagation
                 model_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
 
-                scheduler.step()  # Update learning rate schedule
+                # Model update
+                scheduler.step()
                 optimizer.step()
+
                 self.model.zero_grad()
                 global_step += 1
 
+            train_loss /= ntrainbatches
             # Measure loss in validation set
             eval_loss = self.eval(dataset)
 
+            # Reports
             lr = scheduler.get_lr()[0]
             logging.info(f"lr={lr}")
-            train_loss = train_loss / ntrainbatches
             logging.info(f"train_loss={train_loss}")
             logging.info(f"eval_loss={eval_loss}")
 
@@ -142,21 +139,25 @@ class Model:
         # Evaluation all data batches
         eval_loss = 0.0
         nb_eval_steps = 0
-        for batch in tqdm(dataset.valbatches(), desc="Evaluation batch"):
-            self.model.eval()
-            batch = tuple(t.to(self.device) for t in batch)
-            with torch.no_grad():
-                inputs = {'input_ids':      batch[0],
-                            'attention_mask': batch[1],
-                            'token_type_ids': batch[2],
-                            'labels':         batch[3]}
-                outputs = self.model(**inputs)
-                tmp_eval_loss = outputs[0]
+        self.model.eval()
+        with torch.no_grad():
+            for batch in tqdm(dataset.valbatches(), desc="Evaluation batch"):
+                tmp_eval_loss = self._process_batch(batch)
                 eval_loss += tmp_eval_loss.mean().item()
-            nb_eval_steps += 1
+                nb_eval_steps += 1
 
-        eval_loss = eval_loss / nb_eval_steps
+        eval_loss /= nb_eval_steps
         return eval_loss
+
+    def _process_batch(self, batch):
+        """Processes a batch of data through the model, return the model loss for that batch"""
+        batch = tuple(t.to(self.device) for t in batch)
+        inputs = {'input_ids':      batch[0],
+                    'attention_mask': batch[1],
+                    'token_type_ids': batch[2],
+                    'labels':         batch[3]}
+        ouputs = self.model(**inputs)
+        return ouputs[0]
 
     def generate(self, tokenizer, seed="", maxlength=100, temperature=1):
         """Generates text using this trained model

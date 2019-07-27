@@ -45,7 +45,7 @@ class Dataset():
         self.tokenizedcorpus = [self.tokenizer.encodetext(doc) for doc in corpus]
         # Store unique tokens in this corpus
         # TODO: replace low frequency tokens by UNK
-        self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, [self.tokenizer.vocab[END]]))))
+        self.uniquetokens = sorted(list(set(chain(*self.tokenizedcorpus, tokenizer.encodetext(END)))))
         # Prepare train/val masks
         if trainvalratio is not None and trainvalratio > 0:
             self.trainmask = [1] * trainvalratio + [0]
@@ -61,7 +61,7 @@ class Dataset():
         """Generator of all patterns in the dataset, decorated to accept batches and masks"""
         for tokens in self.tokenizedcorpus:
             # Add document end token
-            extended_tokens = tokens + [self.tokenizer.vocab[END]]
+            extended_tokens = tokens + self.tokenizer.encodetext(END)
             for i in range(len(extended_tokens)):
                 # Encode context in BERT style
                 padding = max(self.tokensperpattern - i, 0)
