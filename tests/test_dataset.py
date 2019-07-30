@@ -167,3 +167,29 @@ def test_patterns_noval():
             print(f"Train data {traindata[i]}")
             print(f"Validation data {valdata[i]}")
             assert all(torch.all(t.eq(e)) for t, e in zip(traindata[i], valdata[i]))
+
+
+def test_len():
+    """Test the dataset returns correct lengths"""
+    tokenizer = MockTokenizer()
+
+    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=1, trainvalratio=3)
+    assert dataset.lenpatterns == 12
+    assert dataset.lentrainbatches == 9
+    assert dataset.lenvalbatches == 3
+    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
+    assert dataset.lenvalbatches == len(list(dataset.valbatches()))
+
+    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=2, trainvalratio=3)
+    assert dataset.lenpatterns == 12
+    assert dataset.lentrainbatches == 5
+    assert dataset.lenvalbatches == 2
+    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
+    assert dataset.lenvalbatches == len(list(dataset.valbatches()))
+
+    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=5, trainvalratio=1)
+    assert dataset.lenpatterns == 12
+    assert dataset.lentrainbatches == 2
+    assert dataset.lenvalbatches == 2
+    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
+    assert dataset.lenvalbatches == len(list(dataset.valbatches()))

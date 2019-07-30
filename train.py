@@ -16,14 +16,17 @@ def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpoin
               batchsize):
     """Trains a Neurowriter model"""
     # Load corpus
+    logging.info("Loading corpus...")
     corpus = FORMATTERSBYNAME[corpusformat](corpus)
-    logging.info(f"Training with corpus: {corpus[0][0:1000]}")
+    logging.info(f"Corpus sample: {corpus[0][0:1000]}")
 
     # Build dataset
+    logging.info("Tokenizing corpus...")
     tokenizer = Tokenizer()
     dataset = Dataset(corpus, tokenizer, inputtokens, trainvalratio=trainvalratio, batchsize=batchsize)
 
     # Model training
+    logging.info("Training model...")
     model = Model()
     model.fit(dataset, outputdir, maxepochs=maxepochs, patience=10, checkpointepochs=checkpointepochs)
 

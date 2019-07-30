@@ -43,14 +43,12 @@ class Model:
             patience: number of epochs without improvement for early stopping
             learningrate: learning rate to use in the optimizer
         """
-        logging.info(f"Training with learningrate={learningrate}")
+        logging.info(f"Training with learningrate={learningrate}, batchsize={dataset.batchsize}")
+        logging.info(f"Training batches {dataset.lentrainbatches}, validation batches {dataset.lenvalbatches}")
 
         # Save dataset info into the model, which will be used later for generation
         self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
-        ntrainbatches = sum([1 for _ in dataset.trainbatches()])
-        nvalbatches = sum([1 for _ in dataset.valbatches()])
-        logging.info(f"Training batches {ntrainbatches}, validation batches {nvalbatches}")
 
         # Build model with input parameters
         self.model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', 
@@ -69,7 +67,7 @@ class Model:
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
         optimizer = AdamW(optimizer_grouped_parameters, lr=learningrate, eps=1e-8)
-        t_total = maxepochs * ntrainbatches
+        t_total = maxepochs * dataset.lentrainbatches
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
         global_step = 0
@@ -80,7 +78,7 @@ class Model:
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
             self.model.train()
-            epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=ntrainbatches)
+            epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=dataset.lentrainbatches)
             for batch in epoch_iterator:
                 # Forward pass through network
                 model_loss = self._process_batch(batch)
@@ -97,7 +95,7 @@ class Model:
                 self.model.zero_grad()
                 global_step += 1
 
-            train_loss /= ntrainbatches
+            train_loss /= dataset.lentrainbatches
             # Measure loss in validation set
             eval_loss = self.eval(dataset)
 
@@ -141,7 +139,7 @@ class Model:
         nb_eval_steps = 0
         self.model.eval()
         with torch.no_grad():
-            for batch in tqdm(dataset.valbatches(), desc="Evaluation batch"):
+            for batch in tqdm(dataset.valbatches(), desc="Evaluation batch", total=dataset.lenvalbatches):
                 tmp_eval_loss = self._process_batch(batch)
                 eval_loss += tmp_eval_loss.mean().item()
                 nb_eval_steps += 1

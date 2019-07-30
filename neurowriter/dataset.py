@@ -6,7 +6,8 @@ Module managing dataset creation for training the language generation model
 @author: Álvaro Barbero Jiménez
 """
 
-from itertools import chain
+from itertools import chain, cycle
+import numpy as np
 import torch
 import logging
 
@@ -52,8 +53,9 @@ class Dataset():
             self.valmask = [0] * trainvalratio + [1]
         else:
             self.trainmask = self.valmask = [1]
-        # Measure dataset length (in training batches)
-        self.len = len(list(self.trainbatches()))
+        # Precompute generator lengths
+        self.lentrainbatches = sum([1 for _ in self._dummygenerator(batchsize=self.batchsize, mask=self.trainmask)])
+        self.lenvalbatches = sum([1 for _ in self._dummygenerator(batchsize=self.batchsize, mask=self.valmask)])
 
     @batchedgenerator
     @maskedgenerator
@@ -70,6 +72,17 @@ class Dataset():
                 # Encode target token
                 yindex = self._idx_to_label(extended_tokens[i])
                 yield x, mask, types, yindex
+
+    @batchedgenerator
+    @maskedgenerator
+    def _dummygenerator(self, mask=None):
+        """Generator that produces 1s following the same pattern as the true pattern generator above
+
+        This is useful to measure true generator lengths in a cheap way
+        """
+        for tokens in self.tokenizedcorpus:
+            for _ in range(len(tokens) + 1): # +1 because of added END tokens
+                yield 1
 
     def _patterngenerator(self, mask=None):
         """Generator of encoded patterns as pytorch batches
@@ -96,8 +109,10 @@ class Dataset():
         """Generator of validation batches"""
         return self._patterngenerator(mask=self.valmask)
 
-    def __len__(self):
-        return self.len
+    @property
+    def lenpatterns(self):
+        """Returns the total number of patterns in the dataset"""
+        return sum([len(tokens) + 1 for tokens in self.tokenizedcorpus])  # +1 because of added END tokens
 
     def _idx_to_label(self, tokenidx):
         return self.uniquetokens.index(tokenidx)
