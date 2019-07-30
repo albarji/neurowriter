@@ -70,13 +70,12 @@ class Model:
             ]
         optimizer = AdamW(optimizer_grouped_parameters, lr=learningrate, eps=1e-8)
         t_total = maxepochs * dataset.lentrainbatches
-        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
+        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)  # TODO: this is not doing anything at all
 
         global_step = 0
         best_eval_loss = math.inf
         no_improvement = 0
         best_model = None
-        gradient_loss = 0
         self.model.zero_grad()
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
@@ -85,6 +84,7 @@ class Model:
             for step, batch in enumerate(epoch_iterator):
                 # Forward pass through network
                 model_loss = self._process_batch(batch)
+                model_loss /= gradient_accumulation_steps
                 train_loss += model_loss.mean().item()
 
                 # Backpropagation
