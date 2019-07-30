@@ -17,7 +17,7 @@ before_install:
   - conda update -q conda
 install:
   # Create test environment with neurowriter dependencies
-  - conda create -q -f environment.yml
+  - conda env create -f environment.yml
   - source activate neurowriter
   - pip install nose coveralls
 script:
