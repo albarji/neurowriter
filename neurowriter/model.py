@@ -33,7 +33,7 @@ class Model:
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def fit(self, dataset, outputdir, maxepochs=1000, patience=10, learningrate=5e-5, checkpointepochs=10):
+    def fit(self, dataset, outputdir, maxepochs=1000, patience=10, learningrate=5e-5, checkpointepochs=10, gradient_accumulation_steps=1):
         """Trains a keras model with given parameters
         
         Arguments
@@ -42,8 +42,10 @@ class Model:
             maxepochs: maximum allowed training epochs for each model
             patience: number of epochs without improvement for early stopping
             learningrate: learning rate to use in the optimizer
+            checkpointepochs: every checkpointepochs the current model will be saved to disk
+            gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
         """
-        logging.info(f"Training with learningrate={learningrate}, batchsize={dataset.batchsize}")
+        logging.info(f"Training with learningrate={learningrate}, batchsize={dataset.batchsize}x{gradient_accumulation_steps}")
         logging.info(f"Training batches {dataset.lentrainbatches}, validation batches {dataset.lenvalbatches}")
 
         # Check dataset
@@ -74,12 +76,13 @@ class Model:
         best_eval_loss = math.inf
         no_improvement = 0
         best_model = None
+        gradient_loss = 0
         self.model.zero_grad()
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
             self.model.train()
             epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=dataset.lentrainbatches)
-            for batch in epoch_iterator:
+            for step, batch in enumerate(epoch_iterator):
                 # Forward pass through network
                 model_loss = self._process_batch(batch)
                 train_loss += model_loss.mean().item()
@@ -89,11 +92,11 @@ class Model:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
 
                 # Model update
-                scheduler.step()
-                optimizer.step()
-
-                self.model.zero_grad()
-                global_step += 1
+                if (step + 1) % gradient_accumulation_steps == 0:
+                    scheduler.step()
+                    optimizer.step()
+                    self.model.zero_grad()
+                    global_step += 1
 
             train_loss /= dataset.lentrainbatches
             # Measure loss in validation set
