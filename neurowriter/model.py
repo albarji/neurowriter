@@ -46,6 +46,10 @@ class Model:
         logging.info(f"Training with learningrate={learningrate}, batchsize={dataset.batchsize}")
         logging.info(f"Training batches {dataset.lentrainbatches}, validation batches {dataset.lenvalbatches}")
 
+        # Check dataset
+        if dataset.lentrainbatches == 0 or dataset.lenvalbatches == 0:
+            raise ValueError("Insufficient data for training in the current setting")
+
         # Save dataset info into the model, which will be used later for generation
         self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
@@ -54,10 +58,6 @@ class Model:
         self.model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', 
                                                                    num_labels=dataset.lenlabels)
         self.model.to(self.device)
-
-        logging.info(f"Number of training batches: {len(dataset)}")
-        if len(dataset) == 0:
-            raise ValueError("Insufficient data for training in the current setting")
 
         # Prepare optimizer and schedule (linear warmup and decay)
         # Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80

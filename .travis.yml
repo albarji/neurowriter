@@ -17,12 +17,11 @@ before_install:
   - conda update -q conda
 install:
   # Create test environment with neurowriter dependencies
-  - conda create -q -n test-environment python=3.6
-  - source activate test-environment
-  - make install build-image
+  - conda create -q -f environment.yml
+  - source activate neurowriter
   - pip install nose coveralls
 script:
   # Tests
-  - source activate test-environment && make tests tests-docker
+  - source activate neurowriter && nosetests -v --nologcapture --with-coverage --cover-package=neurowriter --cover-erase
 after_success:
   - coveralls
