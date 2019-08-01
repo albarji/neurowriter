@@ -160,7 +160,7 @@ class Model:
         ouputs = self.model(**inputs)
         return ouputs[0]
 
-    def generate(self, tokenizer, seed="", maxlength=100, temperature=1):
+    def generate(self, tokenizer, seed="", maxlength=100, temperature=1, appendseed=False):
         """Generates text using this trained model
 
         Arguments
@@ -168,6 +168,7 @@ class Model:
             - seed: text seed to initialize generator. Default: empty string
             - maxlength: maximum length of generated text.
             - temperature: temperature of modified softmax, can be understood as the level of creativity
+            - mergeseed: whether to append the given seed to the beginning of the returned generated text
         """
         tokenized_context = tokenizer.encodetext(seed)
         generated = []
@@ -191,12 +192,21 @@ class Model:
                 predicted_index = self.labels[predicted_index]
                 # Stop if END token generated
                 if predicted_index == ENDidx:
-                    return tokenizer.decodeindexes(generated)
+                    break
                 tokenized_context.append(predicted_index)
                 generated.append(predicted_index)
             if len(tokenized_context) > self.contextsize:
                 tokenized_context.pop(0)
-        return tokenizer.decodeindexes(generated)
+
+        generatedtxt = tokenizer.decodeindexes(generated)
+        if appendseed:
+            # Account for a generated text starting with a subword suffix
+            if len(generated) >= 2 and generated[0] == generated[1] == '#':
+                generatedtxt = seed + generatedtxt[2:]
+            else:
+                generatedtxt = seed + " " + generatedtxt
+
+        return generatedtxt
 
     def save(self, savefolder):
         """Saves the model into the given folder
@@ -207,7 +217,7 @@ class Model:
         if not os.path.exists(savefolder):
             os.makedirs(savefolder)
         # Save model
-        model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  # Take care of distributed/parallel training
+        model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  #todo Take care of distributed/parallel training
         model_to_save.save_pretrained(savefolder)
         # Save labels
         metadata = (self.labels, self.contextsize)
