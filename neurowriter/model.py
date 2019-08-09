@@ -33,7 +33,7 @@ class Model:
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def fit(self, dataset, outputdir, maxepochs=1000, patience=10, learningrate=5e-5, checkpointepochs=10, gradient_accumulation_steps=1):
+    def fit(self, dataset, outputdir, maxepochs=1000, patience=3, learningrate=5e-5, checkpointepochs=10, gradient_accumulation_steps=1):
         """Trains a keras model with given parameters
         
         Arguments
@@ -64,13 +64,17 @@ class Model:
         # Prepare optimizer and schedule (linear warmup and decay)
         # Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80
         no_decay = ['bias', 'LayerNorm.weight']
+        # TODO: this parameter grouping is not doing anything, as we are not using weight decay
         optimizer_grouped_parameters = [
             {'params': [p for n, p in self.model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': 0.0},
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
         optimizer = AdamW(optimizer_grouped_parameters, lr=learningrate, eps=1e-8)
+        # Linear decrease in learning rate
+        # TODO: better find an optimal learning rate using fastai method, then apply a 1cycle schedule: https://sgugger.github.io/the-1cycle-policy.html
+        #  Implementation for pytorch: https://github.com/davidtvs/pytorch-lr-finder
         t_total = maxepochs * dataset.lentrainbatches
-        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)  # TODO: this is not doing anything at all
+        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
         global_step = 0
         best_eval_loss = math.inf
@@ -84,8 +88,8 @@ class Model:
             for step, batch in enumerate(epoch_iterator):
                 # Forward pass through network
                 model_loss = self._process_batch(batch)
+                train_loss += model_loss.item()
                 model_loss /= gradient_accumulation_steps
-                train_loss += model_loss.mean().item()
 
                 # Backpropagation
                 model_loss.backward()
@@ -97,6 +101,9 @@ class Model:
                     optimizer.step()
                     self.model.zero_grad()
                     global_step += 1
+
+            # TODO: change loss estimation, evaluation and checkpointing to operate in terms of global_step instead of epochs
+            #  That makes more sense because fine-tuning a BERT model for state-of-the-art tasks requires just about 3 epochs
 
             train_loss /= dataset.lentrainbatches
             # Measure loss in validation set

@@ -17,7 +17,7 @@ logging.basicConfig(
 
 
 def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpointepochs, trainvalratio,
-              batchsize, gradaccsteps):
+              batchsize, gradaccsteps, learningrate):
     """Trains a Neurowriter model"""
     # Load corpus
     logging.info("Loading corpus...")
@@ -32,8 +32,8 @@ def run_train(corpus, corpusformat, outputdir, inputtokens, maxepochs, checkpoin
     # Model training
     logging.info("Training model...")
     model = Model()
-    model.fit(dataset, outputdir, maxepochs=maxepochs, patience=10, checkpointepochs=checkpointepochs,
-              gradient_accumulation_steps=gradaccsteps)
+    model.fit(dataset, outputdir, maxepochs=maxepochs, learningrate=learningrate, 
+              checkpointepochs=checkpointepochs, gradient_accumulation_steps=gradaccsteps)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Neurowriter model")
@@ -47,8 +47,9 @@ if __name__ == "__main__":
                         help="Number of training patterns for each validation pattern")
     parser.add_argument("--batchsize", type=int, default=8, help="Size of training batches")
     parser.add_argument("--gradaccsteps", type=int, default=1, help="Gradient accumulation steps")
+    parser.add_argument("--learningrate", type=float, default=5e-5, help="Learning rate")
     args = parser.parse_args()
 
     run_train(args.corpus, args.corpusformat, args.outputdir, inputtokens=args.inputtokens, maxepochs=args.maxepochs,
               checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio, batchsize=args.batchsize,
-              gradaccsteps=args.gradaccsteps)
+              gradaccsteps=args.gradaccsteps, learningrate=args.learningrate)
