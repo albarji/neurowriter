@@ -25,6 +25,9 @@ UNK = "[UNK]"
 END = "[END]"
 # Dictionary of all special tokens
 SPECIAL_TOKENS = [PAD, CLS, SEP, UNK, END]
+# TODO: add special token for line break.
+#  https://gist.githubusercontent.com/thomwolf/74742c45ebf81287df35d29e634e483d/raw/80adcfd5c8b11c14bf7e17d8e6a42602c34729e4/add_special_tokens.py
+#  https://medium.com/huggingface/how-to-build-a-state-of-the-art-conversational-ai-with-transfer-learning-2d818ac26313
 
 
 class Tokenizer():

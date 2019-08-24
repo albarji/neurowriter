@@ -39,6 +39,11 @@ class Model:
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
         model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=nlabels)
         model.to(self.device)
+        # Idea loca: crear un regularizador que penalice la distancia a los parámetros del modelo pre-entrenado.
+        #  Así podemos evitar olvidos catastróficos
+        #  También puede hacerse midiendo desviaciones en las predicciones del modelo sobre los datos de entrenamiento/validación, al estilo adversarial o TRPO
+        #  This second approach should in principle be better: https://stats.stackexchange.com/questions/314508/how-to-avoid-catastrophic-forgetting
+        # Los tensores de parámetros del modelo son accesibles a través de [name, values for p in model.named_parameters()]
         return model
 
     def _new_optimizer(self, model, lr=5e-5):
@@ -242,7 +247,7 @@ class Model:
         ouputs = model(**inputs)
         return ouputs[0]
 
-    def generate(self, tokenizer, seed="", maxlength=100, temperature=1, appendseed=False):
+    def generate(self, tokenizer, seed="", maxlength=100, temperature=1, top_k=0, top_p=0.9, appendseed=False):
         """Generates text using this trained model
 
         Arguments
@@ -250,7 +255,9 @@ class Model:
             - seed: text seed to initialize generator. Default: empty string
             - maxlength: maximum length of generated text.
             - temperature: temperature of modified softmax, can be understood as the level of creativity
-            - mergeseed: whether to append the given seed to the beginning of the returned generated text
+            - top_k: keep only top k tokens with highest probability (top-k filtering).
+            - top_p: keep the top tokens with cumulative probability >= top_p (nucleus filtering).
+            - appendseed: whether to append the given seed to the beginning of the returned generated text
         """
         tokenized_context = tokenizer.encodetext(seed)
         generated = []
@@ -267,10 +274,11 @@ class Model:
                 'token_type_ids': torch.tensor([types]).to(self.device)
             }
             with torch.no_grad():
-                logits = self.model(**inputs)[0]
+                logits = self.model(**inputs)[0].reshape(-1)
                 logits = logits / temperature
-                log_probs = F.softmax(logits, dim=-1)
-                predicted_index = torch.multinomial(log_probs, num_samples=1)[0][0].tolist()
+                filtered_logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)
+                log_probs = F.softmax(filtered_logits, dim=-1)
+                predicted_index = torch.multinomial(log_probs, num_samples=1)[0].tolist()
                 predicted_index = self.labels[predicted_index]
                 # Stop if END token generated
                 if predicted_index == ENDidx:
@@ -320,3 +328,35 @@ class Model:
         model.model.to(model.device)
 
         return model
+
+
+def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
+    """ Filter a distribution of logits using top-k and/or nucleus (top-p) filtering
+        Args:
+            logits: logits distribution shape (vocabulary size)
+            top_k >0: keep only top k tokens with highest probability (top-k filtering).
+            top_p >0.0: keep the top tokens with cumulative probability >= top_p (nucleus filtering).
+                Nucleus filtering is described in Holtzman et al. (http://arxiv.org/abs/1904.09751)
+        Reference:
+            https://medium.com/huggingface/how-to-build-a-state-of-the-art-conversational-ai-with-transfer-learning-2d818ac26313
+    """
+    assert logits.dim() == 1  # batch size 1 for now - could be updated for more but the code would be less clear
+    top_k = min(top_k, logits.size(-1))  # Safety check
+    if top_k > 0:
+        # Remove all tokens with a probability less than the last token of the top-k
+        indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
+        logits[indices_to_remove] = filter_value
+
+    if top_p > 0.0:
+        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+        cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+        # Remove tokens with cumulative probability above the threshold
+        sorted_indices_to_remove = cumulative_probs > top_p
+        # Shift the indices to the right to keep also the first token above the threshold
+        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+        sorted_indices_to_remove[..., 0] = 0
+
+        indices_to_remove = sorted_indices[sorted_indices_to_remove]
+        logits[indices_to_remove] = filter_value
+    return logits
