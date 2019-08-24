@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("corpusformat", type=str, help="Format of corpus file: " + str(list(FORMATTERSBYNAME)))
     parser.add_argument("outputdir", type=str, help="Directory in which to save trained models")
     parser.add_argument("--inputtokens", type=int, default=128, help="Number of previous tokens to use for generation")
-    parser.add_argument("--maxepochs", type=int, default=100, help="Maximum epochs to run model training")
+    parser.add_argument("--maxepochs", type=int, default=3, help="Maximum epochs to run model training")
     parser.add_argument("--checkpointepochs", type=int, default=10, help="Create a model checkpoint every n epochs")
     parser.add_argument("--trainvalratio", type=int, default=3, 
                         help="Number of training patterns for each validation pattern")

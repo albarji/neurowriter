@@ -37,9 +37,11 @@ class Model:
 
     def _new_model(self, nlabels):
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
+        # TODO: instead of BertForSequenceClassification if would be better to create a reversed embedding layer 
+        # out of the CLS last hidden state
         model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=nlabels)
         model.to(self.device)
-        # Idea loca: crear un regularizador que penalice la distancia a los parámetros del modelo pre-entrenado.
+        # TODO: Idea loca: crear un regularizador que penalice la distancia a los parámetros del modelo pre-entrenado.
         #  Así podemos evitar olvidos catastróficos
         #  También puede hacerse midiendo desviaciones en las predicciones del modelo sobre los datos de entrenamiento/validación, al estilo adversarial o TRPO
         #  This second approach should in principle be better: https://stats.stackexchange.com/questions/314508/how-to-avoid-catastrophic-forgetting
@@ -62,20 +64,21 @@ class Model:
         optimizer = AdamW(optimizer_grouped_parameters, lr=lr, eps=1e-8)
         return optimizer
 
-    def fit(self, dataset, outputdir, maxepochs=100, warmup=3, patience=3, checkpointepochs=10, gradient_accumulation_steps=1):
+    def fit(self, dataset, outputdir, maxepochs=3, lr=5e-5, patience=3, checkpointepochs=10, gradient_accumulation_steps=1):
         """Trains a keras model with given parameters
         
         Arguments
             dataset: dataset to use for training
             outputdir: directory in which to save model
             maxepochs: maximum allowed training epochs for each model
-            warmup: number of epochs warming up the learning rate
+            lr: initial learning rate
             patience: number of epochs without improvement for early stopping
             checkpointepochs: every checkpointepochs the current model will be saved to disk
             gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
         """
         logging.info(f"Training with batchsize={dataset.batchsize}x{gradient_accumulation_steps}")
         logging.info(f"Training batches {dataset.lentrainbatches}, validation batches {dataset.lenvalbatches}")
+        logging.info(f"Initial learning rate {lr}")
 
         # Check dataset
         if dataset.lentrainbatches == 0 or dataset.lenvalbatches == 0:
@@ -85,19 +88,13 @@ class Model:
         self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
 
-        # Estimate a good learning rate with a provisional model
-        logging.info(f"Estimating 'optimal' learning rate")
-        lropt = self._find_lr(dataset, gradient_accumulation_steps=gradient_accumulation_steps)
-        logging.info(f"Found learning rate={lropt}")
-
-        # Create model and optimizer with found learning rate
+        # Create model and optimizer
         self.model = self._new_model(dataset.lenlabels)
-        optimizer = self._new_optimizer(self.model, lropt)
+        optimizer = self._new_optimizer(self.model, lr)
 
-        # Apply a 1cycle schedule (https://sgugger.github.io/the-1cycle-policy.html)
+        # Decreasing learning rate
         t_total = maxepochs * dataset.lentrainbatches / gradient_accumulation_steps
-        #cycle_scheduler = WarmupLinearSchedule(optimizer, warmup_steps=warmup, t_total=t_total)
-        plateau_scheduler = ReduceLROnPlateau(optimizer, factor=0.5, patience=int(patience/3))
+        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
 
         logging.info(f"Training starts")
         global_step = 0
@@ -121,7 +118,7 @@ class Model:
 
                 # Model update
                 if (step + 1) % gradient_accumulation_steps == 0:
-                    #cycle_scheduler.step()
+                    scheduler.step()
                     optimizer.step()
                     self.model.zero_grad()
                     global_step += 1
@@ -133,11 +130,8 @@ class Model:
             # Measure loss in validation set
             eval_loss = self.eval(self.model, dataset)
 
-            plateau_scheduler.step(eval_loss)
-
             # Reports
-            #lr = cycle_scheduler.get_lr()[0]
-            logging.info(f"lr={optimizer.param_groups[0]['lr']}")
+            logging.info(f"lr={scheduler.get_lr()[0]}")
             logging.info(f"train_loss={train_loss}")
             logging.info(f"eval_loss={eval_loss}")
 
@@ -165,6 +159,8 @@ class Model:
         self.model = best_model
         model_dir = os.path.join(outputdir, 'best')
         self.save(model_dir)
+
+        logging.info(f"Training finished")
 
         return self
 
