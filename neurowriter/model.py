@@ -297,9 +297,9 @@ class Model:
                 tokenized_context.pop(0)
 
         generatedtxt = tokenizer.decodeindexes(generated)
-        if appendseed:
+        if appendseed and len(seed) > 1:
             # Account for a generated text starting with a subword suffix
-            if len(generated) >= 2 and generated[0] == generated[1] == '#':
+            if len(generated) >= 2 and generatedtxt[0] == generatedtxt[1] == '#':
                 generatedtxt = seed + generatedtxt[2:]
             else:
                 generatedtxt = seed + " " + generatedtxt
