@@ -64,7 +64,7 @@ class Model:
         optimizer = AdamW(optimizer_grouped_parameters, lr=lr, eps=1e-8)
         return optimizer
 
-    def fit(self, dataset, outputdir, maxepochs=3, lr=5e-5, patience=3, checkpointepochs=10, gradient_accumulation_steps=1):
+    def fit(self, dataset, outputdir, maxepochs=3, lr=5e-5, patience=3, min_lr=1e-7, checkpointepochs=10, gradient_accumulation_steps=1):
         """Trains a keras model with given parameters
         
         Arguments
@@ -72,7 +72,8 @@ class Model:
             outputdir: directory in which to save model
             maxepochs: maximum allowed training epochs for each model
             lr: initial learning rate
-            patience: number of epochs without improvement for early stopping
+            patience: number of epochs without improvement for model backtracking and lr reduction
+            min_lr: stop training aftear reaching this learning rate
             checkpointepochs: every checkpointepochs the current model will be saved to disk
             gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
         """
@@ -99,6 +100,7 @@ class Model:
         logging.info(f"Training starts")
         global_step = 0
         best_eval_loss = math.inf
+        best_lr = lr
         no_improvement = 0
         best_model = None
         self.model.zero_grad()
@@ -131,7 +133,8 @@ class Model:
             eval_loss = self.eval(self.model, dataset)
 
             # Reports
-            logging.info(f"lr={scheduler.get_lr()[0]}")
+            current_lr = scheduler.get_lr()[0]
+            logging.info(f"lr={current_lr}")
             logging.info(f"train_loss={train_loss}")
             logging.info(f"eval_loss={eval_loss}")
 
@@ -139,21 +142,30 @@ class Model:
             sample = self.generate(dataset.tokenizer)
             logging.info(f"Generation sample: {sample}")
 
+            # Save model checkpoint
+            if checkpointepochs is not None and epoch % checkpointepochs == 0:
+                check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(epoch))
+                self.save(check_dir)
+
             # Check early stopping
             if eval_loss < best_eval_loss:
                 best_eval_loss = eval_loss
                 no_improvement = 0
                 best_model = copy.deepcopy(self.model)
+                best_lr = current_lr
             else:
                 no_improvement += 1
             if no_improvement >= patience:
-                logging.info(f"No improvement after {patience} epochs, stopping training")
-                break
-
-            # Save model checkpoint
-            if checkpointepochs is not None and epoch % checkpointepochs == 0:
-                check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(epoch))
-                self.save(check_dir)
+                logging.info(f"No improvement after {patience} epochs, backtracking training and continuing with reduced lr")
+                current_lr = best_lr = best_lr/10
+                if current_lr < min_lr:
+                    logging.info(f"Minimum learning rate {min_lr} reached, stopping training")
+                    break
+                self.model = best_model
+                optimizer = self._new_optimizer(self.model, current_lr)
+                t_total = (maxepochs - epoch+1) * dataset.lentrainbatches / gradient_accumulation_steps
+                scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
+                no_improvement = 0
 
         # Save best model
         self.model = best_model
