@@ -120,3 +120,7 @@ class Dataset():
     @property
     def lenlabels(self):
         return len(self.uniquetokens)
+
+    @property
+    def ntokens(self):
+        return len(self.tokenizer)

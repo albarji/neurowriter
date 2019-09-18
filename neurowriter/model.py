@@ -21,7 +21,7 @@ import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
-from neurowriter.tokenizer import CLS, SEP, END
+from neurowriter.tokenizer import CLS, SEP, END, EOS
 
 
 class Model:
@@ -35,12 +35,14 @@ class Model:
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def _new_model(self, nlabels):
+    def _new_model(self, nlabels, ntokens):
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
         # TODO: instead of BertForSequenceClassification if would be better to create a reversed embedding layer 
         # out of the CLS last hidden state
         model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=nlabels)
         model.to(self.device)
+        # Rearrange embeddings matrix for specified size
+        model.resize_token_embeddings(ntokens)
         # TODO: Idea loca: crear un regularizador que penalice la distancia a los parámetros del modelo pre-entrenado.
         #  Así podemos evitar olvidos catastróficos
         #  También puede hacerse midiendo desviaciones en las predicciones del modelo sobre los datos de entrenamiento/validación, al estilo adversarial o TRPO
@@ -90,7 +92,7 @@ class Model:
         self.contextsize = dataset.tokensperpattern
 
         # Create model and optimizer
-        self.model = self._new_model(dataset.lenlabels)
+        self.model = self._new_model(dataset.lenlabels, dataset.ntokens)
         optimizer = self._new_optimizer(self.model, lr)
 
         # Decreasing learning rate
@@ -183,7 +185,7 @@ class Model:
             https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
             https://github.com/davidtvs/pytorch-lr-finder
         """
-        provmodel = self._new_model(dataset.lenlabels)
+        provmodel = self._new_model(dataset.lenlabels, dataset.ntokens)
         optimizer = self._new_optimizer(provmodel)
         provmodel.train()
 
@@ -297,6 +299,9 @@ class Model:
                 tokenized_context.pop(0)
 
         generatedtxt = tokenizer.decodeindexes(generated)
+        # Replace EOS with newlines
+        generatedtxt = generatedtxt.replace(EOS, "\n")
+        # Append seed (if requested)
         if appendseed and len(seed) > 1:
             # Account for a generated text starting with a subword suffix
             if len(generated) >= 2 and generatedtxt[0] == generatedtxt[1] == '#':

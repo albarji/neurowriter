@@ -12,7 +12,7 @@ import random
 import string
 import time
 
-from neurowriter.tokenizer import Tokenizer, CLS, SEP, PAD
+from neurowriter.tokenizer import Tokenizer, CLS, SEP, PAD, EOS
 
 
 def test_reversible_encoding():
@@ -73,3 +73,9 @@ def test_bert_encoding():
         for e, r in zip(exp, real):
             assert e == r
     
+
+def test_eos_encoding():
+    """Encoding a sentences with an EOS symbol keeps it as a single token"""
+    tokenizer = Tokenizer()
+    encoded = tokenizer.encodetext('[EOS]')
+    assert len(encoded) == 1

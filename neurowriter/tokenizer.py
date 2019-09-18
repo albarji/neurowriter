@@ -23,8 +23,10 @@ PAD = "[PAD]"
 UNK = "[UNK]"
 # End of document token
 END = "[END]"
+# End of sentence token (line break)
+EOS = "[EOS]"
 # Dictionary of all special tokens
-SPECIAL_TOKENS = [PAD, CLS, SEP, UNK, END]
+SPECIAL_TOKENS = [PAD, CLS, SEP, UNK, END, EOS]
 # TODO: add special token for line break.
 #  https://gist.githubusercontent.com/thomwolf/74742c45ebf81287df35d29e634e483d/raw/80adcfd5c8b11c14bf7e17d8e6a42602c34729e4/add_special_tokens.py
 #  https://medium.com/huggingface/how-to-build-a-state-of-the-art-conversational-ai-with-transfer-learning-2d818ac26313
@@ -37,6 +39,7 @@ class Tokenizer():
         """Creates a new Tokenizer"""
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
         self.tokenizer.add_tokens([END])
+        self.tokenizer.add_special_tokens({'eos_token': EOS})
 
     def encodetext(self, text):
         """Transforms a single text to indexes representation"""
@@ -73,3 +76,6 @@ class Tokenizer():
     @property
     def vocab(self):
         return self.tokenizer.vocab
+
+    def __len__(self):
+        return len(self.tokenizer)

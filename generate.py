@@ -18,7 +18,7 @@ def generate(modelfolder, seed, temperature, maxdocuments=None, maxtokens=1000):
     model = Model.load(modelfolder)
 
     # Text generation
-    for generated_documents in count():
+    for generated_documents in count(start=1):
         print(model.generate(tokenizer, seed=seed, temperature=temperature, appendseed=True, maxlength=maxtokens))
         if maxdocuments is not None and generated_documents >= maxdocuments:
             break

@@ -12,6 +12,9 @@ import pandas as pd
 import json
 
 
+from neurowriter.tokenizer import EOS
+
+
 class Corpus:
     """Class representing a corpus of documents.
 
@@ -59,9 +62,12 @@ class Corpus:
 
     @classmethod
     def load_singletxt(cls, corpusfile):
-        """Reads a corpus made of a single document, stored as a text file"""
+        """Reads a corpus made of a single document, stored as a text file
+        
+        Newline symbols are replaced by the special EOS symbol.
+        """
         with open(corpusfile) as f:
-            corpus = cls([f.read()])
+            corpus = cls([f.read().replace("\n", " " + EOS + " ")])
         return corpus
 
     @classmethod
