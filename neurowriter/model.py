@@ -27,11 +27,12 @@ from neurowriter.tokenizer import CLS, SEP, END, EOS
 class Model:
     """Implements a text generation model that can be trained with a given Corpus"""
 
-    def __init__(self):
+    def __init__(self, dropout=0.1):
         """Initializes a new Model. The model must be trained before text generation is possible"""
         self.model = None
         self.labels = []
         self.contextsize = None
+        self.dropout = dropout
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -39,7 +40,12 @@ class Model:
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
         # TODO: instead of BertForSequenceClassification if would be better to create a reversed embedding layer 
         # out of the CLS last hidden state
-        model = BertForSequenceClassification.from_pretrained('bert-base-multilingual-cased', num_labels=nlabels)
+        model = BertForSequenceClassification.from_pretrained(
+            'bert-base-multilingual-cased', 
+            num_labels=nlabels, 
+            hidden_dropout_prob=self.dropout,
+            attention_probs_dropout_prob=self.dropout
+        )
         model.to(self.device)
         # Rearrange embeddings matrix for specified size
         model.resize_token_embeddings(ntokens)
@@ -104,17 +110,19 @@ class Model:
         best_eval_loss = math.inf
         best_lr = lr
         no_improvement = 0
-        best_model = None
+        best_model = self.model
         self.model.zero_grad()
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
             self.model.train()
             epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=dataset.lentrainbatches)
             for step, batch in enumerate(epoch_iterator):
+                print(f"Step {step}, batch {batch}")  # FIXME
                 # Forward pass through network
                 model_loss = self._process_batch(self.model, batch)
                 train_loss += model_loss.item()
                 model_loss /= gradient_accumulation_steps
+                print(f"Model loss {model_loss}")  # FIXME
 
                 # Backpropagation
                 model_loss.backward()
@@ -122,6 +130,7 @@ class Model:
 
                 # Model update
                 if (step + 1) % gradient_accumulation_steps == 0:
+                    print(f"Model update at step {step}")  # FIXME
                     scheduler.step()
                     optimizer.step()
                     self.model.zero_grad()
