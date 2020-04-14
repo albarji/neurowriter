@@ -14,62 +14,54 @@ import math
 import numpy as np
 import os
 import pickle as pkl
-from pytorch_transformers import BertForSequenceClassification, AdamW, WarmupLinearSchedule
+from transformers import AutoModelWithLMHead, AdamW, WarmupLinearSchedule
 from tempfile import NamedTemporaryFile
 import torch
+from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
 from neurowriter.tokenizer import CLS, SEP, END, EOS
 
+# TODO: use a language model, which predicts for each token the probabilities of each token
+# We should generated the dataset with a [MASK] in the last position, and compute the loss on that token
+
 
 class Model:
     """Implements a text generation model that can be trained with a given Corpus"""
 
-    def __init__(self, dropout=0.1):
+    def __init__(self, tokenizer, dropout=0.1, pretrained_model='bert-base-multilingual-cased'):
         """Initializes a new Model. The model must be trained before text generation is possible"""
         self.model = None
         self.labels = []
         self.contextsize = None
+        self.tokenizer = tokenizer
         self.dropout = dropout
+        self.pretrained_model = pretrained_model
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def _new_model(self, nlabels, ntokens):
+    def _new_model(self, ntokens):
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
-        # TODO: instead of BertForSequenceClassification if would be better to create a reversed embedding layer 
-        # out of the CLS last hidden state
-        model = BertForSequenceClassification.from_pretrained(
-            'bert-base-multilingual-cased', 
-            num_labels=nlabels, 
+        model = AutoModelWithLMHead.from_pretrained(
+            self.pretrained_model,
             hidden_dropout_prob=self.dropout,
             attention_probs_dropout_prob=self.dropout
         )
         model.to(self.device)
         # Rearrange embeddings matrix for specified size
         model.resize_token_embeddings(ntokens)
-        # TODO: Idea loca: crear un regularizador que penalice la distancia a los parámetros del modelo pre-entrenado.
-        #  Así podemos evitar olvidos catastróficos
-        #  También puede hacerse midiendo desviaciones en las predicciones del modelo sobre los datos de entrenamiento/validación, al estilo adversarial o TRPO
-        #  This second approach should in principle be better: https://stats.stackexchange.com/questions/314508/how-to-avoid-catastrophic-forgetting
-        # Los tensores de parámetros del modelo son accesibles a través de [name, values for p in model.named_parameters()]
         return model
 
-    def _new_optimizer(self, model, lr=5e-5):
+    def _new_optimizer(self, lr=5e-5):
         """Creates a new optimizer for a given model
 
         Returns the created model
 
         Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80
         """
-        no_decay = ['bias', 'LayerNorm.weight']
-        # TODO: this parameter grouping is not doing anything, as we are not using weight decay
-        optimizer_grouped_parameters = [
-            {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': 0.0},
-            {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-        optimizer = AdamW(optimizer_grouped_parameters, lr=lr, eps=1e-8)
+        optimizer = AdamW(distilbert.parameters(), lr=lr, eps=1e-8)
         return optimizer
 
     def fit(self, dataset, outputdir, maxepochs=3, lr=5e-5, patience=3, min_lr=1e-7, checkpointepochs=10, gradient_accumulation_steps=1):
@@ -94,16 +86,18 @@ class Model:
             raise ValueError("Insufficient data for training in the current setting")
 
         # Save dataset info into the model, which will be used later for generation
-        self.labels = dataset.uniquetokens
         self.contextsize = dataset.tokensperpattern
 
         # Create model and optimizer
-        self.model = self._new_model(dataset.lenlabels, dataset.ntokens)
-        optimizer = self._new_optimizer(self.model, lr)
+        self.model = self._new_model(dataset.ntokens)
+        optimizer = self._new_optimizer(lr)
 
         # Decreasing learning rate
         t_total = maxepochs * dataset.lentrainbatches / gradient_accumulation_steps
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
+
+        # Loss
+        loss_function = CrossEntropyLoss().to(self.device)
 
         logging.info(f"Training starts")
         global_step = 0
@@ -115,14 +109,18 @@ class Model:
         for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
             train_loss = 0
             self.model.train()
-            epoch_iterator = tqdm(dataset.trainbatches(), desc="Batch", total=dataset.lentrainbatches)
-            for step, batch in enumerate(epoch_iterator):
-                print(f"Step {step}, batch {batch}")  # FIXME
+            batch_iterator = tqdm(dataset.loader(batch_size=self.batch_size), desc="Batch", total=dataset.lentrainbatches)
+            for step, batch in enumerate(batch_iterator):
+                print(f"Step {step}, batch {batch}")
+                X, y = batch
+                # TODO: move X, y to GPU
                 # Forward pass through network
-                model_loss = self._process_batch(self.model, batch)
+                ouputs = model(**X)
+                probabilities = ouputs[0]
+                model_loss = loss_function(probabilities, Y)
                 train_loss += model_loss.item()
                 model_loss /= gradient_accumulation_steps
-                print(f"Model loss {model_loss}")  # FIXME
+                print(f"Model loss {model_loss}")
 
                 # Backpropagation
                 model_loss.backward()
@@ -150,7 +148,7 @@ class Model:
             logging.info(f"eval_loss={eval_loss}")
 
             # Generation sample
-            sample = self.generate(dataset.tokenizer)
+            sample = self.generate(self.tokenizer)
             logging.info(f"Generation sample: {sample}")
 
             # Save model checkpoint
@@ -194,8 +192,8 @@ class Model:
             https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
             https://github.com/davidtvs/pytorch-lr-finder
         """
-        provmodel = self._new_model(dataset.lenlabels, dataset.ntokens)
-        optimizer = self._new_optimizer(provmodel)
+        provmodel = self._new_model(dataset.ntokens)
+        optimizer = self._new_optimizer()
         provmodel.train()
 
         optimgroups = len(optimizer.param_groups)

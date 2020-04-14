@@ -18,48 +18,6 @@ def splitevery(iterable, n):
         piece = list(islice(i, n))
 
 
-def batchedgenerator(generatorfunction):
-    """Decorator that makes a pattern generator produce patterns in batches
-
-    A "batchsize" parameter is added to the generator, that if specified
-    groups the data in batches of such size.
-    
-    It is expected that the generator returns instances of data patterns,
-    as tuples of numpy arrays (X,y)
-    """
-    def modgenerator(*args, **kwargs):
-        if "batchsize" in kwargs:
-            batchsize = kwargs["batchsize"]
-            del kwargs["batchsize"]
-        else:
-            batchsize = 1
-        for batch in splitevery(generatorfunction(*args, **kwargs), batchsize):
-            yield batch
-    return modgenerator
-
-
-def infinitegenerator(generatorfunction):
-    """Decorator that makes a generator replay indefinitely
-    
-    An "infinite" parameter is added to the generator, that if set to True
-    makes the generator loop indifenitely.    
-    """
-    def infgenerator(*args, **kwargs):
-        if "infinite" in kwargs:
-            infinite = kwargs["infinite"]
-            del kwargs["infinite"]
-        else:
-            infinite = False
-        if infinite == True:
-            while True:
-                for elem in generatorfunction(*args, **kwargs):
-                    yield elem
-        else:
-            for elem in generatorfunction(*args, **kwargs):
-                yield elem            
-    return infgenerator
-
-
 def maskedgenerator(generatorfunction):
     """Decorator that adds outputs masking to a generator.
     

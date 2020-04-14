@@ -8,18 +8,18 @@ Tests for the corpus loading module.
 @author: Álvaro Barbero Jiménez
 """
 
-from neurowriter.corpus import Corpus
+from neurowriter.corpus import Corpus, EOS
 
 DATAFOLDER = "tests/data/"
 
 
 def test_corpus_singletxtload():
     """Loading a single text corpus works as expected"""
-    expected = ("This is is a single document corpus.\n"
-                + "All the lines from this file belong to the same document.\n"
-                + "And now for something different!\n"
-                + "\n"
-                + "PINEAPPLES!!!\n"
+    expected = (f"This is is a single document corpus. {EOS} "
+                + f"All the lines from this file belong to the same document. {EOS} "
+                + f"And now for something different! {EOS} "
+                + f" {EOS} "
+                + f"PINEAPPLES!!! {EOS} "
                 )
     datafile = DATAFOLDER + "singledoc.txt"
     corpus = Corpus.load_singletxt(datafile)

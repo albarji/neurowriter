@@ -10,7 +10,9 @@ from itertools import chain
 import torch
 from unittest.mock import MagicMock
 
+
 from neurowriter.dataset import Dataset
+from neurowriter.tokenizer import build_tokenizer, START, END
 
 
 CORPUS = [
@@ -19,122 +21,71 @@ CORPUS = [
     "abcdedg 1251957151"
 ]
 
-class MockTokenizer():
-    """Simple tokenizer to use in tests"""
-    def __init__(self):
-        # List of tokens
-        self.encoding = sorted(list(set(
-            chain(*[tokens.split(" ") for tokens in CORPUS], ["[PAD]", "[CLS]", "[SEP]", "[UNK]", "[END]"])
-        )))
-        # Map from tokens to indices
-        self.encoding = {
-            token: idx
-            for idx, token in enumerate(self.encoding)
-        }
-    
-    def encodetext(self, text):
-        tokens = text.split(" ")
-        return [self.encoding[token] for token in tokens]
-
-    def encode_bert(self, tokens, padding=0):
-        x = [self.encoding["[PAD]"]] * padding
-        x += [self.encoding["[CLS]"]] + tokens + [self.encoding["[SEP]"]]
-        mask = [0] * padding + [1] * (len(tokens) + 2)
-        types = [0] * len(x)
-        return x, mask, types
-
-    @property
-    def vocab(self):
-        return self.encoding
 
 def test_patterns():
     """Test a Dataset produces a correct set of patterns"""
-    tokenizer = MockTokenizer()
-    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=1, trainvalratio=1)
+    tokenizer = build_tokenizer()
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, tokenizer, tokensperpattern=4, trainvalratio=1)
 
     # Test train patterns
-    traindata = list(dataset.trainbatches())
     expected = [
         (
-            torch.tensor([tokenizer.encodetext("[PAD] [CLS] [SEP]")]),
-            torch.tensor([[0, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("Glory")[0])])
+            tokenizer.batch_encode_plus(f"{START}", return_tensors="pt"),
+            tokenizer.batch_encode_plus("Glory", return_tensors="pt")
         ),
         (
-            torch.tensor([tokenizer.encodetext("[CLS] to [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("mankind")[0])])
+            tokenizer.batch_encode_plus("to", return_tensors="pt"),
+            tokenizer.batch_encode_plus("mankind", return_tensors="pt")
         ),
         (
-            torch.tensor([tokenizer.encodetext("[PAD] [CLS] [SEP]")]),
-            torch.tensor([[0, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("Endless")[0])])
+            tokenizer.batch_encode_plus(f"{START}", return_tensors="pt"),
+            tokenizer.batch_encode_plus("Endless", return_tensors="pt")
         ),
         (
-            torch.tensor([tokenizer.encodetext("[CLS] forms [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("most")[0])])
+            tokenizer.batch_encode_plus("forms", return_tensors="pt"),
+            tokenizer.batch_encode_plus("most", return_tensors="pt")
         ),
         (
-            torch.tensor([tokenizer.encodetext("[CLS] beautiful [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("[END]")[0])])
+            tokenizer.batch_encode_plus("beautiful", return_tensors="pt"),
+            tokenizer.batch_encode_plus(f"{END}", return_tensors="pt")
         ),
         (
-            torch.tensor([tokenizer.encodetext("[CLS] abcdedg [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("1251957151")[0])])
+            tokenizer.batch_encode_plus("abcdedg", return_tensors="pt"),
+            tokenizer.batch_encode_plus("1251957151", return_tensors="pt")
         )
     ]
 
-    for i in range(len(traindata)):
-        print(f"Expected {expected[i]}")
-        print(f"Obtained {traindata[i]}")
-        assert all(torch.all(t.eq(e)) for t, e in zip(traindata[i], expected[i]))
+    loader = train_dataset.loader(batch_size=1)
+    for real, exp in zip(loader, expected):
+        print(f"Expected {exp}")
+        print(f"Obtained {real}")
+        assert all(torch.all(t.eq(e)) for t, e in zip(real, exp))
 
     # Test validation patterns
     valdata = list(dataset.valbatches())
     expected = [
         (
             torch.tensor([tokenizer.encodetext("[CLS] Glory [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("to")[0])])
         ),
         (
             torch.tensor([tokenizer.encodetext("[CLS] mankind [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("[END]")[0])])
         ),
         (
             torch.tensor([tokenizer.encodetext("[CLS] Endless [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("forms")[0])])
         ),
         (
             torch.tensor([tokenizer.encodetext("[CLS] most [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("beautiful")[0])])
         ),
         (
             torch.tensor([tokenizer.encodetext("[PAD] [CLS] [SEP]")]),
-            torch.tensor([[0, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("abcdedg")[0])])
         ),
         (
             torch.tensor([tokenizer.encodetext("[CLS] 1251957151 [SEP]")]),
-            torch.tensor([[1, 1, 1]]),
-            torch.tensor([[0, 0, 0]]),
             torch.tensor([dataset._idx_to_label(tokenizer.encodetext("[END]")[0])])
         )
     ]
