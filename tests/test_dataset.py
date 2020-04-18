@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 
 
 from neurowriter.dataset import Dataset
-from neurowriter.tokenizer import build_tokenizer, START, END
+from neurowriter.tokenizer import build_tokenizer, CLS, SEP, START, END
 
 
 CORPUS = [
@@ -20,127 +20,100 @@ CORPUS = [
     "Endless forms most beautiful",
     "abcdedg 1251957151"
 ]
+TOKENIZER = None
+TOKENIZED_CORPUS = None
+MASK = None
+
+
+def setup():
+    # Pre-tokenize corpus for test
+    global TOKENIZER, TOKENIZED_CORPUS, MASK
+    TOKENIZER = build_tokenizer()
+    MASK = TOKENIZER.mask_token
+    TOKENIZED_CORPUS = [[START] + TOKENIZER.tokenize(txt, add_special_tokens=False) + [END] for txt in CORPUS]
+
+
+def _assert_equal_batches(expected_batch, real_batch):
+    """Test two batches of patterns are equal"""
+    print(f"Expected {expected_batch}")
+    print(f"Obtained {real_batch}")
+    # Compare X
+    for key in real_batch[0]:
+        assert torch.all(expected_batch[0][key] == real_batch[0][key])
+    # Compare y
+    assert torch.all(expected_batch[1] == real_batch[1])
 
 
 def test_patterns():
     """Test a Dataset produces a correct set of patterns"""
-    tokenizer = build_tokenizer()
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, tokenizer, tokensperpattern=4, trainvalratio=1)
+    # Build data loaders
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=1)
+
+    # Expected patterns for all corpus
+    expected = [
+        (
+            TOKENIZER.batch_encode_plus([(tokenized_doc[:i] + [MASK], None)], return_tensors="pt"),
+            torch.tensor([TOKENIZER.encode(tokenized_doc[i:i+1], add_special_tokens=False)])
+        )
+        for tokenized_doc in TOKENIZED_CORPUS
+        for i in range(1, len(tokenized_doc))
+    ]
 
     # Test train patterns
-    expected = [
-        (
-            tokenizer.batch_encode_plus(f"{START}", return_tensors="pt"),
-            tokenizer.batch_encode_plus("Glory", return_tensors="pt")
-        ),
-        (
-            tokenizer.batch_encode_plus("to", return_tensors="pt"),
-            tokenizer.batch_encode_plus("mankind", return_tensors="pt")
-        ),
-        (
-            tokenizer.batch_encode_plus(f"{START}", return_tensors="pt"),
-            tokenizer.batch_encode_plus("Endless", return_tensors="pt")
-        ),
-        (
-            tokenizer.batch_encode_plus("forms", return_tensors="pt"),
-            tokenizer.batch_encode_plus("most", return_tensors="pt")
-        ),
-        (
-            tokenizer.batch_encode_plus("beautiful", return_tensors="pt"),
-            tokenizer.batch_encode_plus(f"{END}", return_tensors="pt")
-        ),
-        (
-            tokenizer.batch_encode_plus("abcdedg", return_tensors="pt"),
-            tokenizer.batch_encode_plus("1251957151", return_tensors="pt")
-        )
-    ]
-
     loader = train_dataset.loader(batch_size=1)
-    for real, exp in zip(loader, expected):
-        print(f"Expected {exp}")
-        print(f"Obtained {real}")
-        assert all(torch.all(t.eq(e)) for t, e in zip(real, exp))
+    for real_batch, expected_batch in zip(loader, expected[::2]):
+        _assert_equal_batches(expected_batch, real_batch)
 
     # Test validation patterns
-    valdata = list(dataset.valbatches())
-    expected = [
-        (
-            torch.tensor([tokenizer.encodetext("[CLS] Glory [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("to")[0])])
-        ),
-        (
-            torch.tensor([tokenizer.encodetext("[CLS] mankind [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("[END]")[0])])
-        ),
-        (
-            torch.tensor([tokenizer.encodetext("[CLS] Endless [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("forms")[0])])
-        ),
-        (
-            torch.tensor([tokenizer.encodetext("[CLS] most [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("beautiful")[0])])
-        ),
-        (
-            torch.tensor([tokenizer.encodetext("[PAD] [CLS] [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("abcdedg")[0])])
-        ),
-        (
-            torch.tensor([tokenizer.encodetext("[CLS] 1251957151 [SEP]")]),
-            torch.tensor([dataset._idx_to_label(tokenizer.encodetext("[END]")[0])])
-        )
-    ]
-
-    for i in range(len(valdata)):
-        print(f"Expected {expected[i]}")
-        print(f"Obtained {valdata[i]}")
-        assert all(torch.all(t.eq(e)) for t, e in zip(valdata[i], expected[i]))
+    loader = val_dataset.loader(batch_size=1)
+    for real_batch, expected_batch in zip(loader, expected[1::2]):
+        _assert_equal_batches(expected_batch, real_batch)
 
 
 def test_patterns_noval():
     """Test a Dataset produces a correct set of patterns when no validation ratio is provided"""
-    tokenizer = MockTokenizer()
+    # Build data loaders
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=0)
 
-    options = [
-        {"tokensperpattern": 1, "batchsize": 1},
-        {"tokensperpattern": 2, "batchsize": 1},
-        {"tokensperpattern": 1, "batchsize": 2},
-        {"tokensperpattern": 2, "batchsize": 2}
-    ]
+    batch_sizes = [1, 2]
 
-    for opt in options:
-        dataset = Dataset(CORPUS, tokenizer, trainvalratio=0, **opt)
-
-        traindata = list(dataset.trainbatches())
-        valdata = list(dataset.valbatches())
+    for batch_size in batch_sizes:
+        traindata = list(train_dataset.loader(batch_size=batch_size))
+        valdata = list(val_dataset.loader(batch_size=batch_size))
         assert len(traindata) == len(valdata)
 
         for i in range(len(traindata)):
-            print(f"Train data {traindata[i]}")
-            print(f"Validation data {valdata[i]}")
-            assert all(torch.all(t.eq(e)) for t, e in zip(traindata[i], valdata[i]))
+            _assert_equal_batches(traindata[i], valdata[i])
 
 
 def test_len():
-    """Test the dataset returns correct lengths"""
-    tokenizer = MockTokenizer()
+    """Test the dataset returns correct lengths for different batch sizes"""
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=1)
+    assert len(train_dataset) == 10
+    assert len(val_dataset) == 10
+    assert len(list(train_dataset.loader(batch_size=1))) == 10
+    assert len(list(val_dataset.loader(batch_size=1))) == 10
+    assert len(list(train_dataset.loader(batch_size=2))) == 5
+    assert len(list(val_dataset.loader(batch_size=2))) == 5
+    assert len(list(train_dataset.loader(batch_size=3))) == 4
+    assert len(list(val_dataset.loader(batch_size=3))) == 4
 
-    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=1, trainvalratio=3)
-    assert dataset.lenpatterns == 12
-    assert dataset.lentrainbatches == 9
-    assert dataset.lenvalbatches == 3
-    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
-    assert dataset.lenvalbatches == len(list(dataset.valbatches()))
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=3)
+    assert len(train_dataset) == 15
+    assert len(val_dataset) == 5
+    assert len(list(train_dataset.loader(batch_size=1))) == 15
+    assert len(list(val_dataset.loader(batch_size=1))) == 5
+    assert len(list(train_dataset.loader(batch_size=2))) == 8
+    assert len(list(val_dataset.loader(batch_size=2))) == 3
+    assert len(list(train_dataset.loader(batch_size=3))) == 5
+    assert len(list(val_dataset.loader(batch_size=3))) == 2
 
-    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=2, trainvalratio=3)
-    assert dataset.lenpatterns == 12
-    assert dataset.lentrainbatches == 5
-    assert dataset.lenvalbatches == 2
-    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
-    assert dataset.lenvalbatches == len(list(dataset.valbatches()))
-
-    dataset = Dataset(CORPUS, tokenizer, tokensperpattern=1, batchsize=5, trainvalratio=1)
-    assert dataset.lenpatterns == 12
-    assert dataset.lentrainbatches == 2
-    assert dataset.lenvalbatches == 2
-    assert dataset.lentrainbatches == len(list(dataset.trainbatches()))
-    assert dataset.lenvalbatches == len(list(dataset.valbatches()))
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=4)
+    assert len(train_dataset) == 16
+    assert len(val_dataset) == 4
+    assert len(list(train_dataset.loader(batch_size=1))) == 16
+    assert len(list(val_dataset.loader(batch_size=1))) == 4
+    assert len(list(train_dataset.loader(batch_size=2))) == 8
+    assert len(list(val_dataset.loader(batch_size=2))) == 2
+    assert len(list(train_dataset.loader(batch_size=3))) == 6
+    assert len(list(val_dataset.loader(batch_size=3))) == 2

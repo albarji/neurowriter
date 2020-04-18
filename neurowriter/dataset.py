@@ -16,13 +16,13 @@ from torch.utils.data import DataLoader, Dataset as TorchDataset
 from neurowriter.genutils import maskedgenerator
 from neurowriter.tokenizer import START, END
 
-MAX_CONTEXT_BERT = 510  # BERT accepts 512, but we need to account for [CLS] and [SEP] added symbols
+MAX_CONTEXT = 512 # Maximum number of tokens in Transformer models
 
 
 class Dataset(TorchDataset):
     """Class managing dataset creation for training the language generation model"""
 
-    def __init__(self, corpus, tokenizer, tokensperpattern, indices):
+    def __init__(self, corpus, tokenizer, indices):
         """Creates a new Dataset out of a given Corpus and Tokenizer.
         
         Arguments:
@@ -32,7 +32,6 @@ class Dataset(TorchDataset):
             - indices: iterable of indices for the patterns from the corpus that will be used in this dataset
         """
         self.tokenizer = tokenizer
-        self.tokensperpattern = tokensperpattern
         self.tokenized_corpus = self._tokenize_corpus(corpus)
         self._build_indices(indices)
 
@@ -66,21 +65,19 @@ class Dataset(TorchDataset):
         """Returns a dataset pattern (X, y) by index"""
         doc = self.tokenized_corpus[self.indices_docs[index]]
         token_index = self.indices_tokens[index]
-        # Add [MASK] as last token to every text
-        X = doc[:token_index+1] + [self.tokenizer.mask_token_id]
-        #if len(X) > self.tokensperpattern:
-        #    X = X[-self.tokensperpattern:]
+        X = doc[:token_index+1] + [self.tokenizer.mask_token_id] # Add [MASK] as last token to every text
         y = doc[token_index+1]
         return X, y
 
     def _collateX(self, encoded_docs):
         """Collates an iterable of encoded documents into a batch ready for model processing"""
+        # Find length of longest doc, reserving 2 spaces for [CLS] and [SEP] tokens
+        max_length = max([len(encoded_doc) for encoded_doc in encoded_docs]) + 2
+        max_length = min(max_length, MAX_CONTEXT)
         # Prepare tuples (encoded_doc, None), which are required by batch_encode_plus
         tuples = [(encoded_doc, None) for encoded_doc in encoded_docs]
         # Batch encoding
-        # TODO: use a better fit to max_length, instead of using model specific
-        #  We could even get rid of the self.tokensperpattern attribute and use MAX_CONTEXT_BERT as an upper bound
-        tensors = self.tokenizer.batch_encode_plus(tuples, max_length=self.tokensperpattern, pad_to_max_length=True, return_tensors="pt")
+        tensors = self.tokenizer.batch_encode_plus(tuples, max_length=max_length, pad_to_max_length=True, return_tensors="pt")
         return tensors
 
     def _collateXY(self, encoded_docs):
@@ -102,25 +99,18 @@ class Dataset(TorchDataset):
         return DataLoader(self, batch_size=batch_size, collate_fn=collate_fn)
 
     @classmethod
-    def build_datasets(cls, corpus, tokenizer, tokensperpattern, trainvalratio=3):
+    def build_datasets(cls, corpus, tokenizer, trainvalratio=3):
         """Builds training and validation datasets from a given corpus
         Tokenizer
         Arguments:Tokenizer
             - corpus: corpus to build this dataset fromTokenizer
             - tokenizer: tokenizer to process the corpusTokenizer
-            - tokensperpattern: maximum number of previous tokens to be used to predict the current token
             - trainvalratio: ratio between training and validation patterns.
                 trainvalratio=3 means 3 training patterns for each validation pattern.
                 If None or 0, the whole dataset is used both for train and validation
 
         Returns two Dataset objects, one for the training and another for the validation set
         """
-        if tokensperpattern < 1:
-            raise ValueError(f"tokensperpattern must be >= 1, received value was {tokensperpattern}")
-        if tokensperpattern > MAX_CONTEXT_BERT:  
-            logging.warning(f"Context too large, limiting to {MAX_CONTEXT_BERT}")
-            tokensperpattern = MAX_CONTEXT_BERT
-
         # Prepare train/val masks patterns
         if trainvalratio is not None and trainvalratio > 0:
             train_pattern = [1] * trainvalratio + [0]
@@ -137,6 +127,6 @@ class Dataset(TorchDataset):
         val_indices = [i for i, mask in zip(range(length), cycle(val_pattern)) if mask]
 
         # Create Datasets for masked data
-        train_dataset = Dataset(corpus, tokenizer, tokensperpattern, train_indices)
-        val_dataset = Dataset(corpus, tokenizer, tokensperpattern, val_indices)
+        train_dataset = Dataset(corpus, tokenizer, train_indices)
+        val_dataset = Dataset(corpus, tokenizer, val_indices)
         return train_dataset, val_dataset
