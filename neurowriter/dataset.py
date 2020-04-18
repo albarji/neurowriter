@@ -12,8 +12,6 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset as TorchDataset
 
-
-from neurowriter.genutils import maskedgenerator
 from neurowriter.tokenizer import START, END
 
 MAX_CONTEXT = 512 # Maximum number of tokens in Transformer models
