@@ -14,7 +14,7 @@ import math
 import numpy as np
 import os
 import pickle as pkl
-from transformers import AutoModelWithLMHead, AdamW, WarmupLinearSchedule
+from transformers import AutoConfig, AutoModelWithLMHead, AdamW, get_linear_schedule_with_warmup
 from tempfile import NamedTemporaryFile
 import torch
 from torch.nn import CrossEntropyLoss
@@ -22,36 +22,39 @@ import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
-from neurowriter.tokenizer import CLS, SEP, END, EOS
-
-# TODO: use a language model, which predicts for each token the probabilities of each token
-# We should generated the dataset with a [MASK] in the last position, and compute the loss on that token
+from neurowriter.dataset import Dataset
+from neurowriter.tokenizer import build_tokenizer, START, CLS, SEP, END, EOS, MAX_CONTEXT
 
 
 class Model:
     """Implements a text generation model that can be trained with a given Corpus"""
 
-    def __init__(self, tokenizer, dropout=0.1, pretrained_model='bert-base-multilingual-cased'):
+    def __init__(self, pretrained_model='bert-base-multilingual-cased', dropout=0.1):
         """Initializes a new Model. The model must be trained before text generation is possible"""
         self.model = None
         self.labels = []
         self.contextsize = None
-        self.tokenizer = tokenizer
         self.dropout = dropout
         self.pretrained_model = pretrained_model
+        # Build tokenizer
+        self.tokenizer = build_tokenizer(self.pretrained_model)
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logging.info(f"Model device: {self.device}")
+        # Initialize model
+        self.model = self._new_model()
 
-    def _new_model(self, ntokens):
+    def _new_model(self):
         """Initializes a BERT network model and places it in GPU. Returns the created model"""
-        model = AutoModelWithLMHead.from_pretrained(
+        config = AutoConfig.from_pretrained(
             self.pretrained_model,
             hidden_dropout_prob=self.dropout,
             attention_probs_dropout_prob=self.dropout
         )
+        model = AutoModelWithLMHead.from_pretrained(self.pretrained_model, config=config)
         model.to(self.device)
-        # Rearrange embeddings matrix for specified size
-        model.resize_token_embeddings(ntokens)
+        # Rearrange embeddings matrix for tokenizer size
+        model.resize_token_embeddings(len(self.tokenizer))
         return model
 
     def _new_optimizer(self, lr=5e-5):
@@ -61,14 +64,14 @@ class Model:
 
         Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80
         """
-        optimizer = AdamW(distilbert.parameters(), lr=lr, eps=1e-8)
+        optimizer = AdamW(self.model.parameters(), lr=lr, eps=1e-8)
         return optimizer
 
-    def fit(self, dataset, outputdir, maxepochs=3, lr=5e-5, patience=3, min_lr=1e-7, checkpointepochs=10, gradient_accumulation_steps=1):
+    def fit(self, corpus, outputdir, maxepochs=3, lr=5e-5, patience=3, min_lr=1e-7, checkpointepochs=10, gradient_accumulation_steps=1, batch_size=16, trainvalratio=3):
         """Trains a keras model with given parameters
         
         Arguments
-            dataset: dataset to use for training
+            corpus: corpus to use for training
             outputdir: directory in which to save model
             maxepochs: maximum allowed training epochs for each model
             lr: initial learning rate
@@ -76,28 +79,27 @@ class Model:
             min_lr: stop training aftear reaching this learning rate
             checkpointepochs: every checkpointepochs the current model will be saved to disk
             gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
+            batch_size: size of training batches
+            trainvalratio: ratio between training and validation patterns.
         """
-        logging.info(f"Training with batchsize={dataset.batchsize}x{gradient_accumulation_steps}")
-        logging.info(f"Training batches {dataset.lentrainbatches}, validation batches {dataset.lenvalbatches}")
+        logging.info(f"Training with batchsize={batch_size}x{gradient_accumulation_steps}")
         logging.info(f"Initial learning rate {lr}")
 
-        # Check dataset
-        if dataset.lentrainbatches == 0 or dataset.lenvalbatches == 0:
+        # Prepare datasets
+        train_dataset, val_dataset = Dataset.build_datasets(corpus, self.tokenizer, trainvalratio=trainvalratio)
+        if len(train_dataset) == 0 or len(val_dataset) == 0:
             raise ValueError("Insufficient data for training in the current setting")
+        train_loader = train_dataset.loader(batch_size=batch_size)
+        val_loader = val_dataset.loader(batch_size=batch_size)
 
-        # Save dataset info into the model, which will be used later for generation
-        self.contextsize = dataset.tokensperpattern
+        logging.info(f"Training batches {len(train_loader)}, validation batches {len(val_loader)}")
 
-        # Create model and optimizer
-        self.model = self._new_model(dataset.ntokens)
+        # Create optimizer
         optimizer = self._new_optimizer(lr)
 
         # Decreasing learning rate
-        t_total = maxepochs * dataset.lentrainbatches / gradient_accumulation_steps
-        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
-
-        # Loss
-        loss_function = CrossEntropyLoss().to(self.device)
+        t_total = maxepochs * len(train_loader) / gradient_accumulation_steps
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps = t_total)
 
         logging.info(f"Training starts")
         global_step = 0
@@ -106,21 +108,14 @@ class Model:
         no_improvement = 0
         best_model = self.model
         self.model.zero_grad()
-        for epoch in tqdm(range(maxepochs), desc="Epoch", total=maxepochs):
+        for epoch in tqdm(range(maxepochs), desc="Training", total=maxepochs):
             train_loss = 0
             self.model.train()
-            batch_iterator = tqdm(dataset.loader(batch_size=self.batch_size), desc="Batch", total=dataset.lentrainbatches)
+            batch_iterator = tqdm(train_loader, desc=f"Training epoch {epoch}", total=len(train_loader))
             for step, batch in enumerate(batch_iterator):
-                print(f"Step {step}, batch {batch}")
-                X, y = batch
-                # TODO: move X, y to GPU
-                # Forward pass through network
-                ouputs = model(**X)
-                probabilities = ouputs[0]
-                model_loss = loss_function(probabilities, Y)
+                model_loss = self._process_batch(batch)
                 train_loss += model_loss.item()
                 model_loss /= gradient_accumulation_steps
-                print(f"Model loss {model_loss}")
 
                 # Backpropagation
                 model_loss.backward()
@@ -128,7 +123,6 @@ class Model:
 
                 # Model update
                 if (step + 1) % gradient_accumulation_steps == 0:
-                    print(f"Model update at step {step}")  # FIXME
                     scheduler.step()
                     optimizer.step()
                     self.model.zero_grad()
@@ -137,9 +131,9 @@ class Model:
             # TODO: change loss estimation, evaluation and checkpointing to operate in terms of global_step instead of epochs
             #  That makes more sense because fine-tuning a BERT model for state-of-the-art tasks requires just about 3 epochs
 
-            train_loss /= dataset.lentrainbatches
+            train_loss /= len(train_loader)
             # Measure loss in validation set
-            eval_loss = self.eval(self.model, dataset)
+            eval_loss = self._eval(val_loader)
 
             # Reports
             current_lr = scheduler.get_lr()[0]
@@ -148,7 +142,7 @@ class Model:
             logging.info(f"eval_loss={eval_loss}")
 
             # Generation sample
-            sample = self.generate(self.tokenizer)
+            sample = self.generate()
             logging.info(f"Generation sample: {sample}")
 
             # Save model checkpoint
@@ -190,7 +184,7 @@ class Model:
 
         References: 
             https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
-            https://github.com/davidtvs/pytorch-lr-finder
+            https://github.com/davidtvs/pytorch-lr-finderdataset.lenvalbatches
         """
         provmodel = self._new_model(dataset.ntokens)
         optimizer = self._new_optimizer()
@@ -238,37 +232,34 @@ class Model:
         lr_smallest = lr_values[np.argmin(losses)]
         return lr_smallest / 10
 
-
-    def eval(self, model, dataset):
-        """Evaluates the performance of a model in a given dataset. The validation part of the dataset is used"""
+    def _eval(self, val_loader):
+        """Evaluates the performance of a model in a given validation dataset loader"""
         # Evaluation all data batches
         eval_loss = 0.0
         nb_eval_steps = 0
         self.model.eval()
         with torch.no_grad():
-            for batch in tqdm(dataset.valbatches(), desc="Evaluation batch", total=dataset.lenvalbatches):
-                tmp_eval_loss = self._process_batch(model, batch)
+            for batch in tqdm(val_loader, desc="Evaluation batch", total=len(val_loader)):
+                tmp_eval_loss = self._process_batch(batch)
                 eval_loss += tmp_eval_loss.mean().item()
                 nb_eval_steps += 1
 
         eval_loss /= nb_eval_steps
         return eval_loss
 
-    def _process_batch(self, model, batch):
+    def _process_batch(self, batch):
         """Processes a batch of data through the model, return the model loss for that batch"""
-        batch = tuple(t.to(self.device) for t in batch)
-        inputs = {'input_ids':      batch[0],
-                    'attention_mask': batch[1],
-                    'token_type_ids': batch[2],
-                    'labels':         batch[3]}
-        ouputs = model(**inputs)
-        return ouputs[0]
+        # Move tensors GPU
+        for key in batch:
+            batch[key] = batch[key].to(self.device)
+        # Forward pass through network
+        outputs = self.model(**batch)
+        return outputs[0]
 
-    def generate(self, tokenizer, seed="", maxlength=100, temperature=1, top_k=0, top_p=0.9, appendseed=False):
+    def generate(self, seed="", maxlength=100, temperature=1, top_k=0, top_p=0.9, appendseed=False):
         """Generates text using this trained model
 
         Arguments
-            - tokenizer: tokenizer to use to split text.
             - seed: text seed to initialize generator. Default: empty string
             - maxlength: maximum length of generated text.
             - temperature: temperature of modified softmax, can be understood as the level of creativity
@@ -276,36 +267,33 @@ class Model:
             - top_p: keep the top tokens with cumulative probability >= top_p (nucleus filtering).
             - appendseed: whether to append the given seed to the beginning of the returned generated text
         """
-        tokenized_context = tokenizer.encodetext(seed)
-        generated = []
         self.model.eval()
 
-        # Pretokenize some special symbols
-        ENDidx = tokenizer.encodetext(END)[0]
+        # Prepare some pre-encoded tokens
+        ENDidx = self.tokenizer.encode(END, add_special_tokens=False)[0]
+
+        # Prepare seed text
+        encoded_context = self.tokenizer.encode(f"{START} {seed}", add_special_tokens=False)
+        generated = []
 
         for _ in range(maxlength):
-            tokens, mask, types = tokenizer.encode_bert(tokenized_context)
-            inputs = {
-                'input_ids':      torch.tensor([tokens]).to(self.device),
-                'attention_mask': torch.tensor([mask]).to(self.device),
-                'token_type_ids': torch.tensor([types]).to(self.device)
-            }
+            inputs = self.tokenizer.encode_plus(encoded_context + [self.tokenizer.mask_token_id], return_tensors="pt")
             with torch.no_grad():
-                logits = self.model(**inputs)[0].reshape(-1)
+                logits = self.model(**inputs)[0][0][-2]  # Token probabilities for MASK token
                 logits = logits / temperature
                 filtered_logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)
                 log_probs = F.softmax(filtered_logits, dim=-1)
                 predicted_index = torch.multinomial(log_probs, num_samples=1)[0].tolist()
-                predicted_index = self.labels[predicted_index]
                 # Stop if END token generated
                 if predicted_index == ENDidx:
                     break
-                tokenized_context.append(predicted_index)
+                encoded_context.append(predicted_index)
                 generated.append(predicted_index)
-            if len(tokenized_context) > self.contextsize:
-                tokenized_context.pop(0)
+            # Clip context if too large
+            if len(encoded_context) + 3 > MAX_CONTEXT:  # length + MASK + CLS + SEP
+                encoded_context.pop(0)
 
-        generatedtxt = tokenizer.decodeindexes(generated)
+        generatedtxt = self.tokenizer.decode(generated)
         # Replace EOS with newlines
         generatedtxt = generatedtxt.replace(EOS, "\n")
         # Append seed (if requested)

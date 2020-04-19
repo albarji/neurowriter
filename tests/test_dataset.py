@@ -37,11 +37,9 @@ def _assert_equal_batches(expected_batch, real_batch):
     """Test two batches of patterns are equal"""
     print(f"Expected {expected_batch}")
     print(f"Obtained {real_batch}")
-    # Compare X
-    for key in real_batch[0]:
-        assert torch.all(expected_batch[0][key] == real_batch[0][key])
-    # Compare y
-    assert torch.all(expected_batch[1] == real_batch[1])
+    # Compare all batch fields
+    for key in expected_batch:
+        assert torch.all(expected_batch[key] == real_batch[key])
 
 
 def test_patterns():
@@ -51,10 +49,10 @@ def test_patterns():
 
     # Expected patterns for all corpus
     expected = [
-        (
-            TOKENIZER.batch_encode_plus([(tokenized_doc[:i] + [MASK], None)], return_tensors="pt"),
-            torch.tensor([TOKENIZER.encode(tokenized_doc[i:i+1], add_special_tokens=False)])
-        )
+        {
+            **TOKENIZER.batch_encode_plus([(tokenized_doc[:i] + [MASK], None)], return_tensors="pt"),
+            "masked_lm_labels": torch.tensor([-100] * (len(tokenized_doc[:i]) + 1) + TOKENIZER.encode(tokenized_doc[i:i+1], add_special_tokens=False) + [-100])
+        }
         for tokenized_doc in TOKENIZED_CORPUS
         for i in range(1, len(tokenized_doc))
     ]

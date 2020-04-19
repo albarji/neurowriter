@@ -12,9 +12,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset as TorchDataset
 
-from neurowriter.tokenizer import START, END
-
-MAX_CONTEXT = 512 # Maximum number of tokens in Transformer models
+from neurowriter.tokenizer import START, END, MAX_CONTEXT
 
 
 class Dataset(TorchDataset):
@@ -83,9 +81,15 @@ class Dataset(TorchDataset):
         
         The last token in each text is used as the target.
         """
-        X = self._collateX([x for x, _ in encoded_docs])
-        Y = torch.tensor([y for _, y in encoded_docs])
-        return X, Y
+        batch = self._collateX([x for x, _ in encoded_docs])
+        # To make use of the Language Model loss function we need to mark the correct output token for each input token 
+        # Special value -100 ignores that token in the loss calculation
+        batch["masked_lm_labels"] = torch.tensor([-100]).repeat(batch["input_ids"].shape)
+        # We just activate masked tokens for the loss funcion
+        for i in range(len(batch["input_ids"])):
+            mask_index = torch.nonzero(batch["input_ids"][i] == self.tokenizer.mask_token_id)[0][0]
+            _, batch["masked_lm_labels"][i][mask_index] = encoded_docs[i]
+        return batch
 
     def loader(self, batch_size=8, include_targets=True):
         """Returns a Torch DataLoader for this Dataset"""

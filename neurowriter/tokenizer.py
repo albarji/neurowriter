@@ -26,6 +26,8 @@ END = "[END]"
 EOS = "[EOS]"
 # Dictionary of all special tokens
 SPECIAL_TOKENS = [PAD, CLS, SEP, UNK, START, END, EOS]
+# Maximum number of tokens in Transformer models
+MAX_CONTEXT = 512
 
 
 def build_tokenizer(pretrained_model='bert-base-multilingual-cased'):

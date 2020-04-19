@@ -36,7 +36,7 @@ def test_reversible_encoding():
 
 
 def test_added_tokens():
-    """Encoding a sentence with special added tokesn keeps them as a single token"""
+    """Encoding a sentence with special added tokens keeps them as a single token"""
     tokenizer = build_tokenizer()
     special_tokens = [EOS, START, END]
     for special_token in special_tokens:
