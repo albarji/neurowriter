@@ -32,8 +32,6 @@ class Model:
     def __init__(self, pretrained_model='bert-base-multilingual-cased', dropout=0.1):
         """Initializes a new Model. The model must be trained before text generation is possible"""
         self.model = None
-        self.labels = []
-        self.contextsize = None
         self.dropout = dropout
         self.pretrained_model = pretrained_model
         # Build tokenizer
@@ -76,7 +74,7 @@ class Model:
             maxepochs: maximum allowed training epochs for each model
             lr: initial learning rate
             patience: number of epochs without improvement for model backtracking and lr reduction
-            min_lr: stop training aftear reaching this learning rate
+            min_lr: stop training after reaching this learning rate
             checkpointepochs: every checkpointepochs the current model will be saved to disk
             gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
             batch_size: size of training batches
@@ -165,9 +163,9 @@ class Model:
                     logging.info(f"Minimum learning rate {min_lr} reached, stopping training")
                     break
                 self.model = best_model
-                optimizer = self._new_optimizer(self.model, current_lr)
-                t_total = (maxepochs - epoch+1) * dataset.lentrainbatches / gradient_accumulation_steps
-                scheduler = WarmupLinearSchedule(optimizer, warmup_steps=0, t_total=t_total)
+                optimizer = self._new_optimizer(current_lr)
+                t_total = (maxepochs - epoch+1) * len(train_loader) / gradient_accumulation_steps
+                scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps = t_total)
                 no_improvement = 0
 
         # Save best model
@@ -307,31 +305,19 @@ class Model:
         return generatedtxt
 
     def save(self, savefolder):
-        """Saves the model into the given folder
-        
-        Saves both the model weights and the assignment between tokenizer indexes 
-        and the train dataset metadata
-        """
+        """Saves the model into the given folder"""
         if not os.path.exists(savefolder):
             os.makedirs(savefolder)
         # Save model
         model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  #todo Take care of distributed/parallel training
         model_to_save.save_pretrained(savefolder)
-        # Save labels
-        metadata = (self.labels, self.contextsize)
-        with open(os.path.join(savefolder, 'labels.pkl'), 'wb') as f:
-            pkl.dump(metadata, f)
 
     @classmethod
     def load(cls, loadfolder):
         """Loads a model from the given folder"""
         model = Model()
 
-        # Load labels
-        with open(os.path.join(loadfolder, 'labels.pkl'), 'rb') as f:
-            metadata = pkl.load(f)
-        model.labels, model.contextsize = metadata
-
+        # TODO: load correct model
         model.model = BertForSequenceClassification.from_pretrained(loadfolder, num_labels=len(model.labels))
         model.model.to(model.device)
 
