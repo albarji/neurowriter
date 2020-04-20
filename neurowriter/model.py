@@ -277,6 +277,9 @@ class Model:
         for _ in range(maxlength):
             inputs = self.tokenizer.encode_plus(encoded_context + [self.tokenizer.mask_token_id], return_tensors="pt")
             with torch.no_grad():
+                # Move tensors GPU
+                for key in inputs:
+                    inputs[key] = inputs[key].to(self.device)
                 logits = self.model(**inputs)[0][0][-2]  # Token probabilities for MASK token
                 logits = logits / temperature
                 filtered_logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)
