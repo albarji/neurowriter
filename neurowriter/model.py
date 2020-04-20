@@ -308,20 +308,11 @@ class Model:
         """Saves the model into the given folder"""
         if not os.path.exists(savefolder):
             os.makedirs(savefolder)
+        # Save tokenizer
+        self.tokenizer.save_pretrained(savefolder)
         # Save model
         model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  #todo Take care of distributed/parallel training
         model_to_save.save_pretrained(savefolder)
-
-    @classmethod
-    def load(cls, loadfolder):
-        """Loads a model from the given folder"""
-        model = Model()
-
-        # TODO: load correct model
-        model.model = BertForSequenceClassification.from_pretrained(loadfolder, num_labels=len(model.labels))
-        model.model.to(model.device)
-
-        return model
 
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):

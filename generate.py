@@ -8,18 +8,16 @@ import argparse
 from itertools import count
 
 from neurowriter.model import Model
-from neurowriter.tokenizer import Tokenizer
 
 
 def generate(modelfolder, seed, temperature, maxdocuments=None, maxtokens=1000):
     """Generates text using a pre-trained model and a seed text"""
-    # Load resources
-    tokenizer = Tokenizer()
-    model = Model.load(modelfolder)
+    # Load model
+    model = Model(modelfolder)
 
     # Text generation
     for generated_documents in count(start=1):
-        print(model.generate(tokenizer, seed=seed, temperature=temperature, appendseed=True, maxlength=maxtokens))
+        print(model.generate(seed=seed, temperature=temperature, appendseed=True, maxlength=maxtokens))
         if maxdocuments is not None and generated_documents >= maxdocuments:
             break
 
