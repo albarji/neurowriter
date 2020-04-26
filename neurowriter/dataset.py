@@ -69,7 +69,10 @@ class Dataset(TorchDataset):
         """Collates an iterable of encoded documents into a batch ready for model processing"""
         # Find length of longest doc, reserving 2 spaces for [CLS] and [SEP] tokens
         max_length = max([len(encoded_doc) for encoded_doc in encoded_docs]) + 2
-        max_length = min(max_length, MAX_CONTEXT)
+        # If some doc is over the limit, truncate by dropping tokens from the left
+        if max_length > MAX_CONTEXT:
+            encoded_docs = [encoded_doc[-MAX_CONTEXT+2:] for encoded_doc in encoded_docs]
+            max_length = MAX_CONTEXT
         # Prepare tuples (encoded_doc, None), which are required by batch_encode_plus
         tuples = [(encoded_doc, None) for encoded_doc in encoded_docs]
         # Batch encoding
@@ -129,6 +132,9 @@ class Dataset(TorchDataset):
         val_indices = [i for i, mask in zip(range(length), cycle(val_pattern)) if mask]
 
         # Create Datasets for masked data
+        # TODO: this is slow, because the corpus is tokenized twice. 
+        # Change __init__ so it accepts a pre-tokenized corpus
+        # Also check if we can use the Rust tokenizer, which is way faster
         train_dataset = Dataset(corpus, tokenizer, train_indices)
         val_dataset = Dataset(corpus, tokenizer, val_indices)
         return train_dataset, val_dataset

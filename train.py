@@ -26,7 +26,8 @@ def run_train(corpus, corpusformat, outputdir, pretrained_model, maxepochs, chec
     logging.info("Training model...")
     model = Model(pretrained_model=pretrained_model)
     model.fit(corpus, outputdir, maxepochs=maxepochs, checkpointepochs=checkpointepochs, 
-        gradient_accumulation_steps=gradaccsteps, patience=patience, batch_size=batchsize)
+        gradient_accumulation_steps=gradaccsteps, patience=patience, batch_size=batchsize,
+        trainvalratio=trainvalratio)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Neurowriter model")
