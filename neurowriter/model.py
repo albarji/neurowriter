@@ -84,6 +84,7 @@ class Model:
         logging.info(f"Initial learning rate {lr}")
 
         # Prepare datasets
+        logging.info(f"Building training datasets...")
         train_dataset, val_dataset = Dataset.build_datasets(corpus, self.tokenizer, trainvalratio=trainvalratio)
         if len(train_dataset) == 0 or len(val_dataset) == 0:
             raise ValueError("Insufficient data for training in the current setting")

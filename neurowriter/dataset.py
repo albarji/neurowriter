@@ -18,40 +18,30 @@ from neurowriter.tokenizer import START, END, MAX_CONTEXT
 class Dataset(TorchDataset):
     """Class managing dataset creation for training the language generation model"""
 
-    def __init__(self, corpus, tokenizer, indices):
+    def __init__(self, tokenized_corpus, tokenizer, indices):
         """Creates a new Dataset out of a given Corpus and Tokenizer.
         
         Arguments:
-            - corpus: corpus to build this dataset from
-            - tokenizer: tokenizer to process the corpus
+            - tokenized_corpus: tokenized corpus to build this dataset from
+            - tokenizer: tokenizer used process the corpus
             - tokensperpattern: maximum number of previous tokens to be used to predict the current token
             - indices: iterable of indices for the patterns from the corpus that will be used in this dataset
         """
         self.tokenizer = tokenizer
-        self.tokenized_corpus = self._tokenize_corpus(corpus)
+        self.tokenized_corpus = tokenized_corpus
         self._build_indices(indices)
-
-    def _tokenize_corpus(self, corpus):
-        """Pre-tokenizes a corpus for faster pattern generation
-        
-        Also adds the special BEGIN and END tokens
-        """
-        return [
-            self.tokenizer.encode(f"{START} {doc} {END}", add_special_tokens=False)
-            for doc in corpus
-        ]
 
     def _build_indices(self, indices):
         """Build fast document->token indices to allow fast retrieval of patterns"""
-        i = 0
-        self.indices_docs = []
-        self.indices_tokens = []
-        for doc_index, doc in enumerate(self.tokenized_corpus):
-            for token_index in range(len(doc) - 1):
-                if i in indices:
-                    self.indices_docs.append(doc_index)
-                    self.indices_tokens.append(token_index)
-                i += 1
+        # Generate full indices
+        all_indices = [
+            (doc_index, token_index) 
+            for doc_index, doc in enumerate(self.tokenized_corpus) 
+            for token_index in range(len(doc) - 1)
+        ]
+        # Filter with indices mask
+        filtered_indices = np.array(all_indices)[indices]
+        self.indices_docs, self.indices_tokens = zip(*filtered_indices)
 
     def __len__(self):
         """Number of patterns in the dataset"""
@@ -122,19 +112,22 @@ class Dataset(TorchDataset):
             val_pattern = [0] * trainvalratio + [1]
         else:
             train_pattern = val_pattern = [1]
-        
+
+        # Pre-tokenize corpus
+        tokenized_corpus = [
+            tokenizer.encode(f"{START} {doc} {END}", add_special_tokens=False)
+            for doc in corpus
+        ]
+
         # Measure total dataset length
-        # From each document we will predict all tokens + [END] token
-        length = sum([len(doc) + 1 for doc in corpus])
+        # From each document we will predict all tokens except the [START] token
+        length = sum([len(tokenized_doc) - 1 for tokenized_doc in tokenized_corpus])
 
         # Generate full training/validation masks
         train_indices = [i for i, mask in zip(range(length), cycle(train_pattern)) if mask]
         val_indices = [i for i, mask in zip(range(length), cycle(val_pattern)) if mask]
 
         # Create Datasets for masked data
-        # TODO: this is slow, because the corpus is tokenized twice. 
-        # Change __init__ so it accepts a pre-tokenized corpus
-        # Also check if we can use the Rust tokenizer, which is way faster
-        train_dataset = Dataset(corpus, tokenizer, train_indices)
-        val_dataset = Dataset(corpus, tokenizer, val_indices)
+        train_dataset = Dataset(tokenized_corpus, tokenizer, train_indices)
+        val_dataset = Dataset(tokenized_corpus, tokenizer, val_indices)
         return train_dataset, val_dataset
