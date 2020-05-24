@@ -25,7 +25,7 @@ def run_train(corpus, corpusformat, outputdir, pretrained_model, special_tokens_
     # Load special tokens list
     if special_tokens_file is not None:
         with open(special_tokens_file, "r") as f:
-            special_tokens = f.readlines()
+            special_tokens = f.read().splitlines()
     else:
         special_tokens = []
 
