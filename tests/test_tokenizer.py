@@ -42,3 +42,12 @@ def test_added_tokens():
     for special_token in special_tokens:
         encoded = tokenizer.encode(special_token, add_special_tokens=False)
         assert len(encoded) == 1
+
+
+def test_special_tokens():
+    """Providing a list of special tokens makes those tokens unbreakable when tokenizing"""
+    special_tokens = ["[SOMESPECIAL]", "[ANOTHER_SPECIAL]"]
+    tokenizer = build_tokenizer(special_tokens=special_tokens)
+    for special_token in special_tokens:
+        encoded = tokenizer.encode(special_token, add_special_tokens=False)
+        assert len(encoded) == 1

@@ -29,13 +29,13 @@ from neurowriter.tokenizer import build_tokenizer, START, CLS, SEP, END, EOS, MA
 class Model:
     """Implements a text generation model that can be trained with a given Corpus"""
 
-    def __init__(self, pretrained_model='bert-base-multilingual-cased', dropout=0.1):
+    def __init__(self, pretrained_model='bert-base-multilingual-cased', special_tokens=[], dropout=0.1):
         """Initializes a new Model. The model must be trained before text generation is possible"""
         self.model = None
         self.dropout = dropout
         self.pretrained_model = pretrained_model
         # Build tokenizer
-        self.tokenizer = build_tokenizer(self.pretrained_model)
+        self.tokenizer = build_tokenizer(self.pretrained_model, special_tokens=special_tokens)
         # Prepare GPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logging.info(f"Model device: {self.device}")
@@ -82,6 +82,10 @@ class Model:
         """
         logging.info(f"Training with batchsize={batch_size}x{gradient_accumulation_steps}")
         logging.info(f"Initial learning rate {lr}")
+
+        # Check arguments
+        if checkpointepochs < 1:
+            raise ValueError(f"checkpointepochs must be 1 or larger, received value {checkpointepochs}")
 
         # Prepare datasets
         logging.info(f"Building training datasets...")
@@ -255,7 +259,7 @@ class Model:
         outputs = self.model(**batch)
         return outputs[0]
 
-    def generate(self, seed="", maxlength=100, temperature=1, top_k=0, top_p=0.9, appendseed=False):
+    def generate(self, seed="", maxlength=512, temperature=1, top_k=0, top_p=0.9, appendseed=False):
         """Generates text using this trained model
 
         Arguments

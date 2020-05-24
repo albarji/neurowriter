@@ -14,17 +14,24 @@ logging.basicConfig(
 )
 
 
-def run_train(corpus, corpusformat, outputdir, pretrained_model, maxepochs, checkpointepochs, trainvalratio,
-              batchsize, gradaccsteps, patience):
+def run_train(corpus, corpusformat, outputdir, pretrained_model, special_tokens_file, maxepochs, checkpointepochs, 
+        trainvalratio, batchsize, gradaccsteps, patience):
     """Trains a Neurowriter model"""
     # Load corpus
     logging.info("Loading corpus...")
     corpus = FORMATTERSBYNAME[corpusformat](corpus)
     logging.info(f"Corpus sample: {corpus[0][0:1000]}")
 
+    # Load special tokens list
+    if special_tokens_file is not None:
+        with open(special_tokens_file, "r") as f:
+            special_tokens = f.readlines()
+    else:
+        special_tokens = []
+
     # Model training
     logging.info("Training model...")
-    model = Model(pretrained_model=pretrained_model)
+    model = Model(pretrained_model=pretrained_model, special_tokens=special_tokens)
     model.fit(corpus, outputdir, maxepochs=maxepochs, checkpointepochs=checkpointepochs, 
         gradient_accumulation_steps=gradaccsteps, patience=patience, batch_size=batchsize,
         trainvalratio=trainvalratio)
@@ -35,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("corpusformat", type=str, help="Format of corpus file: " + str(list(FORMATTERSBYNAME)))
     parser.add_argument("outputdir", type=str, help="Directory in which to save trained models")
     parser.add_argument("--pretrained_model", type=str, default="bert-base-multilingual-cased", help="Pretrained Transformers model to use as base")
+    parser.add_argument("--special_tokens_file", type=str, default=None, help="File with special symbols to add as tokens to the tokenizer, one symbol per line")
     parser.add_argument("--maxepochs", type=int, default=100, help="Maximum epochs to run model training")
     parser.add_argument("--checkpointepochs", type=int, default=10, help="Create a model checkpoint every n epochs")
     parser.add_argument("--trainvalratio", type=int, default=3, 
@@ -44,6 +52,6 @@ if __name__ == "__main__":
     parser.add_argument("--patience", type=int, default=3, help="Wait this many epochs without improvement to stop training")
     args = parser.parse_args()
 
-    run_train(args.corpus, args.corpusformat, args.outputdir, pretrained_model=args.pretrained_model, maxepochs=args.maxepochs,
-              checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio, batchsize=args.batchsize,
-              gradaccsteps=args.gradaccsteps, patience=args.patience)
+    run_train(args.corpus, args.corpusformat, args.outputdir, pretrained_model=args.pretrained_model, special_tokens_file=args.special_tokens_file,
+        maxepochs=args.maxepochs, checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio, batchsize=args.batchsize,
+        gradaccsteps=args.gradaccsteps, patience=args.patience)
