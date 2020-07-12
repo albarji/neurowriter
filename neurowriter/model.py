@@ -8,21 +8,14 @@ Module for creating, training and applying generation models.
 @author: Álvaro Barbero Jiménez
 """
 
-import copy
 import logging
-import math
 import numpy as np
 import os
-import pickle as pkl
-from transformers import AutoConfig, AutoModelWithLMHead, AdamW, get_linear_schedule_with_warmup
-from tempfile import NamedTemporaryFile
+from transformers import AutoConfig, AutoModelForMaskedLM, Trainer, TrainingArguments
 import torch
-from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from tqdm import tqdm
 
-from neurowriter.dataset import Dataset
+from neurowriter.dataset import Dataset, TextGenerationCollator
 from neurowriter.tokenizer import build_tokenizer, START, CLS, SEP, END, EOS, MAX_CONTEXT
 
 
@@ -49,33 +42,18 @@ class Model:
             hidden_dropout_prob=self.dropout,
             attention_probs_dropout_prob=self.dropout
         )
-        model = AutoModelWithLMHead.from_pretrained(self.pretrained_model, config=config)
+        model = AutoModelForMaskedLM.from_pretrained(self.pretrained_model, config=config)
         model.to(self.device)
         # Rearrange embeddings matrix for tokenizer size
         model.resize_token_embeddings(len(self.tokenizer))
         return model
 
-    def _new_optimizer(self, lr=5e-5):
-        """Creates a new optimizer for a given model
-
-        Returns the created model
-
-        Reference: https://github.com/huggingface/pytorch-transformers/blob/master/examples/run_glue.py#L80
-        """
-        optimizer = AdamW(self.model.parameters(), lr=lr, eps=1e-8)
-        return optimizer
-
-    def fit(self, corpus, outputdir, maxepochs=3, lr=5e-5, patience=3, min_lr=1e-7, checkpointepochs=10, gradient_accumulation_steps=1, batch_size=16, trainvalratio=3):
+    def fit(self, corpus, outputdir, max_steps=1000, checkpointsteps=100, lr=5e-5, gradient_accumulation_steps=1, batch_size=16, trainvalratio=3):
         """Trains a keras model with given parameters
-        
-        Arguments
-            corpus: corpus to use for training
-            outputdir: directory in which to save model
-            maxepochs: maximum allowed training epochs for each model
+        from transformers import TrainingArguments
+            max_steps: maximum allowed training steps for model training
+            checkpointsteps: after how many steps a checkpoint of the model will be written down to disk
             lr: initial learning rate
-            patience: number of epochs without improvement for model backtracking and lr reduction
-            min_lr: stop training after reaching this learning rate
-            checkpointepochs: every checkpointepochs the current model will be saved to disk
             gradient_accumulation_steps: accumulate gradient along n batches. Allows large batch traing with small GPUs
             batch_size: size of training batches
             trainvalratio: ratio between training and validation patterns.
@@ -83,181 +61,52 @@ class Model:
         logging.info(f"Training with batchsize={batch_size}x{gradient_accumulation_steps}")
         logging.info(f"Initial learning rate {lr}")
 
-        # Check arguments
-        if checkpointepochs < 1:
-            raise ValueError(f"checkpointepochs must be 1 or larger, received value {checkpointepochs}")
-
         # Prepare datasets
         logging.info(f"Building training datasets...")
         train_dataset, val_dataset = Dataset.build_datasets(corpus, self.tokenizer, trainvalratio=trainvalratio)
-        if len(train_dataset) == 0 or len(val_dataset) == 0:
+        if len(train_dataset) == 0:
             raise ValueError("Insufficient data for training in the current setting")
-        train_loader = train_dataset.loader(batch_size=batch_size)
-        val_loader = val_dataset.loader(batch_size=batch_size)
 
-        logging.info(f"Training batches {len(train_loader)}, validation batches {len(val_loader)}")
+        logging.info(f"Training patterns {len(train_dataset)}")
+        if val_dataset is not None:
+            logging.info(f"Validation patterns {len(val_dataset)}")
 
-        # Create optimizer
-        optimizer = self._new_optimizer(lr)
+        # Prepare data collator
+        collator = TextGenerationCollator(self.tokenizer, self.device)
 
-        # Decreasing learning rate
-        t_total = maxepochs * len(train_loader) / gradient_accumulation_steps
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps = t_total)
+        # Prepare training arguments
+        training_args = TrainingArguments(
+            output_dir=outputdir,  # Folder in which to save the trained model
+            overwrite_output_dir=True,  # Whether to overwrite previous models found in the output folder
+            per_gpu_train_batch_size=batch_size,  # batch size during training
+            per_gpu_eval_batch_size=128,  # batch size during evaluation (prediction)
+            max_steps=max_steps,  # Model training steps
+            logging_steps=100,  # After how many training steps (batches) a log message showing progress will be printed
+            save_steps=checkpointsteps,  # After how many training steps (batches) the model will be checkpointed to disk
+            gradient_accumulation_steps=gradient_accumulation_steps,
+        )
 
-        logging.info(f"Training starts")
-        global_step = 0
-        best_eval_loss = math.inf
-        best_lr = lr
-        no_improvement = 0
-        best_model = self.model
-        self.model.zero_grad()
-        for epoch in tqdm(range(maxepochs), desc="Training", total=maxepochs):
-            train_loss = 0
-            self.model.train()
-            batch_iterator = tqdm(train_loader, desc=f"Training epoch {epoch}", total=len(train_loader))
-            for step, batch in enumerate(batch_iterator):
-                model_loss = self._process_batch(batch)
-                train_loss += model_loss.item()
-                model_loss /= gradient_accumulation_steps
+        # Prepare Trainer object
+        trainer = Trainer(
+            model=self.model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=val_dataset,
+            data_collator=collator
+        )
 
-                # Backpropagation
-                model_loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+        # Save tokenizer
+        self.tokenizer.save_pretrained(outputdir)
 
-                # Model update
-                if (step + 1) % gradient_accumulation_steps == 0:
-                    scheduler.step()
-                    optimizer.step()
-                    self.model.zero_grad()
-                    global_step += 1
+        # Train!
+        trainer.train()
 
-            # TODO: change loss estimation, evaluation and checkpointing to operate in terms of global_step instead of epochs
-            #  That makes more sense because fine-tuning a BERT model for state-of-the-art tasks requires just about 3 epochs
-
-            train_loss /= len(train_loader)
-            # Measure loss in validation set
-            eval_loss = self._eval(val_loader)
-
-            # Reports
-            current_lr = scheduler.get_lr()[0]
-            logging.info(f"lr={current_lr}")
-            logging.info(f"train_loss={train_loss}")
-            logging.info(f"eval_loss={eval_loss}")
-
-            # Generation sample
-            sample = self.generate()
-            logging.info(f"Generation sample: {sample}")
-
-            # Save model checkpoint
-            if checkpointepochs is not None and epoch % checkpointepochs == 0:
-                check_dir = os.path.join(outputdir, 'checkpoint-{}'.format(epoch))
-                self.save(check_dir)
-
-            # Check early stopping
-            if eval_loss < best_eval_loss:
-                best_eval_loss = eval_loss
-                no_improvement = 0
-                best_model = copy.deepcopy(self.model)
-                best_lr = current_lr
-            else:
-                no_improvement += 1
-            if no_improvement >= patience:
-                logging.info(f"No improvement after {patience} epochs, backtracking training and continuing with reduced lr")
-                current_lr = best_lr = best_lr/10
-                if current_lr < min_lr:
-                    logging.info(f"Minimum learning rate {min_lr} reached, stopping training")
-                    break
-                self.model = best_model
-                optimizer = self._new_optimizer(current_lr)
-                t_total = (maxepochs - epoch+1) * len(train_loader) / gradient_accumulation_steps
-                scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps = t_total)
-                no_improvement = 0
-
-        # Save best model
-        self.model = best_model
-        model_dir = os.path.join(outputdir, 'best')
-        self.save(model_dir)
+        # Save model
+        self.model.save_pretrained(outputdirPero en general, digamos que mi sensación es que la cosa empieza bien)
 
         logging.info(f"Training finished")
 
         return self
-
-    def _find_lr(self, dataset, gradient_accumulation_steps=1, init_value = -8, final_value=1., beta = 0.98):
-        """Finds a good learning rate by following a fastai heuristic.
-
-        References: 
-            https://sgugger.github.io/how-do-you-find-a-good-learning-rate.html
-            https://github.com/davidtvs/pytorch-lr-finderdataset.lenvalbatches
-        """
-        provmodel = self._new_model(dataset.ntokens)
-        optimizer = self._new_optimizer()
-        provmodel.train()
-
-        optimgroups = len(optimizer.param_groups)
-
-        batches_iterator = dataset.trainbatches()
-        losses = []
-        lr_values = np.logspace(init_value, final_value, 50)
-        for lr in lr_values:
-            for i in range(optimgroups):
-                optimizer.param_groups[i]['lr'] = lr
-            train_loss = 0
-            for _ in range(gradient_accumulation_steps):
-                # Gather next batch, looping over the data if necessary
-                try:
-                    batch = next(batches_iterator)
-                except StopIteration:
-                    batches_iterator = dataset.trainbatches()
-                    batch = next(batches_iterator)
-
-                # Forward pass through network
-                model_loss = self._process_batch(provmodel, batch)
-                train_loss += model_loss.item()
-                model_loss /= gradient_accumulation_steps
-
-                # Backpropagation
-                model_loss.backward()
-                torch.nn.utils.clip_grad_norm_(provmodel.parameters(), 1.0)
-
-            # Model update
-            optimizer.step()
-            provmodel.zero_grad()
-
-            # Store loss
-            losses.append(train_loss)
-
-        # Losses smoothing
-        avgloss = 0
-        for i in range(len(losses)):
-            losses[i] = beta * avgloss + (1-beta) * losses[i]
-
-        # Recommend the lr value corresponding to 1/10 times the smallest loss
-        lr_smallest = lr_values[np.argmin(losses)]
-        return lr_smallest / 10
-
-    def _eval(self, val_loader):
-        """Evaluates the performance of a model in a given validation dataset loader"""
-        # Evaluation all data batches
-        eval_loss = 0.0
-        nb_eval_steps = 0
-        self.model.eval()
-        with torch.no_grad():
-            for batch in tqdm(val_loader, desc="Evaluation batch", total=len(val_loader)):
-                tmp_eval_loss = self._process_batch(batch)
-                eval_loss += tmp_eval_loss.mean().item()
-                nb_eval_steps += 1
-
-        eval_loss /= nb_eval_steps
-        return eval_loss
-
-    def _process_batch(self, batch):
-        """Processes a batch of data through the model, return the model loss for that batch"""
-        # Move tensors GPU
-        for key in batch:
-            batch[key] = batch[key].to(self.device)
-        # Forward pass through network
-        outputs = self.model(**batch)
-        return outputs[0]
 
     def generate(self, seed="", maxlength=512, temperature=1, top_k=0, top_p=0.9, appendseed=False):
         """Generates text using this trained model
@@ -311,16 +160,6 @@ class Model:
                 generatedtxt = seed + " " + generatedtxt
 
         return generatedtxt
-
-    def save(self, savefolder):
-        """Saves the model into the given folder"""
-        if not os.path.exists(savefolder):
-            os.makedirs(savefolder)
-        # Save tokenizer
-        self.tokenizer.save_pretrained(savefolder)
-        # Save model
-        model_to_save = self.model.module if hasattr(self.model, 'module') else self.model  #todo Take care of distributed/parallel training
-        model_to_save.save_pretrained(savefolder)
 
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):

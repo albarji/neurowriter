@@ -32,7 +32,7 @@ MAX_CONTEXT = 512
 
 def build_tokenizer(pretrained_model='bert-base-multilingual-cased', special_tokens=[]):
     """Creates a tokenizer based on a Transformers model, and adding special symbols for structured text generation"""
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model, do_lower_case=False)
+    tokenizer = AutoTokenizer.from_pretrained(pretrained_model, do_lower_case=False, use_fast=False)
     tokenizer.add_tokens([START, END] + special_tokens)
     tokenizer.add_special_tokens({'eos_token': EOS})
     return tokenizer

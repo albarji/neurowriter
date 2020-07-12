@@ -11,107 +11,86 @@ import torch
 from unittest.mock import MagicMock
 
 
-from neurowriter.dataset import Dataset
+from neurowriter.dataset import Dataset, TextGenerationCollator
 from neurowriter.tokenizer import build_tokenizer, CLS, SEP, START, END
 
 
 CORPUS = [
-    "Glory to mankind",
-    "Endless forms most beautiful",
+    "glory to mankind",
+    "endless forms most beautiful",
     "abcdedg 1251957151"
 ]
 TOKENIZER = None
-TOKENIZED_CORPUS = None
-MASK = None
+EXPECTED_DATASET = None
 
 
 def setup():
     # Pre-tokenize corpus for test
-    global TOKENIZER, TOKENIZED_CORPUS, MASK
-    TOKENIZER = build_tokenizer()
-    MASK = TOKENIZER.mask_token
-    TOKENIZED_CORPUS = [[START] + TOKENIZER.tokenize(txt, add_special_tokens=False) + [END] for txt in CORPUS]
-
-
-def _assert_equal_batches(expected_batch, real_batch):
-    """Test two batches of patterns are equal"""
-    print(f"Expected {expected_batch}")
-    print(f"Obtained {real_batch}")
-    # Compare all batch fields
-    for key in expected_batch:
-        assert torch.all(expected_batch[key] == real_batch[key])
-
-
-def test_patterns():
-    """Test a Dataset produces a correct set of patterns"""
-    # Build data loaders
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=1)
-
-    # Expected patterns for all corpus
-    expected = [
-        {
-            **TOKENIZER.batch_encode_plus([(tokenized_doc[:i] + [MASK], None)], return_tensors="pt"),
-            "masked_lm_labels": torch.tensor([-100] * (len(tokenized_doc[:i]) + 1) + TOKENIZER.encode(tokenized_doc[i:i+1], add_special_tokens=False) + [-100])
-        }
-        for tokenized_doc in TOKENIZED_CORPUS
-        for i in range(1, len(tokenized_doc))
+    global TOKENIZER, EXPECTED_DATASET
+    TOKENIZER = build_tokenizer(pretrained_model='distilbert-base-uncased')
+    encoded_corpus = [TOKENIZER.encode(f"{START} {txt} {END}", add_special_tokens=False) for txt in CORPUS]
+    # Prepare expected dataset
+    EXPECTED_DATASET = [
+        (doc[0:i+1] + [TOKENIZER.mask_token_id], doc[i+1]) 
+        for doc in encoded_corpus 
+        for i in range(0, len(doc)-1)
     ]
 
+
+def test_dataset_patterns():
+    """Test a Dataset produces a correct set of patterns"""
+    # Build datasets
+    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=1)
+
+    # Split into expected train and test patterns
+    train_expected_dataset = EXPECTED_DATASET[::2]
+    test_expected_dataset = EXPECTED_DATASET[1::2]
+
     # Test train patterns
-    loader = train_dataset.loader(batch_size=1)
-    for real_batch, expected_batch in zip(loader, expected[::2]):
-        _assert_equal_batches(expected_batch, real_batch)
+    for real_pattern, expected_pattern in zip(train_dataset, train_expected_dataset):
+        assert real_pattern == expected_pattern
 
     # Test validation patterns
-    loader = val_dataset.loader(batch_size=1)
-    for real_batch, expected_batch in zip(loader, expected[1::2]):
-        _assert_equal_batches(expected_batch, real_batch)
+    for real_pattern, expected_pattern in zip(val_dataset, test_expected_dataset):
+        assert real_pattern == expected_pattern
 
 
-def test_patterns_noval():
-    """Test a Dataset produces a correct set of patterns when no validation ratio is provided"""
-    # Build data loaders
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=0)
+def test_collator_batches():
+    """Test a TextGenerationCollator produces a correct set of batches"""
+    # Build dataset
+    train_dataset, _ = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=0)
+    collator = TextGenerationCollator(TOKENIZER, torch.device("cpu"))
 
-    batch_sizes = [1, 2]
+    # Try different batch sizes for collating
+    for batch_size in [1, 2, 5, 10]:
+        # Build batch using collator
+        patterns = [train_dataset[i] for i in range(batch_size)]
+        batch = collator(patterns)
+        # Batch contains expected fields for distilbert
+        assert "input_ids" in batch
+        assert "masked_lm_labels" in batch
 
-    for batch_size in batch_sizes:
-        traindata = list(train_dataset.loader(batch_size=batch_size))
-        valdata = list(val_dataset.loader(batch_size=batch_size))
-        assert len(traindata) == len(valdata)
+        # Tensors shapes are as expected
+        maxlen = max([len(EXPECTED_DATASET[i][0]) + 2 for i in range(batch_size)])  # [CLS] + pattern encoding + [CLS]
+        for key in batch:
+            assert batch[key].shape == (batch_size, maxlen)
 
-        for i in range(len(traindata)):
-            _assert_equal_batches(traindata[i], valdata[i])
-
-
-def test_len():
-    """Test the dataset returns correct lengths for different batch sizes"""
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=1)
-    assert len(train_dataset) == 10
-    assert len(val_dataset) == 10
-    assert len(list(train_dataset.loader(batch_size=1))) == 10
-    assert len(list(val_dataset.loader(batch_size=1))) == 10
-    assert len(list(train_dataset.loader(batch_size=2))) == 5
-    assert len(list(val_dataset.loader(batch_size=2))) == 5
-    assert len(list(train_dataset.loader(batch_size=3))) == 4
-    assert len(list(val_dataset.loader(batch_size=3))) == 4
-
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=3)
-    assert len(train_dataset) == 15
-    assert len(val_dataset) == 5
-    assert len(list(train_dataset.loader(batch_size=1))) == 15
-    assert len(list(val_dataset.loader(batch_size=1))) == 5
-    assert len(list(train_dataset.loader(batch_size=2))) == 8
-    assert len(list(val_dataset.loader(batch_size=2))) == 3
-    assert len(list(train_dataset.loader(batch_size=3))) == 5
-    assert len(list(val_dataset.loader(batch_size=3))) == 2
-
-    train_dataset, val_dataset = Dataset.build_datasets(CORPUS, TOKENIZER, trainvalratio=4)
-    assert len(train_dataset) == 16
-    assert len(val_dataset) == 4
-    assert len(list(train_dataset.loader(batch_size=1))) == 16
-    assert len(list(val_dataset.loader(batch_size=1))) == 4
-    assert len(list(train_dataset.loader(batch_size=2))) == 8
-    assert len(list(val_dataset.loader(batch_size=2))) == 2
-    assert len(list(train_dataset.loader(batch_size=3))) == 6
-    assert len(list(val_dataset.loader(batch_size=3))) == 2
+        # All input_ids start with CLS
+        assert all(batch["input_ids"][:, 0] == TOKENIZER.cls_token_id)
+        # All input_ids end with SEP followed by zero or more PAD
+        for pattern in batch["input_ids"]:
+            sep_location = (pattern == TOKENIZER.sep_token_id).nonzero()
+            assert len(sep_location) == 1
+            assert all(pattern[sep_location.item()+1:] == TOKENIZER.pad_token_id)
+        # Codified inputs in the batch are as expected
+        for pattern, expected_pattern in zip(batch["input_ids"], EXPECTED_DATASET):
+            expected_input = expected_pattern[0]
+            assert all(pattern[1:1+len(expected_input)] == torch.tensor(expected_input))
+        # Codified outputs in the batch are as expected
+        for pattern, labels, expected_pattern in zip(batch["input_ids"], batch["masked_lm_labels"], EXPECTED_DATASET):
+            expected_input, expected_output = expected_pattern
+            expected_labels = [-100] * len(labels)
+            mask_location = (pattern == TOKENIZER.mask_token_id).nonzero()
+            assert len(mask_location) == 1
+            expected_labels[mask_location.item()] = expected_output
+            assert all(labels == torch.tensor(expected_labels))

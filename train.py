@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 
-def run_train(corpus, corpusformat, outputdir, pretrained_model, special_tokens_file, maxepochs, checkpointepochs, 
+def run_train(corpus, corpusformat, outputdir, pretrained_model, special_tokens_file, max_steps, checkpointsteps, 
         trainvalratio, batchsize, gradaccsteps, patience):
     """Trains a Neurowriter model"""
     # Load corpus
@@ -32,9 +32,8 @@ def run_train(corpus, corpusformat, outputdir, pretrained_model, special_tokens_
     # Model training
     logging.info("Training model...")
     model = Model(pretrained_model=pretrained_model, special_tokens=special_tokens)
-    model.fit(corpus, outputdir, maxepochs=maxepochs, checkpointepochs=checkpointepochs, 
-        gradient_accumulation_steps=gradaccsteps, patience=patience, batch_size=batchsize,
-        trainvalratio=trainvalratio)
+    model.fit(corpus, outputdir, max_steps=max_steps, checkpointsteps=checkpointsteps, 
+        gradient_accumulation_steps=gradaccsteps, batch_size=batchsize, trainvalratio=trainvalratio)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Neurowriter model")
@@ -43,8 +42,8 @@ if __name__ == "__main__":
     parser.add_argument("outputdir", type=str, help="Directory in which to save trained models")
     parser.add_argument("--pretrained_model", type=str, default="bert-base-multilingual-cased", help="Pretrained Transformers model to use as base")
     parser.add_argument("--special_tokens_file", type=str, default=None, help="File with special symbols to add as tokens to the tokenizer, one symbol per line")
-    parser.add_argument("--maxepochs", type=int, default=100, help="Maximum epochs to run model training")
-    parser.add_argument("--checkpointepochs", type=int, default=10, help="Create a model checkpoint every n epochs")
+    parser.add_argument("--max_steps", type=int, default=1000, help="Maximum steps to run model training")
+    parser.add_argument("--checkpointsteps", type=int, default=100, help="Create a model checkpoint every n steps")
     parser.add_argument("--trainvalratio", type=int, default=3, 
                         help="Number of training patterns for each validation pattern")
     parser.add_argument("--batchsize", type=int, default=8, help="Size of training batches")
@@ -53,5 +52,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run_train(args.corpus, args.corpusformat, args.outputdir, pretrained_model=args.pretrained_model, special_tokens_file=args.special_tokens_file,
-        maxepochs=args.maxepochs, checkpointepochs=args.checkpointepochs, trainvalratio=args.trainvalratio, batchsize=args.batchsize,
+        max_steps=args.max_steps, checkpointsteps=args.checkpointsteps, trainvalratio=args.trainvalratio, batchsize=args.batchsize,
         gradaccsteps=args.gradaccsteps, patience=args.patience)
